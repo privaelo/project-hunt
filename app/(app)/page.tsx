@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Flame } from "lucide-react";
 import { FocusAreaBadges } from "@/components/FocusAreaBadges";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 
@@ -46,6 +46,15 @@ type NewestProject = {
   creatorName: string;
   creatorAvatar: string;
   _creationTime: number;
+};
+
+type ActiveUser = {
+  _id: Id<"users">;
+  name: string;
+  avatarUrlId: string;
+  team: string;
+  score: number;
+  projectCount: number;
 };
 
 function getRelativeTime(timestamp: number): string {
@@ -131,7 +140,10 @@ export default function Home() {
             </LayoutGroup>
           </div>
 
-          <NewestProjects />
+          <div className="flex flex-col gap-8">
+            <TopContributors />
+            <NewestProjects />
+          </div>
         </section>
       </main>
     </div>
@@ -291,6 +303,33 @@ function EmptyState() {
   );
 }
 
+function ActiveUserCard({ user }: { user: ActiveUser }) {
+  return (
+    <div className="rounded-lg p-3 transition-colors hover:bg-zinc-100">
+      <div className="flex items-center gap-2">
+        <Avatar className="h-8 w-8 bg-zinc-100">
+          <AvatarImage src={user.avatarUrlId} alt={user.name || "User"} />
+          <AvatarFallback className="text-xs font-semibold text-zinc-600">
+            {(user.name || "U").slice(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <h4 className="font-semibold text-zinc-900 text-sm line-clamp-1">
+            {user.name}
+          </h4>
+          {user.team && (
+            <p className="text-xs text-zinc-500 line-clamp-1">{user.team}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          <Flame className="h-4 w-4 text-orange-500" />
+          <span className="text-lg font-semibold text-zinc-900">{user.score}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function NewestProjectCard({ project }: { project: NewestProject }) {
   const router = useRouter();
 
@@ -337,8 +376,39 @@ function NewestProjectCard({ project }: { project: NewestProject }) {
   );
 }
 
+function TopContributors() {
+  const topUsers = useQuery(api.users.getActiveUsers, { limit: 5 });
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2 px-3">
+        <h3 className="text-2xl font-semibold text-zinc-900">Top contributors</h3>
+      </div>
+
+      {!topUsers ? (
+        <div className="space-y-3 px-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="animate-pulse space-y-2">
+              <div className="h-4 bg-zinc-200 rounded w-3/4"></div>
+              <div className="h-3 bg-zinc-200 rounded w-full"></div>
+            </div>
+          ))}
+        </div>
+      ) : topUsers.length === 0 ? (
+        <p className="text-sm text-zinc-500 px-3">No active contributors yet.</p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {topUsers.map((user) => (
+            <ActiveUserCard key={user._id} user={user} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function NewestProjects() {
-  const newestProjects = useQuery(api.projects.getNewestProjects, { limit: 5 });
+  const newestProjects = useQuery(api.projects.getNewestProjects, { limit: 3 });
 
   return (
     <div className="flex flex-col gap-4">

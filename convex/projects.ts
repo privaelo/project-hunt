@@ -666,7 +666,7 @@ export const getNewestProjects = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const limit = args.limit ?? 5;
+    const limit = args.limit ?? 3;
 
     // Query active projects sorted by creation time (newest first)
     const projects = await ctx.db

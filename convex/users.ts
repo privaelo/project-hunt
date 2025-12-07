@@ -167,3 +167,74 @@ export const completeOnboarding = mutation({
     return { success: true };
   },
 });
+
+export const getActiveUsers = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 5;
+    const users = await ctx.db.query("users").collect();
+
+    const usersWithScores = await Promise.all(
+      users.map(async (user) => {
+        // Count active projects created
+        const projects = await ctx.db
+          .query("projects")
+          .withIndex("by_userId", (q) => q.eq("userId", user._id))
+          .filter((q) => q.eq(q.field("status"), "active"))
+          .collect();
+
+        // Calculate total upvotes received on all projects
+        const upvoteCounts = await Promise.all(
+          projects.map(async (project) => {
+            const upvotes = await ctx.db
+              .query("upvotes")
+              .withIndex("by_project", (q) => q.eq("projectId", project._id))
+              .collect();
+            return upvotes.length;
+          })
+        );
+        const totalUpvotes = upvoteCounts.reduce((a, b) => a + b, 0);
+
+        // Count comments posted (non-deleted)
+        const comments = await ctx.db
+          .query("comments")
+          .withIndex("by_user", (q) => q.eq("userId", user._id))
+          .filter((q) => q.neq(q.field("isDeleted"), true))
+          .collect();
+
+        // Count upvotes given
+        const upvotesGiven = await ctx.db
+          .query("commentUpvotes")
+          .withIndex("by_user", (q) => q.eq("userId", user._id))
+          .collect();
+
+        // Hybrid score: projects(×5) + upvotes received + engagement
+        const score = (projects.length * 5) + totalUpvotes + comments.length + upvotesGiven.length;
+
+        // Get team name
+        let teamName = "";
+        if (user.teamId) {
+          const team = await ctx.db.get(user.teamId);
+          teamName = team?.name ?? "";
+        }
+
+        return {
+          _id: user._id,
+          name: user.name,
+          avatarUrlId: user.avatarUrlId ?? "",
+          team: teamName,
+          score,
+          projectCount: projects.length,
+        };
+      })
+    );
+
+    // Return top users by score (filter out zero activity)
+    return usersWithScores
+      .filter((u) => u.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit);
+  },
+});
