@@ -377,7 +377,7 @@ function NewestProjectCard({ project }: { project: NewestProject }) {
 }
 
 function TopContributors() {
-  const topUsers = useQuery(api.users.getActiveUsers, { limit: 5 });
+  const topUsers = useQuery(api.users.getActiveUsers, { limit: 4 });
 
   return (
     <div className="flex flex-col gap-4">
@@ -397,7 +397,7 @@ function TopContributors() {
       ) : topUsers.length === 0 ? (
         <p className="text-sm text-zinc-500 px-3">No active contributors yet.</p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-0">
           {topUsers.map((user) => (
             <ActiveUserCard key={user._id} user={user} />
           ))}

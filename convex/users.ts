@@ -173,7 +173,7 @@ export const getActiveUsers = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const limit = args.limit ?? 5;
+    const limit = args.limit ?? 4;
     const users = await ctx.db.query("users").collect();
 
     const usersWithScores = await Promise.all(
