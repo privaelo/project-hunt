@@ -48,7 +48,8 @@ export default defineSchema({
     upvotes: v.optional(v.number()),
   })
     .index("by_project", ["projectId"])
-    .index("by_parent", ["parentCommentId"]),
+    .index("by_parent", ["parentCommentId"])
+    .index("by_user", ["userId"]),
   commentUpvotes: defineTable({
     commentId: v.id("comments"),
     userId: v.id("users"),
