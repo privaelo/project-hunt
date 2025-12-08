@@ -210,8 +210,8 @@ export const getActiveUsers = query({
           .withIndex("by_user", (q) => q.eq("userId", user._id))
           .collect();
 
-        // Hybrid score: projects(×5) + upvotes received + engagement
-        const score = (projects.length * 5) + totalUpvotes + comments.length + upvotesGiven.length;
+        // Hybrid score: projects(×10) + upvotes received + engagement
+        const score = (projects.length * 10) + (totalUpvotes * 3) + (comments.length * 2) + upvotesGiven.length;
 
         // Get team name
         let teamName = "";
