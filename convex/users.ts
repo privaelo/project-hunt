@@ -178,14 +178,13 @@ export const getActiveUsers = query({
 
     const usersWithScores = await Promise.all(
       users.map(async (user) => {
-        // Count active projects created
+        // Only consider how many upvotes the user's projects receive
         const projects = await ctx.db
           .query("projects")
           .withIndex("by_userId", (q) => q.eq("userId", user._id))
           .filter((q) => q.eq(q.field("status"), "active"))
           .collect();
 
-        // Calculate total upvotes received on all projects
         const upvoteCounts = await Promise.all(
           projects.map(async (project) => {
             const upvotes = await ctx.db
@@ -195,23 +194,7 @@ export const getActiveUsers = query({
             return upvotes.length;
           })
         );
-        const totalUpvotes = upvoteCounts.reduce((a, b) => a + b, 0);
-
-        // Count comments posted (non-deleted)
-        const comments = await ctx.db
-          .query("comments")
-          .withIndex("by_user", (q) => q.eq("userId", user._id))
-          .filter((q) => q.neq(q.field("isDeleted"), true))
-          .collect();
-
-        // Count upvotes given
-        const upvotesGiven = await ctx.db
-          .query("commentUpvotes")
-          .withIndex("by_user", (q) => q.eq("userId", user._id))
-          .collect();
-
-        // Hybrid score: projects(×10) + upvotes received + engagement
-        const score = (projects.length * 10) + (totalUpvotes * 3) + (comments.length * 2) + upvotesGiven.length;
+        const score = upvoteCounts.reduce((a, b) => a + b, 0);
 
         // Get team name
         let teamName = "";
