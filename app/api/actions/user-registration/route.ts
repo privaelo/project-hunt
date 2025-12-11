@@ -3,7 +3,7 @@ import { getWorkOS } from "@workos-inc/authkit-nextjs";
 
 export async function POST(request: NextRequest) {
   const workos = getWorkOS();
-  let payload = await request.json();
+  const payload = await request.json();
   const sigHeader = request.headers.get("workos-signature") || "";
 
   try {
