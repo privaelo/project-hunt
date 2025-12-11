@@ -4,30 +4,6 @@ import { getWorkOS } from "@workos-inc/authkit-nextjs";
 export async function POST(request: NextRequest) {
   const workos = getWorkOS();
   let payload = await request.json();
-
-  // 2. FIX: Handle double-encoded JSON (if payload is a string, parse it again)
-  if (typeof payload === 'string') {
-    try {
-      payload = JSON.parse(payload);
-    } catch (e) {
-      console.error("Failed to parse string payload:", e);
-      return NextResponse.json(
-        { error: "Invalid payload format. Expected JSON object." },
-        { status: 400 }
-      );
-    }
-  }
-
-  // 3. Debug check (now payload should be an object)
-  if (typeof payload !== 'object' || payload === null) {
-    console.error("Error: Payload is not an object. Received:", typeof payload, payload);
-    return NextResponse.json(
-      { error: "Invalid payload format. Expected JSON object." },
-      { status: 400 }
-    );
-  }
-
-
   const sigHeader = request.headers.get("workos-signature") || "";
 
   try {
