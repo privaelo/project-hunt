@@ -35,46 +35,7 @@ type Project = {
   creatorAvatar: string;
   focusAreas: FocusArea[];
   readinessStatus?: "in_progress" | "ready_to_use";
-  origin?:
-    | "personal_workflow"
-    | "team_request"
-    | "department_initiative"
-    | "leadership_requested"
-    | "compliance_process";
-  painScope?: "me" | "my_team" | "a_department" | "multiple_groups";
 };
-
-function getOriginLabel(
-  origin: NonNullable<Project["origin"]>
-): string {
-  switch (origin) {
-    case "personal_workflow":
-      return "Personal workflow";
-    case "team_request":
-      return "Team request";
-    case "department_initiative":
-      return "Department initiative";
-    case "leadership_requested":
-      return "Leadership-requested";
-    case "compliance_process":
-      return "Compliance / process";
-  }
-}
-
-function getPainScopeLabel(
-  scope: NonNullable<Project["painScope"]>
-): string {
-  switch (scope) {
-    case "me":
-      return "Me";
-    case "my_team":
-      return "My team";
-    case "a_department":
-      return "A department";
-    case "multiple_groups":
-      return "Multiple groups";
-  }
-}
 
 function parseSmcSummary(summary: string): { problem?: string; built?: string } {
   const normalized = (summary ?? "").trim();
@@ -300,13 +261,6 @@ function ProjectRow({
           ) : (
             <p className="text-sm text-zinc-600 line-clamp-2 break-words">
               {project.summary}
-            </p>
-          )}
-          {(project.origin || project.painScope) && (
-            <p className="text-xs text-zinc-500">
-              {project.origin ? `Origin: ${getOriginLabel(project.origin)}` : null}
-              {project.origin && project.painScope ? " • " : null}
-              {project.painScope ? `Pain felt by: ${getPainScopeLabel(project.painScope)}` : null}
             </p>
           )}
           {project.readinessStatus !== "ready_to_use" && (

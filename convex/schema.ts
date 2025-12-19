@@ -16,23 +16,6 @@ export default defineSchema({
     focusAreaIds: v.array(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
     pinned: v.optional(v.boolean()),
-    origin: v.optional(
-      v.union(
-        v.literal("personal_workflow"),
-        v.literal("team_request"),
-        v.literal("department_initiative"),
-        v.literal("leadership_requested"),
-        v.literal("compliance_process")
-      )
-    ),
-    painScope: v.optional(
-      v.union(
-        v.literal("me"),
-        v.literal("my_team"),
-        v.literal("a_department"),
-        v.literal("multiple_groups")
-      )
-    ),
   })
     .searchIndex("allFields", { searchField: "allFields" })
     .index("by_entryId", ["entryId"])

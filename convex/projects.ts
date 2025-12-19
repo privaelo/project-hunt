@@ -137,23 +137,6 @@ export const create = action({
     link: v.optional(v.string()),
     focusAreaIds: v.array(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
-    origin: v.optional(
-      v.union(
-        v.literal("personal_workflow"),
-        v.literal("team_request"),
-        v.literal("department_initiative"),
-        v.literal("leadership_requested"),
-        v.literal("compliance_process")
-      )
-    ),
-    painScope: v.optional(
-      v.union(
-        v.literal("me"),
-        v.literal("my_team"),
-        v.literal("a_department"),
-        v.literal("multiple_groups")
-      )
-    ),
   },
   handler: async (ctx, args): Promise<{
     projectId: Id<"projects">;
@@ -181,8 +164,6 @@ export const create = action({
         link: args.link,
         focusAreaIds: args.focusAreaIds,
         readinessStatus: args.readinessStatus,
-        origin: args.origin,
-        painScope: args.painScope,
         status: "pending" as const,
         userId: user._id,
       }
@@ -242,23 +223,6 @@ export const createProject = internalMutation({
     focusAreaIds: v.array(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
     pinned: v.optional(v.boolean()),
-    origin: v.optional(
-      v.union(
-        v.literal("personal_workflow"),
-        v.literal("team_request"),
-        v.literal("department_initiative"),
-        v.literal("leadership_requested"),
-        v.literal("compliance_process")
-      )
-    ),
-    painScope: v.optional(
-      v.union(
-        v.literal("me"),
-        v.literal("my_team"),
-        v.literal("a_department"),
-        v.literal("multiple_groups")
-      )
-    ),
   },
   handler: async (ctx, args) => {
     let teamId: Id<"teams"> | undefined = undefined;
@@ -280,8 +244,6 @@ export const createProject = internalMutation({
       focusAreaIds: args.focusAreaIds,
       readinessStatus: args.readinessStatus,
       pinned: args.pinned ?? false,
-      origin: args.origin,
-      painScope: args.painScope,
     });
   },
 });
@@ -352,23 +314,6 @@ export const populateProjectDetails = internalQuery({
         focusAreaIds: v.array(v.id("focusAreas")),
         readinessStatus: v.optional(v.union(v.literal("in_progress"), v.literal("ready_to_use"))),
         pinned: v.optional(v.boolean()),
-        origin: v.optional(
-          v.union(
-            v.literal("personal_workflow"),
-            v.literal("team_request"),
-            v.literal("department_initiative"),
-            v.literal("leadership_requested"),
-            v.literal("compliance_process")
-          )
-        ),
-        painScope: v.optional(
-          v.union(
-            v.literal("me"),
-            v.literal("my_team"),
-            v.literal("a_department"),
-            v.literal("multiple_groups")
-          )
-        ),
       })
     ),
   },
@@ -445,23 +390,6 @@ export const updateProjectFields = internalMutation({
     link: v.optional(v.string()),
     focusAreaIds: v.array(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
-    origin: v.optional(
-      v.union(
-        v.literal("personal_workflow"),
-        v.literal("team_request"),
-        v.literal("department_initiative"),
-        v.literal("leadership_requested"),
-        v.literal("compliance_process")
-      )
-    ),
-    painScope: v.optional(
-      v.union(
-        v.literal("me"),
-        v.literal("my_team"),
-        v.literal("a_department"),
-        v.literal("multiple_groups")
-      )
-    ),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.projectId, {
@@ -471,8 +399,6 @@ export const updateProjectFields = internalMutation({
       link: args.link,
       focusAreaIds: args.focusAreaIds,
       readinessStatus: args.readinessStatus,
-      origin: args.origin,
-      painScope: args.painScope,
     });
   },
 });
@@ -486,23 +412,6 @@ export const updateProject = action({
     link: v.optional(v.string()),
     focusAreaIds: v.array(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
-    origin: v.optional(
-      v.union(
-        v.literal("personal_workflow"),
-        v.literal("team_request"),
-        v.literal("department_initiative"),
-        v.literal("leadership_requested"),
-        v.literal("compliance_process")
-      )
-    ),
-    painScope: v.optional(
-      v.union(
-        v.literal("me"),
-        v.literal("my_team"),
-        v.literal("a_department"),
-        v.literal("multiple_groups")
-      )
-    ),
   },
   handler: async (ctx, args) => {
     const user = await ctx.runQuery(internal.projects.getCurrentUserInternal, {});
@@ -530,8 +439,6 @@ export const updateProject = action({
       link: args.link,
       focusAreaIds: args.focusAreaIds,
       readinessStatus: args.readinessStatus,
-      origin: args.origin,
-      painScope: args.painScope,
     });
 
     // Update the RAG index

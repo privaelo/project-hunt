@@ -24,43 +24,6 @@ import { ReadinessBadge } from "@/components/ReadinessBadge";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 
-type ProjectOrigin =
-  | "personal_workflow"
-  | "team_request"
-  | "department_initiative"
-  | "leadership_requested"
-  | "compliance_process";
-
-type PainScope = "me" | "my_team" | "a_department" | "multiple_groups";
-
-function getOriginLabel(origin: ProjectOrigin): string {
-  switch (origin) {
-    case "personal_workflow":
-      return "Personal workflow";
-    case "team_request":
-      return "Team request";
-    case "department_initiative":
-      return "Department initiative";
-    case "leadership_requested":
-      return "Leadership-requested";
-    case "compliance_process":
-      return "Compliance / process requirement";
-  }
-}
-
-function getPainScopeLabel(scope: PainScope): string {
-  switch (scope) {
-    case "me":
-      return "Me";
-    case "my_team":
-      return "My team";
-    case "a_department":
-      return "A department";
-    case "multiple_groups":
-      return "Multiple groups";
-  }
-}
-
 function MediaCarousel({
   mediaFiles,
 }: {
@@ -354,21 +317,6 @@ export default function ProjectPage({
               </>
             )}
           </div>
-
-          {(project.origin || project.painScope) && (
-            <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
-              {project.origin && (
-                <span className="rounded-full bg-white px-2.5 py-1 border border-zinc-200">
-                  Origin: {getOriginLabel(project.origin as ProjectOrigin)}
-                </span>
-              )}
-              {project.painScope && (
-                <span className="rounded-full bg-white px-2.5 py-1 border border-zinc-200">
-                  Pain felt by: {getPainScopeLabel(project.painScope as PainScope)}
-                </span>
-              )}
-            </div>
-          )}
 
           {project.readinessStatus !== "ready_to_use" && (
             <div className="rounded-2xl border border-zinc-200 bg-white/80 p-4 text-sm text-zinc-600">

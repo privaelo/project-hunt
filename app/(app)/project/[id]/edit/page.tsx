@@ -25,43 +25,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-type ProjectOrigin =
-  | "personal_workflow"
-  | "team_request"
-  | "department_initiative"
-  | "leadership_requested"
-  | "compliance_process";
-
-type PainScope = "me" | "my_team" | "a_department" | "multiple_groups";
-
-function getOriginLabel(origin: ProjectOrigin): string {
-  switch (origin) {
-    case "personal_workflow":
-      return "Personal workflow";
-    case "team_request":
-      return "Team request";
-    case "department_initiative":
-      return "Department initiative";
-    case "leadership_requested":
-      return "Leadership-requested";
-    case "compliance_process":
-      return "Compliance / process requirement";
-  }
-}
-
-function getPainScopeLabel(scope: PainScope): string {
-  switch (scope) {
-    case "me":
-      return "Me";
-    case "my_team":
-      return "My team";
-    case "a_department":
-      return "A department";
-    case "multiple_groups":
-      return "Multiple groups";
-  }
-}
-
 function ExistingMediaThumbnail({
   media,
   onDelete,
@@ -137,8 +100,6 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [selectedFocusAreas, setSelectedFocusAreas] = useState<Id<"focusAreas">[]>([]);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"in_progress" | "ready_to_use">("in_progress");
-  const [origin, setOrigin] = useState<ProjectOrigin | undefined>(undefined);
-  const [painScope, setPainScope] = useState<PainScope | undefined>(undefined);
 
   const { getRootProps, getInputProps, fileRejections, isDragActive } = useDropzone({
     accept: {
@@ -178,8 +139,6 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       });
       setSelectedFocusAreas(project.focusAreaIds);
       setSelectedReadinessStatus(project.readinessStatus ?? "in_progress");
-      setOrigin(project.origin as ProjectOrigin | undefined);
-      setPainScope(project.painScope as PainScope | undefined);
       setIsLoading(false);
     }
   }, [project]);
@@ -198,8 +157,6 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
         link: formData.link || undefined,
         focusAreaIds: selectedFocusAreas,
         readinessStatus: selectedReadinessStatus,
-        origin,
-        painScope,
       });
 
       // Upload and add new media files if any are selected
@@ -357,68 +314,6 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
                 selectedFocusAreas={selectedFocusAreas}
                 onSelectionChange={setSelectedFocusAreas}
               />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <label htmlFor="origin" className="text-sm font-medium text-zinc-900">
-                  Origin <span className="text-xs text-zinc-500">(optional)</span>
-                </label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p className="text-xs">
-                      Add context for how this started (not a measure of &quot;officialness&quot;).
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <Select
-                value={origin}
-                onValueChange={(value: ProjectOrigin) => setOrigin(value)}
-              >
-                <SelectTrigger id="origin" className="w-full">
-                  <SelectValue placeholder="Select origin" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(
-                    [
-                      "personal_workflow",
-                      "team_request",
-                      "department_initiative",
-                      "leadership_requested",
-                      "compliance_process",
-                    ] as ProjectOrigin[]
-                  ).map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {getOriginLabel(value)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="painScope" className="text-sm font-medium text-zinc-900">
-                Who originally felt this pain? <span className="text-xs text-zinc-500">(optional)</span>
-              </label>
-              <Select
-                value={painScope}
-                onValueChange={(value: PainScope) => setPainScope(value)}
-              >
-                <SelectTrigger id="painScope" className="w-full">
-                  <SelectValue placeholder="Select who felt it first" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(["me", "my_team", "a_department", "multiple_groups"] as PainScope[]).map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {getPainScopeLabel(value)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="space-y-2">
