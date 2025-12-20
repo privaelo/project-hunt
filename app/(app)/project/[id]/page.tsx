@@ -213,7 +213,7 @@ export default function ProjectPage({
           </div>
 
           <div className="space-y-3">
-            <p className="whitespace-pre-wrap text-lg leading-relaxed text-zinc-700">
+            <p className="whitespace-pre-wrap text-base leading-relaxed text-zinc-600">
               {project.summary}
             </p>
           </div>

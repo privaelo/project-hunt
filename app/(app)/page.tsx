@@ -10,7 +10,6 @@ import { motion, LayoutGroup } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 import { MessageCircle, Flame } from "lucide-react";
 import { ProjectMediaCarousel } from "@/components/ProjectMediaCarousel";
@@ -97,7 +96,6 @@ export default function Home() {
             <div>
               <h2 className="text-3xl font-semibold tracking-tight flex items-center gap-3">
                 Tools built inside Honda
-                <Badge className="text-xs font-medium">For you</Badge>
               </h2>
               <p className="mt-2 text-lg text-zinc-600">
                 If it made work easier, it belongs here.
@@ -242,47 +240,51 @@ function ProjectRow({
       {/* Action buttons */}
       <div className="flex items-center gap-2">
         {isAuthenticated ? (
-          <motion.div whileTap={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
+          <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
             <Button
               variant={project.hasUpvoted ? "default" : "outline"}
               size="sm"
               onClick={handleUpvoteClick}
-              className={`flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium ${project.hasUpvoted ? "hover:!bg-primary hover:!text-primary-foreground" : "hover:!bg-zinc-200"}`}
+              className={`flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium hover:ring-2 hover:ring-accent hover:ring-offset-2 transition-all ${project.hasUpvoted ? "hover:!bg-primary hover:!text-primary-foreground" : "hover:!bg-background hover:!text-foreground"}`}
             >
               <span aria-hidden="true">↑</span>
               <span>{project.upvotes}</span>
             </Button>
           </motion.div>
         ) : (
+          <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium hover:!bg-background hover:!text-foreground hover:ring-2 hover:ring-accent hover:ring-offset-2 transition-all"
+              asChild
+            >
+              <Link href="/sign-in" prefetch={false}>
+                <span aria-hidden="true">↑</span>
+                <span>{project.upvotes}</span>
+              </Link>
+            </Button>
+          </motion.div>
+        )}
+        <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
           <Button
             variant="outline"
             size="sm"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium hover:!bg-zinc-200"
-            asChild
+            onClick={handleCommentClick}
+            className="flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium hover:!bg-background hover:!text-foreground hover:ring-2 hover:ring-accent hover:ring-offset-2 transition-all"
+            aria-label={`View ${project.commentCount} comments`}
           >
-            <Link href="/sign-in" prefetch={false}>
-              <span aria-hidden="true">↑</span>
-              <span>{project.upvotes}</span>
-            </Link>
+            <MessageCircle className="h-4 w-4" aria-hidden="true" />
+            <span>{project.commentCount}</span>
           </Button>
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCommentClick}
-          className="flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium hover:!bg-zinc-200"
-          aria-label={`View ${project.commentCount} comments`}
-        >
-          <MessageCircle className="h-4 w-4" aria-hidden="true" />
-          <span>{project.commentCount}</span>
-        </Button>
+        </motion.div>
 
         {project.focusAreas.length > 0 && (
           <div className="ml-auto">
             <FocusAreaBadges
               focusAreas={project.focusAreas}
-              className="text-[10px]"
+              className="text-xs"
             />
           </div>
         )}
