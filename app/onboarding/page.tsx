@@ -9,25 +9,16 @@ import { Id } from '@/convex/_generated/dataModel';
 import { FocusAreaPicker } from '@/components/FocusAreaPicker';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-
-const thingsThatBelong = [
-  'a script you wrote for yourself',
-  'a tool your manager asked you to build',
-  'a department dashboard',
-  'a deadline workaround',
-  'a prototype that never shipped',
-  'a compliance/reporting solution',
-];
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { isLoading: authLoading } = useConvexAuth();
-  const user = useQuery(api.users.current);
+  const user = useQuery(api.users.currentWithFocusAreas);
   const focusAreasGrouped = useQuery(api.focusAreas.listActiveGrouped);
   const completeOnboarding = useMutation(api.users.completeOnboarding);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [focusAreaIds, setFocusAreaIds] = useState<Id<'focusAreas'>[]>([]);
+  const [focusAreaIdsOverride, setFocusAreaIdsOverride] = useState<Id<'focusAreas'>[] | null>(null);
+  const [userIntentOverride, setUserIntentOverride] = useState<'looking' | 'sharing' | 'both' | null>(null);
 
   useEffect(() => {
     if (user?.onboardingCompleted) {
@@ -35,7 +26,10 @@ export default function OnboardingPage() {
     }
   }, [user, router]);
 
-  const canProceed = focusAreaIds.length > 0;
+  const resolvedFocusAreaIds = focusAreaIdsOverride ?? user?.focusAreaIds ?? [];
+  const resolvedUserIntent = userIntentOverride ?? user?.userIntent ?? null;
+
+  const canProceed = resolvedFocusAreaIds.length > 0 && resolvedUserIntent !== null;
 
   const handleComplete = async () => {
     if (!canProceed) return;
@@ -43,24 +37,12 @@ export default function OnboardingPage() {
     setIsSubmitting(true);
     try {
       await completeOnboarding({
-        focusAreaIds,
+        focusAreaIds: resolvedFocusAreaIds,
+        userIntent: resolvedUserIntent || undefined,
       });
       router.push('/');
     } catch (error) {
       console.error('Failed to complete onboarding:', error);
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSkip = async () => {
-    setIsSubmitting(true);
-    try {
-      await completeOnboarding({
-        focusAreaIds: [],
-      });
-      router.push('/');
-    } catch (error) {
-      console.error('Failed to skip onboarding:', error);
       setIsSubmitting(false);
     }
   };
@@ -79,45 +61,58 @@ export default function OnboardingPage() {
         <CardHeader className="border-b border-zinc-100">
           <CardTitle className="text-2xl text-zinc-900">Welcome to Garden</CardTitle>
           <CardDescription className="mt-2 text-base space-y-1">
-            <p>If you built something in response to friction — personal, team, or department — it belongs here.</p>
-            <p className="text-sm text-zinc-600">It doesn&apos;t matter whether this was self-initiated or requested — if it solved real friction, it belongs here.</p>
-            <p className="text-sm text-zinc-600">Rough, unfinished, and hacky is welcome — share early, iterate later.</p>
-            <Accordion type="single" collapsible className="pt-1">
-              <AccordionItem value="things" className="border-b-0">
-                <AccordionTrigger className="py-1 text-xs font-medium uppercase tracking-wide text-zinc-500">
-                  Things that belong
-                </AccordionTrigger>
-                <AccordionContent className="pt-2">
-                  <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600">
-                    {thingsThatBelong.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-            <p className="pt-2">Pick a few focus areas so we can point you to relevant projects (or skip for now).</p>
+            <p className="pt-2">Help us personalize your experience by answering a few quick questions.</p>
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
-          <FocusAreaPicker
-            focusAreasGrouped={focusAreasGrouped}
-            selectedFocusAreas={focusAreaIds}
-            onSelectionChange={setFocusAreaIds}
-          />
+          {/* User Intent Section */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-zinc-900">What brings you to Garden?</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Button
+                onClick={() => setUserIntentOverride('looking')}
+                variant={resolvedUserIntent === 'looking' ? 'default' : 'outline'}
+                className="h-auto py-3"
+              >
+                Looking for tools
+              </Button>
+              <Button
+                onClick={() => setUserIntentOverride('sharing')}
+                variant={resolvedUserIntent === 'sharing' ? 'default' : 'outline'}
+                className="h-auto py-3"
+              >
+                Sharing tools
+              </Button>
+              <Button
+                onClick={() => setUserIntentOverride('both')}
+                variant={resolvedUserIntent === 'both' ? 'default' : 'outline'}
+                className="h-auto py-3"
+              >
+                Both
+              </Button>
+            </div>
+          </div>
+
+          {/* Focus Areas Section */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-zinc-900">Select your focus areas</h3>
+            <FocusAreaPicker
+              focusAreasGrouped={focusAreasGrouped}
+              selectedFocusAreas={resolvedFocusAreaIds}
+              onSelectionChange={setFocusAreaIdsOverride}
+            />
+          </div>
 
           {!canProceed && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              Select at least one focus area to continue.
+              {!resolvedUserIntent && 'Please select what brings you to Garden. '}
+              {resolvedUserIntent && resolvedFocusAreaIds.length === 0 && 'Select at least one focus area to continue.'}
             </div>
           )}
         </CardContent>
 
         <CardFooter className="flex flex-wrap gap-3 justify-end border-t border-zinc-100">
-          <Button variant="ghost" onClick={handleSkip} disabled={isSubmitting}>
-            {isSubmitting ? 'Loading...' : 'Skip for now'}
-          </Button>
           <Button onClick={handleComplete} disabled={isSubmitting || !canProceed}>
             {isSubmitting ? 'Completing...' : 'Complete setup'}
           </Button>

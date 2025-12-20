@@ -1,11 +1,27 @@
-import { internalMutation, query, QueryCtx, mutation } from "./_generated/server";
-import { UserJSON } from "@clerk/backend";
-import { v, Validator } from "convex/values";
+import { query, QueryCtx, mutation } from "./_generated/server";
+import { v } from "convex/values";
 
 export const current = query({
   args: {},
   handler: async (ctx) => {
     return await getCurrentUser(ctx);
+  },
+});
+
+export const currentWithFocusAreas = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return null;
+
+    const focusAreaLinks = await ctx.db
+      .query("userFocusAreas")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+
+    const focusAreaIds = focusAreaLinks.map((link) => link.focusAreaId);
+
+    return { ...user, focusAreaIds };
   },
 });
 
@@ -142,6 +158,7 @@ export const completeOnboarding = mutation({
   args: {
     teamId: v.optional(v.id("teams")),
     focusAreaIds: v.array(v.id("focusAreas")),
+    userIntent: v.optional(v.union(v.literal("looking"), v.literal("sharing"), v.literal("both"))),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
@@ -150,6 +167,7 @@ export const completeOnboarding = mutation({
     await ctx.db.patch(user._id, {
       onboardingCompleted: true,
       teamId: args.teamId,
+      userIntent: args.userIntent,
     });
 
     // Create userFocusArea relationships in junction table
