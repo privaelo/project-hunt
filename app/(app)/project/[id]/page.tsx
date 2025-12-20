@@ -129,7 +129,7 @@ export default function ProjectPage({
                 <ReadinessBadge status={project.readinessStatus} />
               </div>
               {(projectLink || (project.focusAreas && project.focusAreas.length > 0)) && (
-                <div className="mt-4 flex flex-wrap items-center gap-4">
+                <div className="mt-1 flex flex-wrap items-center gap-4">
                   {projectLink && (
                     <Button
                       variant="link"
@@ -154,29 +154,31 @@ export default function ProjectPage({
                 </div>
               )}
             </div>
-            {isAuthenticated ? (
-              <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
-                <Button
-                  variant={project.hasUpvoted ? "default" : "outline"}
-                  onClick={handleUpvote}
-                  className={`rounded-full px-4 py-2.5 text-sm font-semibold hover:ring-2 hover:ring-accent hover:ring-offset-2 transition-all ${project.hasUpvoted ? "!text-primary-foreground hover:!bg-primary hover:!text-primary-foreground" : "!text-foreground hover:!bg-background hover:!text-foreground"}`}
-                >
-                  ↑ {project.upvotes}
-                </Button>
-              </motion.div>
-            ) : (
-              <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
+            <div className="flex flex-col items-end gap-3">
+              {isAuthenticated ? (
+                <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
                   <Button
-                    variant="outline"
-                    className="rounded-full border-zinc-200 px-4 py-2.5 text-sm font-semibold !text-foreground hover:!bg-background hover:!text-foreground hover:ring-2 hover:ring-accent hover:ring-offset-2 transition-all"
-                    asChild
+                    variant={project.hasUpvoted ? "default" : "outline"}
+                    onClick={handleUpvote}
+                    className={`rounded-full px-4 py-2.5 text-sm font-semibold hover:ring-2 hover:ring-accent hover:ring-offset-2 transition-all ${project.hasUpvoted ? "!text-primary-foreground hover:!bg-primary hover:!text-primary-foreground" : "!text-foreground hover:!bg-background hover:!text-foreground"}`}
                   >
-                    <Link href="/sign-in" prefetch={false}>
                     ↑ {project.upvotes}
-                    </Link>
                   </Button>
-              </motion.div>
-            )}
+                </motion.div>
+              ) : (
+                <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
+                    <Button
+                      variant="outline"
+                      className="rounded-full border-zinc-200 px-4 py-2.5 text-sm font-semibold !text-foreground hover:!bg-background hover:!text-foreground hover:ring-2 hover:ring-accent hover:ring-offset-2 transition-all"
+                      asChild
+                    >
+                      <Link href="/sign-in" prefetch={false}>
+                      ↑ {project.upvotes}
+                      </Link>
+                    </Button>
+                </motion.div>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 text-base sm:flex-nowrap">

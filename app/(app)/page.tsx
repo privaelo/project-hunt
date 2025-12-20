@@ -228,7 +228,7 @@ function ProjectRow({
       className="flex flex-col gap-3 pb-4 pt-4 cursor-pointer hover:bg-zinc-100 rounded-lg transition-colors px-4 -mx-4"
       onClick={handleProjectClick}
     >
-      {/* Header: Creator info, team, focus areas */}
+      {/* Header: Creator info, team */}
       <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-500">
         <span className="flex items-center gap-2 whitespace-nowrap">
           <Avatar className="h-6 w-6 bg-zinc-100 text-xs font-semibold text-zinc-600">
@@ -241,15 +241,6 @@ function ProjectRow({
           <>
             <span className="text-zinc-300">•</span>
             <span className="whitespace-nowrap text-zinc-500">{project.team}</span>
-          </>
-        )}
-        {project.focusAreas.length > 0 && (
-          <>
-            <span className="text-zinc-300">•</span>
-            <FocusAreaBadges
-              focusAreas={project.focusAreas}
-              className="text-xs"
-            />
           </>
         )}
       </div>
@@ -309,6 +300,15 @@ function ProjectRow({
           <MessageCircle className="h-4 w-4" aria-hidden="true" />
           <span>{project.commentCount}</span>
         </Button>
+
+        {project.focusAreas.length > 0 && (
+          <div className="ml-auto">
+            <FocusAreaBadges
+              focusAreas={project.focusAreas}
+              className="text-[10px]"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
