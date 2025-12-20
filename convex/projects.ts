@@ -121,11 +121,21 @@ export const getProjectMedia = query({
     projectId: v.id("projects"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const mediaFiles = await ctx.db
       .query("mediaFiles")
       .withIndex("by_project_ordered", (q) => q.eq("projectId", args.projectId))
       .order("asc")
       .collect();
+
+    // Pre-fetch URLs for all media items
+    return await Promise.all(
+      mediaFiles.map(async (media) => ({
+        _id: media._id,
+        storageId: media.storageId,
+        type: media.type,
+        url: await ctx.storage.getUrl(media.storageId),
+      }))
+    );
   },
 });
 
@@ -564,6 +574,23 @@ export const list = query({
           teamName = team?.name ?? "";
         }
 
+        // Get all media items for preview carousel
+        const mediaFiles = await ctx.db
+          .query("mediaFiles")
+          .withIndex("by_project_ordered", (q) => q.eq("projectId", project._id))
+          .order("asc")
+          .collect();
+
+        // Generate URLs for all media items
+        const previewMedia = await Promise.all(
+          mediaFiles.map(async (media) => ({
+            _id: media._id,
+            storageId: media.storageId,
+            type: media.type,
+            url: await ctx.storage.getUrl(media.storageId),
+          }))
+        );
+
         const focusAreas = project.focusAreaIds
           .map((id) => focusAreaMap.get(id))
           .filter((fa): fa is NonNullable<typeof fa> => fa !== undefined)
@@ -582,6 +609,7 @@ export const list = query({
           creatorName: creator?.name ?? "Unknown User",
           creatorAvatar: creator?.avatarUrlId ?? "",
           focusAreas,
+          previewMedia,
         };
       })
     );

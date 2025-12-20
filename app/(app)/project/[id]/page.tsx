@@ -3,7 +3,6 @@
 import { use } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -12,101 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentForm } from "@/components/CommentForm";
 import { CommentThread } from "@/components/CommentThread";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { ProjectMediaCarousel } from "@/components/ProjectMediaCarousel";
 import { FocusAreaBadges } from "@/components/FocusAreaBadges";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
-
-function MediaCarousel({
-  mediaFiles,
-}: {
-  mediaFiles: Array<{
-    _id: Id<"mediaFiles">;
-    storageId: Id<"_storage">;
-    type: string;
-  }>;
-}) {
-  if (!mediaFiles || mediaFiles.length === 0) {
-    return null;
-  }
-
-  return (
-    <Carousel className="w-full">
-      <CarouselContent>
-        {mediaFiles.map((media) => (
-          <CarouselItem key={media._id}>
-            <MediaSlide media={media} />
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-      {mediaFiles.length > 1 && (
-        <>
-          <CarouselPrevious />
-          <CarouselNext />
-        </>
-      )}
-    </Carousel>
-  );
-}
-
-function MediaSlide({
-  media,
-}: {
-  media: {
-    storageId: Id<"_storage">;
-    type: string;
-  };
-}) {
-  const mediaUrl = useQuery(api.projects.getMediaUrl, {
-    storageId: media.storageId,
-  });
-
-  if (!mediaUrl) {
-    return (
-      <div
-        className="flex items-center justify-center rounded-lg bg-zinc-100"
-        style={{ minHeight: "400px" }}
-      >
-        <div className="text-zinc-400">Loading...</div>
-      </div>
-    );
-  }
-
-  const isVideo = media.type === "video";
-
-  return (
-    <div className="px-2">
-      {isVideo ? (
-        <video
-          src={mediaUrl}
-          controls
-          className="mx-auto h-auto w-full max-h-[600px] rounded-lg"
-          style={{ objectFit: "contain" }}
-        />
-      ) : (
-        <div
-          className="relative mx-auto w-full"
-          style={{ minHeight: "400px", maxHeight: "600px" }}
-        >
-          <Image
-            src={mediaUrl}
-            alt="Project media"
-            fill
-            className="object-contain rounded-lg"
-            unoptimized
-          />
-        </div>
-      )}
-    </div>
-  );
-}
 
 function formatProjectLink(link?: string | null): {
   href: string;
@@ -309,7 +218,7 @@ export default function ProjectPage({
 
           {projectMedia && projectMedia.length > 0 && (
             <div className="my-8">
-              <MediaCarousel mediaFiles={projectMedia} />
+              <ProjectMediaCarousel media={projectMedia} variant="detail" />
             </div>
           )}
 
