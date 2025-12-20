@@ -145,13 +145,28 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
     e.preventDefault();
     setIsSubmitting(true);
 
+    const trimmedName = formData.name.trim();
+    const trimmedDescription = formData.description.trim();
+
+    if (!trimmedName) {
+      alert("Please add a title.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!trimmedDescription) {
+      alert("Add a few words about what you built and why.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       // Update project fields
       await updateProject({
         projectId,
-        name: formData.name,
-        summary: formData.description,
-        link: formData.link || undefined,
+        name: trimmedName,
+        summary: trimmedDescription,
+        link: formData.link.trim() || undefined,
         focusAreaIds: selectedFocusAreas,
         readinessStatus: selectedReadinessStatus,
       });
@@ -199,7 +214,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   if (isLoading) {
     return (
       <div className="min-h-screen bg-zinc-50">
-        <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pb-16 pt-10">
+        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
           <p className="text-zinc-500">Loading...</p>
         </main>
       </div>
@@ -209,7 +224,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   if (!project) {
     return (
       <div className="min-h-screen bg-zinc-50">
-        <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pb-16 pt-10">
+        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
           <p className="text-zinc-500">Project not found</p>
         </main>
       </div>
@@ -218,218 +233,219 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pb-16 pt-10">
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
+        <div className="mb-2 space-y-2">
+          <h2 className="text-3xl font-semibold tracking-tight">Update your project details</h2>
+        </div>
 
-        <section className="mx-auto w-full max-w-2xl">
-          <div className="mb-6">
-            <h2 className="text-3xl font-semibold tracking-tight">Update your project details</h2>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+            <section className="w-full space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium text-zinc-900">
+                  Title
+                </label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="AI Prompt Template: Clear Email Reply"
+                  required
+                />
+              </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium text-zinc-900">
-                Project name
-              </label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Atlas Deploy Hub"
-                required
-              />
-            </div>
+              <div className="space-y-2">
+                <label htmlFor="description" className="text-sm font-medium text-zinc-900">
+                  What did you build and why?
+                </label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="A copy-and-paste prompt I use with AI to turn a few bullet points into a clear, polite email response. It asks for the right details, includes next steps, and keeps the tone consistent."
+                  className="min-h-28"
+                  required
+                />
+              </div>
 
-            <div className="space-y-2">
-              <label htmlFor="description" className="text-sm font-medium text-zinc-900">
-                Description
-              </label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Description of what you're building"
-                className="min-h-24"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="link" className="text-sm font-medium text-zinc-900">
-                Link <span className="text-xs text-zinc-500">(optional)</span>
-              </label>
-              <Input
-                id="link"
-                type="url"
-                value={formData.link}
-                onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                placeholder="https://example.com"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-900">
-                  Focus Areas
+                  Media <span className="text-xs text-zinc-500">(optional)</span>
                 </label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p className="text-xs">
-                      These categories help organize the platform so people find projects relevant to their interests. Tag your project accurately so the right people discover it.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <FocusAreaPicker
-                focusAreasGrouped={focusAreasGrouped}
-                selectedFocusAreas={selectedFocusAreas}
-                onSelectionChange={setSelectedFocusAreas}
-              />
-            </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <label htmlFor="readinessStatus" className="text-sm font-medium text-zinc-900">
-                  Readiness Status
-                </label>
-                <div className="group relative">
-                  <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                  <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 rounded-lg border border-zinc-200 bg-white p-3 shadow-lg z-10">
-                    <div className="space-y-2 text-xs text-zinc-600">
-                      <p><strong className="text-zinc-900">In Progress:</strong> This project is still being built. Nothing may be functional yet.</p>
-                      <p><strong className="text-zinc-900">Ready to Use:</strong> This tool is stable and safe for others to use today.</p>
+                {projectMedia && projectMedia.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    <div className="text-sm font-medium text-zinc-700">
+                      Current media ({projectMedia.length})
                     </div>
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-white"></div>
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                      {projectMedia.map((media) => (
+                        <ExistingMediaThumbnail
+                          key={media._id}
+                          media={media}
+                          onDelete={() => removeExistingFile(media._id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div
+                  {...getRootProps()}
+                  className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors cursor-pointer ${
+                    isDragActive
+                      ? 'border-zinc-900 bg-zinc-100'
+                      : 'border-zinc-300 bg-zinc-50 hover:border-zinc-400'
+                  }`}
+                >
+                  <input {...getInputProps()} />
+                  <div className="space-y-2">
+                    <Upload className="mx-auto h-10 w-10 text-zinc-400" />
+                    <div className="text-sm text-zinc-600">
+                      {isDragActive ? (
+                        <span className="font-medium text-zinc-900">Drop files here</span>
+                      ) : (
+                        <span className="text-zinc-500">
+                          Add Screenshots or short clips that show the problem and your fix in action.
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
+
+                {fileRejections.length > 0 && (
+                  <div className="text-sm text-red-600 mt-2">
+                    Invalid file type(s): {fileRejections.map(({ file }) => file.name).join(', ')}.
+                    Please upload images or videos only.
+                  </div>
+                )}
+
+                {selectedFiles.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="relative group">
+                          <div className="aspect-square rounded-lg border border-zinc-200 bg-zinc-100 overflow-hidden">
+                            {file.type.startsWith('image/') ? (
+                              <Image
+                                src={URL.createObjectURL(file)}
+                                alt={file.name}
+                                width={200}
+                                height={200}
+                                className="h-full w-full object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center">
+                                <div className="text-4xl">🎥</div>
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeNewFile(index)}
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors"
+                          >
+                            ×
+                          </button>
+                          <div className="mt-1 text-xs text-zinc-500 truncate">
+                            {file.name}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <Select
-                value={selectedReadinessStatus}
-                onValueChange={(value: "in_progress" | "ready_to_use") => setSelectedReadinessStatus(value)}
-              >
-                <SelectTrigger id="readinessStatus" className="w-full">
-                  <SelectValue placeholder="Select readiness status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="ready_to_use">Ready to Use</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-900">
-                Media <span className="text-xs text-zinc-500">(optional)</span>
-              </label>
+              <div className="flex items-center gap-3 pt-4">
+                <Button type="submit" className="whitespace-nowrap" disabled={isSubmitting}>
+                  {isSubmitting ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push(`/project/${id}`)}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </section>
 
-              {/* Existing Media Files */}
-              {projectMedia && projectMedia.length > 0 && (
-                <div className="mb-4 space-y-2">
-                  <div className="text-sm font-medium text-zinc-700">
-                    Current media ({projectMedia.length})
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                    {projectMedia.map((media) => (
-                      <ExistingMediaThumbnail
-                        key={media._id}
-                        media={media}
-                        onDelete={() => removeExistingFile(media._id)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Upload New Files */}
-              <div
-                {...getRootProps()}
-                className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors cursor-pointer ${
-                  isDragActive
-                    ? 'border-zinc-900 bg-zinc-100'
-                    : 'border-zinc-300 bg-zinc-50 hover:border-zinc-400'
-                }`}
-              >
-                <input {...getInputProps()} />
+            <section className="w-full lg:sticky lg:top-10 lg:self-start space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Upload className="mx-auto h-10 w-10 text-zinc-400" />
-                  <div className="text-sm text-zinc-600">
-                    {isDragActive ? (
-                      <span className="font-medium text-zinc-900">Drop files here</span>
-                    ) : (
-                      <span className="text-zinc-500">
-                        Include media that helps viewers understand what your project is, what it does, and how it works.
-                      </span>
-                    )}
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="readinessStatus" className="text-sm font-medium text-zinc-900">
+                      How rough is it?
+                    </label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <div className="space-y-2 text-xs">
+                          <p><strong>In Progress:</strong> Early/rough, but useful. Sharing to get eyes and ideas.</p>
+                          <p><strong>Ready to Use:</strong> Works reliably. Someone else could pick it up and use it now.</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
+                  <Select
+                    value={selectedReadinessStatus}
+                    onValueChange={(value: "in_progress" | "ready_to_use") => setSelectedReadinessStatus(value)}
+                  >
+                    <SelectTrigger id="readinessStatus" className="w-full">
+                      <SelectValue placeholder="Select readiness status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="in_progress">In progress</SelectItem>
+                      <SelectItem value="ready_to_use">Ready to use</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-zinc-900">
+                      Focus Areas <span className="text-xs text-zinc-500">(optional)</span>
+                    </label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-xs">
+                          Tags make it easier for the right people to discover this later.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <FocusAreaPicker
+                    focusAreasGrouped={focusAreasGrouped}
+                    selectedFocusAreas={selectedFocusAreas}
+                    onSelectionChange={setSelectedFocusAreas}
+                  />
                 </div>
               </div>
 
-              {fileRejections.length > 0 && (
-                <div className="text-sm text-red-600 mt-2">
-                  Invalid file type(s): {fileRejections.map(({ file }) => file.name).join(', ')}.
-                  Please upload images or videos only.
-                </div>
-              )}
+              <div className="space-y-2">
+                <label htmlFor="link" className="text-sm font-medium text-zinc-900">
+                  Link <span className="text-xs text-zinc-500">(optional)</span>
+                </label>
+                <Input
+                  id="link"
+                  type="url"
+                  value={formData.link}
+                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                  placeholder="https://example.com"
+                />
+              </div>
 
-              {/* New Files to Upload */}
-              {selectedFiles.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  <div className="text-sm font-medium text-zinc-900">
-                    Selected files ({selectedFiles.length})
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} className="relative group">
-                        <div className="aspect-square rounded-lg border border-zinc-200 bg-zinc-100 overflow-hidden">
-                          {file.type.startsWith('image/') ? (
-                            <Image
-                              src={URL.createObjectURL(file)}
-                              alt={file.name}
-                              width={200}
-                              height={200}
-                              className="h-full w-full object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <div className="text-4xl">🎥</div>
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeNewFile(index)}
-                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors"
-                        >
-                          ×
-                        </button>
-                        <div className="mt-1 text-xs text-zinc-500 truncate">
-                          {file.name}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3 pt-4">
-              <Button type="submit" className="whitespace-nowrap" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save Changes"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.push(`/project/${id}`)}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </section>
+            </section>
+          </div>
+        </form>
       </main>
     </div>
   );

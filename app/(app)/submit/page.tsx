@@ -203,7 +203,7 @@ export default function SubmitProject() {
                 id="workingTitle"
                 value={formData.workingTitle}
                 onChange={(e) => setFormData({ ...formData, workingTitle: e.target.value })}
-                placeholder="Example: Approver Nudge Bot"
+                 placeholder="AI Prompt Template: Clear Email Reply"
                 required
               />
             </div>
@@ -216,7 +216,7 @@ export default function SubmitProject() {
                 id="summary"
                 value={formData.summary}
                 onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-                placeholder="Example: A rough Slack bot + sheet that pings the right approver because deploy approvals stalled."
+                 placeholder="A copy-and-paste prompt I use with AI to turn a few bullet points into a clear, polite email response. It asks for the right details, includes next steps, and keeps the tone consistent."
                 className="min-h-28"
                 required
               />
@@ -241,9 +241,9 @@ export default function SubmitProject() {
                     {isDragActive ? (
                       <span className="font-medium text-zinc-900">Drop files here</span>
                     ) : (
-                      <span className="text-zinc-500">
-                        Screenshots or short clips are welcome but not required.
-                      </span>
+                        <span className="text-zinc-500">
+                          Add Screenshots or short clips that show the problem and your fix in action.
+                        </span>
                     )}
                   </div>
                 </div>
@@ -314,8 +314,8 @@ export default function SubmitProject() {
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs">
                         <div className="space-y-2 text-xs">
-                          <p><strong>In Progress:</strong> Still a rough cut, sharing for visibility.</p>
-                          <p><strong>Ready to Use:</strong> Stable enough for others to try today.</p>
+                          <p><strong>In Progress:</strong> Early/rough, but useful. Sharing to get eyes and ideas.</p>
+                          <p><strong>Ready to Use:</strong> Works reliably. Someone else could pick it up and use it now.</p>
                         </div>
                       </TooltipContent>
                     </Tooltip>
@@ -345,7 +345,7 @@ export default function SubmitProject() {
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs">
                         <p className="text-xs">
-                          Tags help the right folks find this later, but you can skip this step.
+                          Tags make it easier for the right people to discover this later.
                         </p>
                       </TooltipContent>
                     </Tooltip>
