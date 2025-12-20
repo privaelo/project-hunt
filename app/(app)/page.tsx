@@ -96,29 +96,12 @@ export default function Home() {
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-semibold tracking-tight flex items-center gap-3">
-                What people are sharing this week
+                Tools built inside Honda
                 <Badge className="text-xs font-medium">For you</Badge>
               </h2>
               <p className="mt-2 text-lg text-zinc-600">
-                If you built something in response to friction — personal, team, or department — it belongs here.
+                If it made work easier, it belongs here.
               </p>
-              <p className="mt-1 text-sm text-zinc-500">
-                Rough, unfinished, and hacky is welcome — you can always edit later.
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2 text-xs text-zinc-700">
-                {[
-                  "A script you wrote for yourself",
-                  "A tool your manager asked you to build",
-                  "A dashboard requested by a department",
-                  "A workaround created under deadline pressure",
-                  "An internal prototype that never shipped",
-                  "A compliance/reporting solution",
-                ].map((item) => (
-                  <span key={item} className="rounded-full bg-white px-3 py-1 border border-zinc-200 shadow-sm">
-                    {item}
-                  </span>
-                ))}
-              </div>
             </div>
             <ShareProjectCallout />
             <LayoutGroup>
@@ -163,13 +146,7 @@ function ShareProjectCallout() {
     <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white/90 px-4 py-3 shadow-sm">
       <div className="space-y-1">
         <p className="text-sm text-zinc-600">
-          If you built something in response to friction — whether self-initiated or requested — it belongs here.
-        </p>
-        <p className="text-xs text-zinc-500">
-          Garden isn&apos;t about who had the idea — it&apos;s about preserving how the problem was solved.
-        </p>
-        <p className="text-xs text-zinc-500">
-          Rough drafts are welcome. Two quick answers is enough.
+          Have one? Share it in two lines.
         </p>
       </div>
       <div className="flex items-center gap-2">
@@ -319,10 +296,7 @@ function EmptyState() {
     <div className="rounded-3xl bg-zinc-100/60 p-6 text-center text-sm text-zinc-500 space-y-3">
       <p className="font-medium text-zinc-900">Nothing here yet.</p>
       <p className="text-zinc-600">
-        It doesn&apos;t matter whether this was self-initiated or requested — if it solved real friction, it belongs here.
-      </p>
-      <p className="text-zinc-600">
-        Rough and unfinished is welcome — share early, iterate later.
+        Be the first to share a workaround that made work easier.
       </p>
       <Link href="/submit">
         <Button size="sm" className="whitespace-nowrap">

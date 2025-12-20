@@ -61,8 +61,8 @@ export function ProjectMediaCarousel({
         </CarouselContent>
         {media.length > 1 && (
           <>
-            <CarouselPrevious className="left-2" />
-            <CarouselNext className="right-2" />
+            <CarouselPrevious className="left-2 bg-black/30 hover:bg-black/40 text-white border-0" />
+            <CarouselNext className="right-2 bg-black/30 hover:bg-black/40 text-white border-0" />
           </>
         )}
       </Carousel>
