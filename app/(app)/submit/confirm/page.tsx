@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import Link from "next/link";
 
 type Project = {
   _id: Id<"projects">;
@@ -92,7 +93,7 @@ function ConfirmSubmissionContent() {
   if (!projectId) {
     return (
       <div className="min-h-screen bg-zinc-50">
-        <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pb-16 pt-10">
+        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
           <p className="text-center text-zinc-500">Invalid project ID</p>
         </main>
       </div>
@@ -102,7 +103,7 @@ function ConfirmSubmissionContent() {
   if (!project) {
     return (
       <div className="min-h-screen bg-zinc-50">
-        <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pb-16 pt-10">
+        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
           <p className="text-center text-zinc-500">Loading...</p>
         </main>
       </div>
@@ -111,118 +112,96 @@ function ConfirmSubmissionContent() {
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pb-16 pt-10">
-        <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div>
-              <p className="text-xl font-semibold text-zinc-900">Garden</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 border border-zinc-900/10 bg-zinc-900 text-white">
-              <AvatarFallback className="bg-transparent text-sm font-medium text-white">
-                DL
-              </AvatarFallback>
-            </Avatar>
-          </div>
-        </header>
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
+        <div className="mb-2 space-y-2">
+          <h2 className="text-3xl font-semibold tracking-tight">Share something you built</h2>
+          <Accordion type="single" collapsible>
+            <AccordionItem value="things" className="border-b-0">
+              <AccordionTrigger className="py-1 text-sm font-medium text-zinc-700">
+                If you built something to make work easier, it belongs here, even if it&apos;s rough, unfinished, or hacky.
+              </AccordionTrigger>
+              <AccordionContent className="pt-2">
+                <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600">
+                  {thingsThatBelong.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
 
-        <section className="mx-auto w-full max-w-3xl space-y-8">
-          <div>
-            <h2 className="text-3xl font-semibold tracking-tight">
-              Post your share
-            </h2>
-            <p className="mt-2 text-sm text-zinc-500">
-              Rough/early posts are welcome. If this was self-initiated or requested, it belongs here if it solved real friction.
-            </p>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <section className="mx-auto w-full max-w-5xl space-y-8">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
             <div className="space-y-6">
-              {/* User's submitted project */}
-              <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-zinc-900/5">
-                <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                  Your Project
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-zinc-900">Your project</h3>
+                <p className="text-sm text-zinc-500">
+                  Quick check before it goes live.
                 </p>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-xl font-semibold text-zinc-900">
-                      {project.name}
-                    </h3>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500">
-                    <span className="flex items-center gap-2">
-                      <Avatar className="h-9 w-9 bg-zinc-100 text-sm font-semibold text-zinc-600">
-                        <AvatarImage src={project.creatorAvatar} alt={project.creatorName || "User"} />
-                        <AvatarFallback>{(project.creatorName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-xl font-semibold text-zinc-900">
+                    {project.name}
+                  </h3>
+                  <p className="mt-2 text-sm text-zinc-600">
+                    {project.summary}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500">
+                  <span className="flex items-center gap-2">
+                    <Avatar className="h-9 w-9 bg-zinc-100 text-sm font-semibold text-zinc-600">
+                      <AvatarImage src={project.creatorAvatar} alt={project.creatorName || "User"} />
+                      <AvatarFallback>{(project.creatorName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <span>
+                      By{" "}
+                      <span className="font-medium text-zinc-900">
+                        {project.creatorName || "Unknown User"}
+                      </span>
+                    </span>
+                  </span>
+                  {project.team ? (
+                    <>
+                      <Separator
+                        orientation="vertical"
+                        className="hidden h-6 lg:block"
+                      />
                       <span>
-                        By{" "}
+                        Team{" "}
                         <span className="font-medium text-zinc-900">
-                          {project.creatorName || "Unknown User"}
+                          {project.team}
                         </span>
                       </span>
-                    </span>
-                    <Separator
-                      orientation="vertical"
-                      className="hidden h-6 lg:block"
-                    />
-                    <span>
-                      Team{" "}
-                      <span className="font-medium text-zinc-900">
-                        {project.team}
-                      </span>
-                    </span>
-                  </div>
+                    </>
+                  ) : null}
                 </div>
               </div>
             </div>
 
             <div className="space-y-6">
-              <Accordion type="single" collapsible>
-                <AccordionItem value="things" className="border-b-0">
-                  <AccordionTrigger className="py-1 text-xs font-medium uppercase tracking-wide text-zinc-500">
-                    Things that belong
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-2">
-                    <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600">
-                      {thingsThatBelong.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-zinc-900">Similar projects</h3>
+                <p className="text-sm text-zinc-500">
+                  If you see a close match, it might be worth connecting or sharing notes.
+                </p>
+              </div>
 
-              {/* Similar projects section */}
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">💡</span>
-                  <div>
-                    <h3 className="text-lg font-semibold text-zinc-900">
-                      Similar projects found
-                    </h3>
-                    <p className="mt-1 text-sm text-zinc-500">
-                      Consider reaching out to collaborate or share context with them.
-                    </p>
+              <div className="space-y-3">
+                {isLoadingSimilar ? (
+                  <div className="rounded-2xl bg-zinc-100/60 p-4 text-center text-sm text-zinc-500">
+                    Loading similar projects...
                   </div>
-                </div>
-
-                <div className="space-y-3">
-                  {isLoadingSimilar ? (
-                    <div className="rounded-2xl bg-zinc-100/60 p-4 text-center text-sm text-zinc-500">
-                      Loading similar projects...
-                    </div>
-                  ) : similarProjects.length > 0 ? (
-                    similarProjects.map((similar) => (
-                      <SimilarProjectCard key={similar._id} project={similar} />
-                    ))
-                  ) : (
-                    <div className="rounded-2xl bg-zinc-100/60 p-4 text-center text-sm text-zinc-500">
-                      No similar projects found
-                    </div>
-                  )}
-                </div>
+                ) : similarProjects.length > 0 ? (
+                  similarProjects.map((similar) => (
+                    <SimilarProjectCard key={similar._id} project={similar} />
+                  ))
+                ) : (
+                  <div className="rounded-2xl bg-zinc-100/60 p-4 text-center text-sm text-zinc-500">
+                    No similar projects found
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -234,7 +213,7 @@ function ConfirmSubmissionContent() {
               disabled={isProcessing}
               className="flex-1 whitespace-nowrap"
             >
-              {isProcessing ? "Processing..." : "Post anyway"}
+              {isProcessing ? "Sharing..." : "Share this"}
             </Button>
             <Button
               variant="outline"
@@ -242,7 +221,7 @@ function ConfirmSubmissionContent() {
               disabled={isProcessing}
               className="flex-1 whitespace-nowrap"
             >
-              Post later
+              Not yet
             </Button>
           </div>
 
@@ -260,7 +239,7 @@ export default function ConfirmSubmission() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-zinc-50">
-          <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pb-16 pt-10">
+          <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
             <p className="text-center text-zinc-500">Loading...</p>
           </main>
         </div>
@@ -273,19 +252,24 @@ export default function ConfirmSubmission() {
 
 function SimilarProjectCard({ project }: { project: Project }) {
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-zinc-900/5">
-      <div className="space-y-3">
+    <Link
+      href={`/project/${project._id}`}
+      target="_blank"
+      rel="noreferrer"
+      className="block rounded-2xl p-2 transition-colors hover:bg-zinc-100/60"
+    >
+      <div className="space-y-4">
         <div>
-          <h4 className="text-base font-semibold text-zinc-900">
+          <h4 className="text-lg font-semibold text-zinc-900">
             {project.name}
           </h4>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-zinc-600">
             {project.summary}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500">
           <span className="flex items-center gap-2">
-            <Avatar className="h-7 w-7 bg-zinc-100 text-xs font-semibold text-zinc-600">
+            <Avatar className="h-9 w-9 bg-zinc-100 text-sm font-semibold text-zinc-600">
               <AvatarImage src={project.creatorAvatar} alt={project.creatorName || "User"} />
               <AvatarFallback>{(project.creatorName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
@@ -294,17 +278,21 @@ function SimilarProjectCard({ project }: { project: Project }) {
               <span className="font-medium text-zinc-900">{project.creatorName || "Unknown User"}</span>
             </span>
           </span>
+          {project.team ? (
+            <>
+              <Separator
+                orientation="vertical"
+                className="hidden h-6 lg:block"
+              />
+              <span>
+                Team{" "}
+                <span className="font-medium text-zinc-900">{project.team}</span>
+              </span>
+            </>
+          ) : null}
           <Separator
             orientation="vertical"
-            className="hidden h-4 lg:block"
-          />
-          <span>
-            Team{" "}
-            <span className="font-medium text-zinc-900">{project.team}</span>
-          </span>
-          <Separator
-            orientation="vertical"
-            className="hidden h-4 lg:block"
+            className="hidden h-6 lg:block"
           />
           <span className="flex items-center gap-1">
             <span>↑</span>
@@ -314,6 +302,6 @@ function SimilarProjectCard({ project }: { project: Project }) {
           </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
