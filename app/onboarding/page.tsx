@@ -24,7 +24,7 @@ export default function OnboardingPage() {
   // Initialize state with user's existing values when user data loads
   useEffect(() => {
     if (user && !isInitialized) {
-      if (user.focusAreaIds && user.focusAreaIds.length > 0) {
+      if (user.focusAreaIds) {
         setFocusAreaIds(user.focusAreaIds);
       }
       if (user.userIntent) {
