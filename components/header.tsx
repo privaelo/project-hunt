@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/SearchBar";
 import { useAuth } from '@workos-inc/authkit-nextjs/components';
 import { signOut } from "@workos-inc/authkit-nextjs";
-import { Bell, LogOut } from "lucide-react";
+import { Bell, LogOut, User } from "lucide-react";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { api } from "@/convex/_generated/api";
 import {
@@ -111,7 +111,7 @@ export function Header() {
                   <Popover onOpenChange={handleNotificationsOpen}>
                     <PopoverTrigger asChild>
                       <button
-                        className={`${navigationMenuTriggerStyle()} relative w-9 p-0 text-zinc-700`}
+                        className={`${navigationMenuTriggerStyle()} relative w-9 px-0`}
                         aria-label="Open notifications"
                       >
                         <Bell className="h-5 w-5" />
@@ -181,24 +181,24 @@ export function Header() {
                     </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
+              </Authenticated>
 
+              <Authenticated>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger
-                    onPointerEnter={(e) => e.preventDefault()}
-                    onPointerMove={(e) => e.preventDefault()}
-                  >
+                  <NavigationMenuTrigger>
                     {user?.firstName ?? "Profile"}
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <ul className="grid w-[200px] gap-2 p-2">
+                    <ul className="grid w-[180px] p-1">
                       {convexUser && (
                         <li>
                           <NavigationMenuLink asChild>
                             <Link 
                               href={`/profile/${convexUser._id}`} 
-                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                              className="flex flex-row w-full select-none items-center gap-2 rounded-md px-3 py-2 text-sm font-medium leading-none text-zinc-700 no-underline outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900"
                             >
-                              <div className="text-sm font-medium leading-none">Profile</div>
+                              <User className="h-4 w-4" />
+                              <span>Profile</span>
                             </Link>
                           </NavigationMenuLink>
                         </li>
@@ -206,10 +206,10 @@ export function Header() {
                       <li>
                         <button
                           onClick={() => signOut()}
-                          className="flex w-full select-none items-center gap-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          className="flex w-full select-none items-center gap-2 rounded-md px-3 py-2 text-sm font-medium leading-none text-zinc-700 outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900"
                         >
                           <LogOut className="h-4 w-4" />
-                          <span className="text-sm font-medium leading-none">Log Out</span>
+                          <span>Log Out</span>
                         </button>
                       </li>
                     </ul>
