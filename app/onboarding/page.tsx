@@ -17,8 +17,22 @@ export default function OnboardingPage() {
   const focusAreasGrouped = useQuery(api.focusAreas.listActiveGrouped);
   const completeOnboarding = useMutation(api.users.completeOnboarding);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [focusAreaIdsOverride, setFocusAreaIdsOverride] = useState<Id<'focusAreas'>[] | null>(null);
-  const [userIntentOverride, setUserIntentOverride] = useState<'looking' | 'sharing' | 'both' | null>(null);
+  const [focusAreaIds, setFocusAreaIds] = useState<Id<'focusAreas'>[]>([]);
+  const [userIntent, setUserIntent] = useState<'looking' | 'sharing' | 'both' | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize state with user's existing values when user data loads
+  useEffect(() => {
+    if (user && !isInitialized) {
+      if (user.focusAreaIds) {
+        setFocusAreaIds(user.focusAreaIds);
+      }
+      if (user.userIntent) {
+        setUserIntent(user.userIntent);
+      }
+      setIsInitialized(true);
+    }
+  }, [user, isInitialized]);
 
   useEffect(() => {
     if (user?.onboardingCompleted) {
@@ -26,10 +40,7 @@ export default function OnboardingPage() {
     }
   }, [user, router]);
 
-  const resolvedFocusAreaIds = focusAreaIdsOverride ?? user?.focusAreaIds ?? [];
-  const resolvedUserIntent = userIntentOverride ?? user?.userIntent ?? null;
-
-  const canProceed = resolvedFocusAreaIds.length > 0 && resolvedUserIntent !== null;
+  const canProceed = focusAreaIds.length > 0 && userIntent !== null;
 
   const handleComplete = async () => {
     if (!canProceed) return;
@@ -37,8 +48,8 @@ export default function OnboardingPage() {
     setIsSubmitting(true);
     try {
       await completeOnboarding({
-        focusAreaIds: resolvedFocusAreaIds,
-        userIntent: resolvedUserIntent || undefined,
+        focusAreaIds,
+        userIntent: userIntent || undefined,
       });
       router.push('/');
     } catch (error) {
@@ -71,22 +82,22 @@ export default function OnboardingPage() {
             <h3 className="text-sm font-medium text-zinc-900">What brings you to Garden?</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Button
-                onClick={() => setUserIntentOverride('looking')}
-                variant={resolvedUserIntent === 'looking' ? 'default' : 'outline'}
+                onClick={() => setUserIntent('looking')}
+                variant={userIntent === 'looking' ? 'default' : 'outline'}
                 className="h-auto py-3"
               >
                 Looking for tools
               </Button>
               <Button
-                onClick={() => setUserIntentOverride('sharing')}
-                variant={resolvedUserIntent === 'sharing' ? 'default' : 'outline'}
+                onClick={() => setUserIntent('sharing')}
+                variant={userIntent === 'sharing' ? 'default' : 'outline'}
                 className="h-auto py-3"
               >
                 Sharing tools
               </Button>
               <Button
-                onClick={() => setUserIntentOverride('both')}
-                variant={resolvedUserIntent === 'both' ? 'default' : 'outline'}
+                onClick={() => setUserIntent('both')}
+                variant={userIntent === 'both' ? 'default' : 'outline'}
                 className="h-auto py-3"
               >
                 Both
@@ -99,15 +110,15 @@ export default function OnboardingPage() {
             <h3 className="text-sm font-medium text-zinc-900">Select your focus areas</h3>
             <FocusAreaPicker
               focusAreasGrouped={focusAreasGrouped}
-              selectedFocusAreas={resolvedFocusAreaIds}
-              onSelectionChange={setFocusAreaIdsOverride}
+              selectedFocusAreas={focusAreaIds}
+              onSelectionChange={setFocusAreaIds}
             />
           </div>
 
           {!canProceed && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              {!resolvedUserIntent && 'Please select what brings you to Garden. '}
-              {resolvedUserIntent && resolvedFocusAreaIds.length === 0 && 'Select at least one focus area to continue.'}
+              {!userIntent && 'Please select what brings you to Garden. '}
+              {userIntent && focusAreaIds.length === 0 && 'Select at least one focus area to continue.'}
             </div>
           )}
         </CardContent>
