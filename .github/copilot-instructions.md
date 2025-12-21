@@ -123,9 +123,9 @@ npm run dev
 - Link users with `workosUserId` for WorkOS integration
 
 ## State Management
-- Use Convex React hooks for data fetching and mutations
-- Use React hooks (useState, useEffect) for local state
-- Use TanStack Query for additional data fetching needs
+- **Primary**: Use Convex React hooks (`useQuery`, `useMutation`, `useAction`) for all Convex data fetching and mutations
+- **Local state**: Use React hooks (useState, useEffect) for component-level state
+- **External APIs**: Use TanStack Query only when fetching from non-Convex external APIs
 
 ## Key Features
 
