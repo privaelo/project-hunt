@@ -7,6 +7,15 @@ import { SearchBar } from "@/components/SearchBar";
 import { useAuth } from '@workos-inc/authkit-nextjs/components';
 import { signOut } from "@workos-inc/authkit-nextjs";
 import { LogOut } from "lucide-react";
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuTrigger,
+  NavigationMenuContent,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
 
 
 export function Header() {
@@ -24,20 +33,65 @@ export function Header() {
           </Link>
         </div>
 
-
-        {/* Center: Search Bar - show only if authenticated */}
+        {/* Center: Search Bar */}
         <Authenticated>
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
+          <div className="hidden md:flex flex-1 max-w-md mx-8 justify-center">
             <SearchBar className="w-full" />
           </div>
         </Authenticated>
-        {/* Right: Auth Buttons */}
+
+        {/* Right: Navigation Menu & Auth Buttons */}
         <div className="flex items-center gap-3">
-          <Link href="/about" prefetch={false}>
-            <Button size="sm" variant="ghost">
-              About
-            </Button>
-          </Link>
+          <NavigationMenu className="hidden md:block">
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                  <Link href="/about" prefetch={false}>
+                    About
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              
+              <Authenticated>
+                <NavigationMenuItem>
+                  <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                    <Link href="/submit" prefetch={false}>
+                      Submit Project
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>
+                    {user?.firstName ?? "Profile"}
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[200px] gap-2 p-2">
+                      <li>
+                        <NavigationMenuLink asChild>
+                          <Link 
+                            href="/my-projects" 
+                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          >
+                            <div className="text-sm font-medium leading-none">My Projects</div>
+                          </Link>
+                        </NavigationMenuLink>
+                      </li>
+                      <li>
+                        <button
+                          onClick={() => signOut()}
+                          className="flex w-full select-none items-center gap-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          <span className="text-sm font-medium leading-none">Log Out</span>
+                        </button>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </Authenticated>
+            </NavigationMenuList>
+          </NavigationMenu>
           <Unauthenticated>
             <Button size="sm" asChild>
               <Link href="/sign-in" prefetch={false}>
@@ -50,27 +104,6 @@ export function Header() {
               </Button>
             </Link>
           </Unauthenticated>
-
-          <Authenticated>
-            <Link href="/my-projects">
-              <Button size="sm" variant="ghost">
-                My Projects
-              </Button>
-            </Link>
-            <Link href="/submit">
-              <Button size="sm" variant="default">
-                Share something you built
-              </Button>
-            </Link>
-            {/* User greeting */}
-            <span className="hidden sm:inline-block text-sm text-zinc-600 font-medium">
-              Hi, {user?.firstName ?? "there"}
-            </span>
-
-            <Button size="sm" variant="ghost" onClick={() => signOut()}>
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </Authenticated>
 
           <AuthLoading>
             <div className="h-9 w-9 animate-pulse rounded-full bg-zinc-200" />
