@@ -170,6 +170,13 @@ export const completeOnboarding = mutation({
       userIntent: args.userIntent,
     });
 
+    // Clear existing focus area relationships before adding new ones
+    const existingFocusAreas = await ctx.db
+      .query("userFocusAreas")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    await Promise.all(existingFocusAreas.map((ufa) => ctx.db.delete(ufa._id)));
+
     // Create userFocusArea relationships in junction table
     const createdAt = Date.now();
     await Promise.all(
