@@ -37,7 +37,7 @@ Garden is an internal Product Hunt-style platform that provides launch visibilit
 ```
 /app              - Next.js App Router pages and API routes
 /components       - React components
-  /ui             - shadcn/ui components
+  /ui             - shadcn/ui base components (Radix UI wrappers)
 /convex           - Convex backend functions and schema
 /lib              - Utility functions and helpers
 /public           - Static assets
@@ -109,7 +109,7 @@ npm run dev
 ### Schema Design
 - Schema is defined in `/convex/schema.ts`
 - Use proper indexing for query optimization
-- Main tables: projects, users, teams, comments, upvotes, focusAreas
+- Main tables: projects, users, teams, comments, upvotes, commentUpvotes, focusAreas, userFocusAreas, mediaFiles
 
 ### Convex Functions
 - Queries: For reading data (use `query`)
