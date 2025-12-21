@@ -203,9 +203,21 @@ export default function SubmitProject() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="summary" className="text-sm font-medium text-zinc-900">
-                What did you build and why? <span className="text-xs text-zinc-500">(optional)</span>
-              </label>
+              <div className="flex items-center gap-2">
+                <label htmlFor="summary" className="text-sm font-medium text-zinc-900">
+                  What did you build and why? <span className="text-xs text-zinc-500">(optional)</span>
+                </label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-xs">
+                      A good description makes your project easier to find when teammates search for solutions. This helps the right people discover your work.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Textarea
                 id="summary"
                 value={formData.summary}
