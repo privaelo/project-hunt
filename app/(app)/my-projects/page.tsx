@@ -14,7 +14,7 @@ import { Pencil } from "lucide-react";
 type Project = {
   _id: Id<"projects">;
   name: string;
-  summary: string;
+  summary?: string;
   team: string;
   upvotes: number;
   status: "pending" | "active";
@@ -159,7 +159,9 @@ function ProjectCard({ project }: { project: Project }) {
               )}
               <ReadinessBadge status={project.readinessStatus} />
             </div>
-            <p className="mt-1 text-sm text-zinc-500">{project.summary}</p>
+            {project.summary && (
+              <p className="mt-1 text-sm text-zinc-500">{project.summary}</p>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-sm font-semibold text-zinc-600">

@@ -93,13 +93,7 @@ export default function SubmitProject() {
       return;
     }
 
-    if (!trimmedSummary) {
-      alert("Add a few words about what you built and why.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    const summary = trimmedSummary;
+    const summary = trimmedSummary || undefined;
     const name = deriveName();
 
     let createdProjectId: Id<"projects"> | null = null;
@@ -210,7 +204,7 @@ export default function SubmitProject() {
 
             <div className="space-y-2">
               <label htmlFor="summary" className="text-sm font-medium text-zinc-900">
-                What did you build and why?
+                What did you build and why? <span className="text-xs text-zinc-500">(optional)</span>
               </label>
               <Textarea
                 id="summary"
@@ -218,7 +212,6 @@ export default function SubmitProject() {
                 onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
                  placeholder="A copy-and-paste prompt I use with AI to turn a few bullet points into a clear, polite email response. It asks for the right details, includes next steps, and keeps the tone consistent."
                 className="min-h-28"
-                required
               />
             </div>
 

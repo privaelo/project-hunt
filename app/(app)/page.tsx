@@ -28,7 +28,7 @@ type Project = {
   _id: Id<"projects">;
   _creationTime: number;
   name: string;
-  summary: string;
+  summary?: string;
   team?: string;
   upvotes: number;
   commentCount: number;
@@ -278,11 +278,11 @@ function ProjectRow({
         <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
           <ProjectMediaCarousel media={project.previewMedia} />
         </div>
-      ) : (
+      ) : project.summary ? (
         <p className="text-sm text-zinc-600 line-clamp-2 break-words">
           {project.summary}
         </p>
-      )}
+      ) : null}
 
       {/* Action buttons */}
       <div className="flex items-center gap-2">

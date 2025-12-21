@@ -154,18 +154,12 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       return;
     }
 
-    if (!trimmedDescription) {
-      alert("Add a few words about what you built and why.");
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
       // Update project fields
       await updateProject({
         projectId,
         name: trimmedName,
-        summary: trimmedDescription,
+        summary: trimmedDescription || undefined,
         link: formData.link.trim() || undefined,
         focusAreaIds: selectedFocusAreas,
         readinessStatus: selectedReadinessStatus,
@@ -256,7 +250,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
 
               <div className="space-y-2">
                 <label htmlFor="description" className="text-sm font-medium text-zinc-900">
-                  What did you build and why?
+                  What did you build and why? <span className="text-xs text-zinc-500">(optional)</span>
                 </label>
                 <Textarea
                   id="description"
@@ -264,7 +258,6 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="A copy-and-paste prompt I use with AI to turn a few bullet points into a clear, polite email response. It asks for the right details, includes next steps, and keeps the tone consistent."
                   className="min-h-28"
-                  required
                 />
               </div>
 

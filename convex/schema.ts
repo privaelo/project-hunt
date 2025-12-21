@@ -4,7 +4,7 @@ import { v } from "convex/values";
 export default defineSchema({
   projects: defineTable({
     name: v.string(),
-    summary: v.string(),
+    summary: v.optional(v.string()),
     teamId: v.optional(v.id("teams")),
     upvotes: v.number(),
     entryId: v.optional(v.string()),

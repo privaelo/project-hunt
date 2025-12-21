@@ -212,11 +212,13 @@ export default function ProjectPage({
             )}
           </div>
 
-          <div className="space-y-3">
-            <p className="whitespace-pre-wrap text-base leading-relaxed text-zinc-600">
-              {project.summary}
-            </p>
-          </div>
+          {project.summary && (
+            <div className="space-y-3">
+              <p className="whitespace-pre-wrap text-base leading-relaxed text-zinc-600">
+                {project.summary}
+              </p>
+            </div>
+          )}
 
           {projectMedia && projectMedia.length > 0 && (
             <div className="my-8">

@@ -11,7 +11,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 interface SimilarProject {
   _id: Id<"projects">;
   name: string;
-  summary: string;
+  summary?: string;
   team: string;
   upvotes: number;
   creatorName: string;
@@ -111,9 +111,11 @@ export function SimilarProjectsPreview({
                       </h4>
                       <ArrowUpRight className="h-4 w-4 text-zinc-400 flex-shrink-0" />
                     </div>
-                    <p className="text-sm text-zinc-500 line-clamp-2">
-                      {project.summary}
-                    </p>
+                    {project.summary && (
+                      <p className="text-sm text-zinc-500 line-clamp-2">
+                        {project.summary}
+                      </p>
+                    )}
                     <div className="flex items-center gap-3 text-xs text-zinc-500">
                       {project.team && (
                         <>

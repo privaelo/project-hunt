@@ -218,7 +218,7 @@ export const getProjectMedia = query({
 export const create = action({
   args: {
     name: v.string(),
-    summary: v.string(),
+    summary: v.optional(v.string()),
     link: v.optional(v.string()),
     focusAreaIds: v.array(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
@@ -228,7 +228,7 @@ export const create = action({
     similarProjects: Array<{
       _id: Id<"projects">;
       name: string;
-      summary: string;
+      summary?: string;
       team: string;
       upvotes: number;
     }>;
@@ -254,7 +254,7 @@ export const create = action({
     );
 
     // Embed the project content
-    const text = `${args.name}\n\n${args.summary}`;
+    const text = args.summary ? `${args.name}\n\n${args.summary}` : args.name;
     const { entryId } = await rag.add(ctx, {
       namespace: "projects",
       text,
@@ -297,7 +297,7 @@ export const create = action({
 export const createProject = internalMutation({
   args: {
     name: v.string(),
-    summary: v.string(),
+    summary: v.optional(v.string()),
     status: v.union(v.literal("pending"), v.literal("active")),
     userId: v.id("users"),
     link: v.optional(v.string()),
@@ -381,7 +381,7 @@ export const populateProjectDetails = internalQuery({
       v.object({
         _id: v.id("projects"),
         name: v.string(),
-        summary: v.string(),
+        summary: v.optional(v.string()),
         teamId: v.optional(v.id("teams")),
         upvotes: v.number(),
         entryId: v.optional(v.string()),
@@ -464,7 +464,7 @@ export const updateProjectFields = internalMutation({
   args: {
     projectId: v.id("projects"),
     name: v.string(),
-    summary: v.string(),
+    summary: v.optional(v.string()),
     link: v.optional(v.string()),
     focusAreaIds: v.array(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
@@ -484,7 +484,7 @@ export const updateProject = action({
   args: {
     projectId: v.id("projects"),
     name: v.string(),
-    summary: v.string(),
+    summary: v.optional(v.string()),
     link: v.optional(v.string()),
     focusAreaIds: v.array(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
@@ -517,7 +517,7 @@ export const updateProject = action({
     });
 
     // Update the RAG index
-    const text = `${args.name}\n\n${args.summary}`;
+    const text = args.summary ? `${args.name}\n\n${args.summary}` : args.name;
 
     const { entryId } = await rag.add(ctx, {
       namespace: "projects",
@@ -578,7 +578,7 @@ export const backfillProject = action({
       return { message: "Project already has an embedding", entryId: project.entryId };
     }
 
-    const text = `${project.name}\n\n${project.summary}`;
+    const text = project.summary ? `${project.name}\n\n${project.summary}` : project.name;
     const { entryId } = await rag.add(ctx, {
       namespace: "projects",
       text,
@@ -1029,7 +1029,7 @@ export const getSimilarProjects = action({
     Array<{
       _id: Id<"projects">;
       name: string;
-      summary: string;
+      summary?: string;
       team: string;
       upvotes: number;
       creatorName: string;
@@ -1044,7 +1044,7 @@ export const getSimilarProjects = action({
       return [];
     }
 
-    const text = `${project.name}\n\n${project.summary}`;
+    const text = project.summary ? `${project.name}\n\n${project.summary}` : project.name;
     const { entries } = await rag.search(ctx, {
       namespace: "projects",
       query: text,
@@ -1074,7 +1074,7 @@ export const getSimilarProjects = action({
 export const searchSimilarProjectsByText = action({
   args: {
     name: v.string(),
-    summary: v.string(),
+    summary: v.optional(v.string()),
   },
   handler: async (
     ctx,
@@ -1083,7 +1083,7 @@ export const searchSimilarProjectsByText = action({
     Array<{
       _id: Id<"projects">;
       name: string;
-      summary: string;
+      summary?: string;
       team: string;
       upvotes: number;
       creatorName: string;
@@ -1091,11 +1091,12 @@ export const searchSimilarProjectsByText = action({
     }>
   > => {
     // Don't search if inputs are too short
-    if (args.name.trim().length < 2 && args.summary.trim().length < 2) {
+    const summaryLength = args.summary?.trim().length ?? 0;
+    if (args.name.trim().length < 2 && summaryLength < 2) {
       return [];
     }
 
-    const text = `${args.name}\n\n${args.summary}`;
+    const text = args.summary ? `${args.name}\n\n${args.summary}` : args.name;
 
     const { entries } = await rag.search(ctx, {
       namespace: "projects",

@@ -14,7 +14,7 @@ import Link from "next/link";
 type Project = {
   _id: Id<"projects">;
   name: string;
-  summary: string;
+  summary?: string;
   team: string;
   upvotes: number;
   status?: "pending" | "active";
@@ -145,9 +145,11 @@ function ConfirmSubmissionContent() {
                   <h3 className="text-xl font-semibold text-zinc-900">
                     {project.name}
                   </h3>
-                  <p className="mt-2 text-sm text-zinc-600">
-                    {project.summary}
-                  </p>
+                  {project.summary && (
+                    <p className="mt-2 text-sm text-zinc-600">
+                      {project.summary}
+                    </p>
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500">
                   <span className="flex items-center gap-2">
@@ -263,9 +265,11 @@ function SimilarProjectCard({ project }: { project: Project }) {
           <h4 className="text-lg font-semibold text-zinc-900">
             {project.name}
           </h4>
-          <p className="mt-1 text-sm text-zinc-600">
-            {project.summary}
-          </p>
+          {project.summary && (
+            <p className="mt-1 text-sm text-zinc-600">
+              {project.summary}
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500">
           <span className="flex items-center gap-2">

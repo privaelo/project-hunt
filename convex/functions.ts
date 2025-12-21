@@ -14,7 +14,7 @@ triggers.register("projects", async (ctx, change) => {
       teamName = team?.name ?? "";
     }
 
-    const allFields = `${change.newDoc.name} ${change.newDoc.summary} ${teamName}`.trim();
+    const allFields = `${change.newDoc.name} ${change.newDoc.summary || ""} ${teamName}`.trim();
 
     if (change.newDoc.allFields !== allFields) {
       await ctx.db.patch(change.id, { allFields });
