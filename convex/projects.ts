@@ -440,6 +440,7 @@ export const populateProjectDetails = internalQuery({
           summary: project.summary,
           team: teamName,
           upvotes: upvotes.length,
+          creatorId: project.userId,
           creatorName: creator?.name ?? "Unknown User",
           creatorAvatar: creator?.avatarUrlId ?? "",
         };
@@ -876,18 +877,29 @@ export const getByUserId = query({
 
     const projectsWithDetails = await Promise.all(
       projects.map(async (project) => {
-        const [upvotes, team] = await Promise.all([
+        const [upvotes, team, comments, adoptions] = await Promise.all([
           ctx.db
             .query("upvotes")
             .withIndex("by_project", (q) => q.eq("projectId", project._id))
             .collect(),
           project.teamId ? ctx.db.get(project.teamId) : Promise.resolve(null),
+          ctx.db
+            .query("comments")
+            .withIndex("by_project", (q) => q.eq("projectId", project._id))
+            .filter((q) => q.neq(q.field("isDeleted"), true))
+            .collect(),
+          ctx.db
+            .query("adoptions")
+            .withIndex("by_project", (q) => q.eq("projectId", project._id))
+            .collect(),
         ]);
 
         return {
           ...project,
           team: team?.name ?? "",
           upvotes: upvotes.length,
+          commentCount: comments.length,
+          adoptionCount: adoptions.length,
         };
       })
     );
@@ -935,6 +947,7 @@ export const getAdoptedByUser = query({
           readinessStatus: project.readinessStatus,
           team: team?.name ?? "",
           upvotes: upvotes.length,
+          creatorId: project.userId,
           creatorName: creator?.name ?? "Unknown User",
           creatorAvatar: creator?.avatarUrlId ?? "",
           adoptedAt: adoption.createdAt,
@@ -1175,6 +1188,7 @@ export const getSimilarProjects = action({
       summary?: string;
       team: string;
       upvotes: number;
+      creatorId: Id<"users">;
       creatorName: string;
       creatorAvatar: string;
     }>
@@ -1229,6 +1243,7 @@ export const searchSimilarProjectsByText = action({
       summary?: string;
       team: string;
       upvotes: number;
+      creatorId: Id<"users">;
       creatorName: string;
       creatorAvatar: string;
     }>

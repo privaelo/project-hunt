@@ -203,7 +203,10 @@ export default function ProjectPage({
           </div>
 
           <div className="flex flex-wrap items-center gap-3 text-base sm:flex-nowrap">
-            <span className="flex items-center gap-2 whitespace-nowrap">
+            <Link
+              href={`/profile/${project.userId}`}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
               <Avatar className="h-10 w-10 bg-zinc-100 text-sm font-semibold text-zinc-600">
                 <AvatarImage
                   src={project.creatorAvatar}
@@ -215,11 +218,11 @@ export default function ProjectPage({
               </Avatar>
               <span className="text-zinc-500">
                 By{" "}
-                <span className="font-medium text-zinc-900">
+                <span className="font-medium text-zinc-900 hover:underline">
                   {project.creatorName || "Unknown User"}
                 </span>
               </span>
-            </span>
+            </Link>
             {project.team && (
               <>
                 <span className="text-zinc-300">•</span>

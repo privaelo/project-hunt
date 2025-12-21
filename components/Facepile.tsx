@@ -222,8 +222,9 @@ export function Facepile({
                   </div>
                 ) : (
                   (allAdopters || []).map((adopter) => (
-                    <div
+                    <Link
                       key={adopter._id}
+                      href={`/profile/${adopter._id}`}
                       className="flex items-center gap-3"
                     >
                       <Avatar className="h-8 w-8 bg-zinc-100">
@@ -232,10 +233,10 @@ export function Facepile({
                           {(adopter.name || "U").slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="text-sm font-medium text-zinc-900">
+                      <div className="text-sm font-medium text-zinc-900 hover:underline">
                         {adopter.name}
                       </div>
-                    </div>
+                    </Link>
                   ))
                 )}
               </div>

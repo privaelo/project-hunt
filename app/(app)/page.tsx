@@ -35,6 +35,7 @@ type Project = {
   upvotes: number;
   commentCount: number;
   hasUpvoted: boolean;
+  userId: Id<"users">;
   creatorName: string;
   creatorAvatar: string;
   focusAreas: FocusArea[];
@@ -285,13 +286,19 @@ function ProjectRow({
       {/* Header: Creator info, team, facepile */}
       <div className="flex items-center justify-between gap-2 text-sm text-zinc-500">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="flex items-center gap-2 whitespace-nowrap">
+          <Link
+            href={`/profile/${project.userId}`}
+            onClick={(event) => event.stopPropagation()}
+            className="flex items-center gap-2 whitespace-nowrap"
+          >
             <Avatar className="h-6 w-6 bg-zinc-100 text-xs font-semibold text-zinc-600">
               <AvatarImage src={project.creatorAvatar} alt={project.creatorName || "User"} />
               <AvatarFallback>{(project.creatorName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <span className="font-medium text-zinc-700">{project.creatorName || "Unknown User"}</span>
-          </span>
+            <span className="font-medium text-zinc-700 hover:underline">
+              {project.creatorName || "Unknown User"}
+            </span>
+          </Link>
           {project.team && (
             <>
               <span className="text-zinc-300">•</span>
@@ -407,7 +414,10 @@ function EmptyState() {
 
 function ActiveUserCard({ user }: { user: ActiveUser }) {
   return (
-    <div className="rounded-lg p-3 transition-colors hover:bg-zinc-100">
+    <Link
+      href={`/profile/${user._id}`}
+      className="rounded-lg p-3 transition-colors hover:bg-zinc-100"
+    >
       <div className="flex items-center gap-2">
         <Avatar className="h-8 w-8 bg-zinc-100">
           <AvatarImage src={user.avatarUrlId} alt={user.name || "User"} />
@@ -428,7 +438,7 @@ function ActiveUserCard({ user }: { user: ActiveUser }) {
           <span className="text-lg font-semibold text-zinc-900">{user.score}</span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
