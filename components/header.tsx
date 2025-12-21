@@ -64,7 +64,10 @@ export function Header() {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger>
+                  <NavigationMenuTrigger
+                    onPointerEnter={(e) => e.preventDefault()}
+                    onPointerMove={(e) => e.preventDefault()}
+                  >
                     {user?.firstName ?? "Profile"}
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
