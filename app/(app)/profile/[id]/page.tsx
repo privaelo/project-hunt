@@ -11,10 +11,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { FocusAreaBadges } from "@/components/FocusAreaBadges";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
-import { MessageCircle, Pencil, Users } from "lucide-react";
+import { MessageCircle, Pencil, Target, Users } from "lucide-react";
 
 const intentLabels: Record<string, string> = {
   looking: "Looking for tools",
@@ -142,62 +143,55 @@ export default function ProfilePage({
   return (
     <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto w-full max-w-5xl space-y-8 px-6 pb-16 pt-10">
-        <div className="flex flex-col items-center space-y-6 text-center">
-          <Avatar className="h-16 w-16 border border-white shadow-sm">
-            <AvatarImage src={profile.avatarUrlId} alt={profile.name} />
-            <AvatarFallback>
-              {(profile.name || "U").slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <h1 className="text-3xl font-semibold text-zinc-900">
-                {profile.name}
-              </h1>
-              {intentLabel && (
-                <Badge
-                  variant="secondary"
-                  className="bg-white/70 text-zinc-700"
-                >
-                  {intentLabel}
-                </Badge>
-              )}
-            </div>
-            {profile.team && (
-              <div className="flex items-center justify-center text-sm text-zinc-600">
-                <Badge variant="outline" className="border-zinc-300">
-                  Team {profile.team}
-                </Badge>
+        <div className="flex flex-col items-center gap-6 text-center md:grid md:grid-cols-[auto,1fr] md:items-center md:gap-8 md:text-left">
+          <div className="flex flex-col items-center gap-4 md:flex-row md:items-center">
+            <Avatar className="h-16 w-16 border border-white shadow-sm">
+              <AvatarImage src={profile.avatarUrlId} alt={profile.name} />
+              <AvatarFallback>
+                {(profile.name || "U").slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
+                <h1 className="text-3xl font-semibold text-zinc-900">
+                  {profile.name}
+                </h1>
+                {profile.focusAreas.length > 0 && (
+                  <FocusAreaBadges
+                    focusAreas={profile.focusAreas}
+                  />
+                )}
               </div>
-            )}
+              <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-zinc-600 md:justify-start">
+                {intentLabel && (
+                  <span className="inline-flex items-center gap-2">
+                    <Target className="h-4 w-4 text-zinc-400" aria-hidden="true" />
+                    {intentLabel}
+                  </span>
+                )}
+                {profile.team && (
+                  <Badge variant="outline" className="border-zinc-300">
+                    Team {profile.team}
+                  </Badge>
+                )}
+              </div>
+            </div>
           </div>
 
-          {profile.focusAreas.length > 0 && (
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {profile.focusAreas.map((area) => (
-                <Badge
-                  key={area._id}
-                  variant="secondary"
-                  className="bg-zinc-100 text-zinc-700"
-                >
-                  {area.name}
-                </Badge>
-              ))}
-            </div>
-          )}
+          <div />
         </div>
 
         <Tabs defaultValue="projects" className="space-y-6">
           <div className="flex justify-center">
             <TabsList className="bg-white/90 shadow-sm ring-1 ring-zinc-200">
               <TabsTrigger value="projects" className="gap-2">
-                Projects
+                Built
                 <Badge variant="secondary" className="bg-zinc-100">
                   {profile.projectCount}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="adopted" className="gap-2">
-                Adopted tools
+                {`Tools ${profile.name.split(" ")[0]} Uses`}
                 <Badge variant="secondary" className="bg-zinc-100">
                   {profile.adoptionCount}
                 </Badge>
@@ -207,9 +201,6 @@ export default function ProfilePage({
 
           <TabsContent value="projects" className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-lg font-semibold text-zinc-900">
-                Projects
-              </h3>
               {isOwner && (
                 <Button variant="outline" asChild>
                   <Link href="/submit" prefetch={false}>
@@ -219,13 +210,13 @@ export default function ProfilePage({
               )}
             </div>
             {projects === undefined ? (
-              <EmptyState message="Loading projects..." />
+              <EmptyState message="Loading builds..." />
             ) : projects.length === 0 ? (
               <EmptyState
                 message={
                   isOwner
-                    ? "You have not shared any projects yet."
-                    : "No public projects yet."
+                    ? "You have not shared any builds yet."
+                    : "No shared builds yet."
                 }
               />
             ) : (
@@ -242,15 +233,10 @@ export default function ProfilePage({
           </TabsContent>
 
           <TabsContent value="adopted" className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-lg font-semibold text-zinc-900">
-                Adopted tools
-              </h3>
-            </div>
             {adoptedProjects === undefined ? (
-              <EmptyState message="Loading adopted tools..." />
+              <EmptyState message="Loading tools in use..." />
             ) : adoptedProjects.length === 0 ? (
-              <EmptyState message="No adopted tools yet." />
+              <EmptyState message="No tools in use yet." />
             ) : (
               <div className="space-y-3">
                 {adoptedProjects.map((project) => (
@@ -331,13 +317,6 @@ function ProjectCard({
                 <span>{project.adoptionCount}</span>
               </div>
             </div>
-            {project.team && (
-              <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-500">
-                <Badge variant="outline" className="border-zinc-300">
-                  Team {project.team}
-                </Badge>
-              </div>
-            )}
           </div>
         </Link>
       </div>
