@@ -56,18 +56,18 @@ export default function MyProjectsPage() {
           <div className="rounded-3xl bg-zinc-100/60 p-12 text-center">
             <p className="text-lg font-medium text-zinc-900">No posts yet</p>
             <p className="mt-2 text-sm text-zinc-500">
-              If you built something in response to friction — whether self-initiated or requested — it belongs here.
+              If you built something in response to friction, whether self-initiated or requested, it belongs here.
             </p>
             <p className="mt-2 text-sm text-zinc-500">
-              Rough and unfinished is welcome — you can always edit later.
+              Rough and unfinished is welcome, you can always edit later.
             </p>
-            <Accordion type="single" collapsible className="mt-4">
+            <Accordion type="single" collapsible className="mx-auto mt-4 max-w-xs">
               <AccordionItem value="things" className="border-b-0">
-                <AccordionTrigger className="py-1 text-xs font-medium uppercase tracking-wide text-zinc-500">
+                <AccordionTrigger className="justify-center text-center py-1 text-xs font-medium uppercase tracking-wide text-zinc-500">
                   Things that belong
                 </AccordionTrigger>
                 <AccordionContent className="pt-2">
-                  <ul className="mx-auto max-w-md list-disc space-y-1 pl-5 text-left text-sm text-zinc-600">
+                  <ul className="list-disc space-y-1 pl-5 text-left text-sm text-zinc-600">
                     {thingsThatBelong.map((item) => (
                       <li key={item}>{item}</li>
                     ))}
