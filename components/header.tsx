@@ -1,13 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
+import {
+  Authenticated,
+  Unauthenticated,
+  AuthLoading,
+  useMutation,
+  useQuery,
+} from "convex/react";
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/SearchBar";
 import { useAuth } from '@workos-inc/authkit-nextjs/components';
 import { signOut } from "@workos-inc/authkit-nextjs";
-import { LogOut } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import { useCurrentUser } from "@/app/useCurrentUser";
+import { api } from "@/convex/_generated/api";
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -17,11 +24,56 @@ import {
   NavigationMenuContent,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+function timeAgo(timestamp: number) {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(timestamp).toLocaleDateString();
+}
 
 
 export function Header() {
   const { user } = useAuth();
   const { user: convexUser } = useCurrentUser();
+  const notifications = useQuery(api.notifications.getNotifications, { limit: 8 }) ?? [];
+  const unreadCount = useQuery(api.notifications.getUnreadNotificationCount) ?? 0;
+  const markAllRead = useMutation(api.notifications.markAllRead);
+
+  const handleNotificationsOpen = (open: boolean) => {
+    if (!open || unreadCount === 0) {
+      return;
+    }
+    void markAllRead({});
+  };
+
+  const renderNotificationText = (notification: (typeof notifications)[number]) => {
+    const projectName = notification.projectName ?? "your project";
+    if (notification.type === "upvote") {
+      const count = notification.count ?? 1;
+      if (count > 1) {
+        const others = count - 1;
+        const suffix = others === 1 ? "other" : "others";
+        return `${notification.actorName} and ${others} ${suffix} upvoted ${projectName}`;
+      }
+      return `${notification.actorName} upvoted ${projectName}`;
+    }
+
+    if (notification.type === "adoption") {
+      return `${notification.actorName} adopted ${projectName}`;
+    }
+
+    const verb = notification.isReply ? "replied on" : "commented on";
+    return `${notification.actorName} ${verb} ${projectName}`;
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-zinc-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
@@ -53,7 +105,74 @@ export function Header() {
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
-              
+
+              <Authenticated>
+                <NavigationMenuItem>
+                  <Popover onOpenChange={handleNotificationsOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        className={`${navigationMenuTriggerStyle()} relative w-9 p-0 text-zinc-700`}
+                        aria-label="Open notifications"
+                      >
+                        <Bell className="h-5 w-5" />
+                        {unreadCount > 0 && (
+                          <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
+                            {unreadCount > 9 ? "9+" : unreadCount}
+                          </span>
+                        )}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-80 p-0">
+                      <div className="border-b border-zinc-100 px-4 py-3 text-sm font-semibold text-zinc-900">
+                        Notifications
+                      </div>
+                      {notifications.length === 0 ? (
+                        <div className="px-4 py-6 text-center text-sm text-zinc-500">
+                          No notifications yet.
+                        </div>
+                      ) : (
+                        <div className="max-h-96 divide-y divide-zinc-100 overflow-auto">
+                          {notifications.map((notification) => {
+                            const href = `/project/${notification.projectId}${
+                              notification.type === "comment" ? "#discussion" : ""
+                            }`;
+                            return (
+                              <Link
+                                key={notification._id}
+                                href={href}
+                                className={`flex items-start gap-3 px-4 py-3 text-sm transition hover:bg-zinc-50 ${
+                                  notification.isRead
+                                    ? "text-zinc-600"
+                                    : "bg-zinc-50 text-zinc-900"
+                                }`}
+                              >
+                                <Avatar className="h-8 w-8 bg-zinc-100">
+                                  <AvatarImage
+                                    src={notification.actorAvatar}
+                                    alt={notification.actorName}
+                                  />
+                                  <AvatarFallback className="text-xs font-semibold text-zinc-600">
+                                    {notification.actorName.slice(0, 2).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0 flex-1 space-y-1">
+                                  <p className="leading-snug">
+                                    {renderNotificationText(notification)}
+                                  </p>
+                                  <p className="text-xs text-zinc-500">
+                                    {timeAgo(notification.lastActivityAt)}
+                                  </p>
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                </NavigationMenuItem>
+              </Authenticated>
+
               <Authenticated>
                 <NavigationMenuItem>
                   <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>

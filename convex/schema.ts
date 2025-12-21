@@ -68,6 +68,25 @@ export default defineSchema({
     .index("by_comment", ["commentId"])
     .index("by_comment_and_user", ["commentId", "userId"])
     .index("by_user", ["userId"]),
+  notifications: defineTable({
+    recipientUserId: v.id("users"),
+    actorUserId: v.id("users"),
+    projectId: v.id("projects"),
+    type: v.union(
+      v.literal("comment"),
+      v.literal("upvote"),
+      v.literal("adoption")
+    ),
+    commentId: v.optional(v.id("comments")),
+    count: v.optional(v.number()),
+    isRead: v.boolean(),
+    createdAt: v.number(),
+    lastActivityAt: v.number(),
+  })
+    .index("by_recipient", ["recipientUserId"])
+    .index("by_recipient_and_read", ["recipientUserId", "isRead"])
+    .index("by_recipient_last_activity", ["recipientUserId", "lastActivityAt"])
+    .index("by_recipient_project_type", ["recipientUserId", "projectId", "type"]),
   users: defineTable({
     name: v.string(),
     tokenIdentifier: v.string(),

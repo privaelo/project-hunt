@@ -11,6 +11,11 @@ import type { EntryId } from "@convex-dev/rag";
 import type { QueryCtx } from "./_generated/server";
 import { getCurrentUserOrThrow, getCurrentUser } from "./users";
 import { hybridRank } from "@convex-dev/rag";
+import {
+  createProjectNotification,
+  syncUpvoteNotification,
+  upsertUpvoteNotification,
+} from "./notifications";
 
 // Helper function to enrich projects with computed data
 async function enrichProjects(
@@ -1323,6 +1328,13 @@ export const toggleUpvote = mutation({
       await ctx.db.patch(args.projectId, {
         engagementScore: Math.max(0, (project.engagementScore ?? 0) - 1),
       });
+
+      if (project.userId !== user._id) {
+        await syncUpvoteNotification(ctx, {
+          recipientUserId: project.userId,
+          projectId: args.projectId,
+        });
+      }
     } else {
       // User hasn't upvoted - add it
       await ctx.db.insert("upvotes", {
@@ -1334,6 +1346,13 @@ export const toggleUpvote = mutation({
       await ctx.db.patch(args.projectId, {
         engagementScore: (project.engagementScore ?? 0) + 1,
       });
+
+      if (project.userId !== user._id) {
+        await upsertUpvoteNotification(ctx, {
+          recipientUserId: project.userId,
+          projectId: args.projectId,
+        });
+      }
     }
   },
 });
@@ -1369,6 +1388,16 @@ export const toggleAdoption = mutation({
         userId: user._id,
         createdAt: Date.now(),
       });
+
+      if (project.userId !== user._id) {
+        await createProjectNotification(ctx, {
+          recipientUserId: project.userId,
+          actorUserId: user._id,
+          projectId: project._id,
+          type: "adoption",
+        });
+      }
+
       return { adopted: true };
     }
   },

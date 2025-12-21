@@ -12,6 +12,7 @@ import type * as comments from "../comments.js";
 import type * as focusAreas from "../focusAreas.js";
 import type * as functions from "../functions.js";
 import type * as http from "../http.js";
+import type * as notifications from "../notifications.js";
 import type * as projects from "../projects.js";
 import type * as rag from "../rag.js";
 import type * as seed from "../seed.js";
@@ -37,6 +38,7 @@ declare const fullApi: ApiFromModules<{
   focusAreas: typeof focusAreas;
   functions: typeof functions;
   http: typeof http;
+  notifications: typeof notifications;
   projects: typeof projects;
   rag: typeof rag;
   seed: typeof seed;
