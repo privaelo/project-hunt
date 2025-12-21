@@ -174,6 +174,7 @@ export default function ProjectPage({
                 currentUser={user ? { _id: user._id, name: user.name, avatarUrl: user.avatarUrlId || "" } : null}
                 isAuthenticated={isAuthenticated}
                 onToggle={handleAdopt}
+                projectId={projectId}
               />
               {isAuthenticated ? (
                 <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>

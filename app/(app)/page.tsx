@@ -312,6 +312,7 @@ function ProjectRow({
           currentUser={currentUser}
           isAuthenticated={isAuthenticated}
           onToggle={handleAdoptClick}
+          projectId={project._id}
         />
       </div>
 

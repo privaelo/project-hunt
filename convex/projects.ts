@@ -1295,3 +1295,29 @@ export const getUpvoteCount = query({
     return upvotes.length;
   },
 });
+
+export const getAdopters = query({
+  args: {
+    projectId: v.id("projects"),
+  },
+  handler: async (ctx, args) => {
+    const adoptions = await ctx.db
+      .query("adoptions")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .order("desc")
+      .collect();
+
+    const adoptersWithInfo = await Promise.all(
+      adoptions.map(async (adoption) => {
+        const user = await ctx.db.get(adoption.userId);
+        return {
+          _id: adoption.userId,
+          name: user?.name ?? "Unknown User",
+          avatarUrl: user?.avatarUrlId ?? "",
+        };
+      })
+    );
+
+    return adoptersWithInfo;
+  },
+});

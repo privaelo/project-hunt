@@ -1,12 +1,23 @@
 "use client";
 
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Id } from "@/convex/_generated/dataModel";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { Check, Plus } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
@@ -34,6 +45,7 @@ interface FacepileProps {
   isAuthenticated?: boolean;
   onToggle?: () => void;
   showLabel?: boolean;
+  projectId?: Id<"projects">;
 }
 
 export function Facepile({
@@ -46,10 +58,18 @@ export function Facepile({
   isAuthenticated = false,
   onToggle,
   showLabel = true,
+  projectId,
 }: FacepileProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const isInteractive = onToggle !== undefined;
   const sizeClasses = size === "sm" ? "h-6 w-6 text-xs" : "h-8 w-8 text-sm";
   const iconSize = size === "sm" ? "h-3 w-3" : "h-4 w-4";
+
+  // Fetch all adopters if dialog is open and projectId is available
+  const allAdopters = useQuery(
+    api.projects.getAdopters,
+    isOpen && projectId ? { projectId } : "skip"
+  );
 
   // Filter out current user from adopters to avoid duplicate display
   const otherAdopters = currentUser
@@ -145,49 +165,99 @@ export function Facepile({
     );
   };
 
+  const content = (
+    <div className="flex items-center gap-2">
+      <div className="flex -space-x-2 [&_[data-slot=avatar]]:ring-2 [&_[data-slot=avatar]]:ring-white">
+        {/* Other adopters */}
+        {visibleOthers.map((adopter) => (
+          <Avatar
+            key={adopter._id}
+            className={`${sizeClasses} bg-zinc-100 cursor-pointer`}
+          >
+            <AvatarImage src={adopter.avatarUrl} alt={adopter.name} />
+            <AvatarFallback className="font-semibold text-zinc-600">
+              {(adopter.name || "U").slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        ))}
+
+        {/* Current user's avatar (if adopted) or +You button */}
+        {renderUserAction()}
+      </div>
+      {remainingCount > 0 && (
+        <span className="text-sm text-zinc-500 whitespace-nowrap cursor-pointer hover:underline">
+          and {remainingCount} {remainingCount === 1 ? "other" : "others"}
+        </span>
+      )}
+    </div>
+  );
+
+  // If projectId is provided, wrap in Dialog
+  if (projectId) {
+    return (
+      <div
+        className="flex items-center gap-2"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {showLabel && totalCount > 0 && (
+          <span className="text-sm text-zinc-500 whitespace-nowrap">
+            Used by
+          </span>
+        )}
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <div className="cursor-pointer hover:opacity-80 transition-opacity">
+              {content}
+            </div>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Used by {totalCount} people</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+              <div className="space-y-4">
+                {allAdopters === undefined ? (
+                  <div className="flex items-center justify-center py-4 text-zinc-500">
+                    Loading...
+                  </div>
+                ) : (
+                  (allAdopters || []).map((adopter) => (
+                    <div
+                      key={adopter._id}
+                      className="flex items-center gap-3"
+                    >
+                      <Avatar className="h-8 w-8 bg-zinc-100">
+                        <AvatarImage src={adopter.avatarUrl} alt={adopter.name} />
+                        <AvatarFallback className="font-semibold text-zinc-600">
+                          {(adopter.name || "U").slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="text-sm font-medium text-zinc-900">
+                        {adopter.name}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
+  // Fallback if no projectId (shouldn't happen in project page)
   return (
     <div
       className="flex items-center gap-2"
       onClick={(e) => e.stopPropagation()}
     >
       {showLabel && totalCount > 0 && (
-        <span className="text-sm text-zinc-500 whitespace-nowrap">Used by</span>
+        <span className="text-sm text-zinc-500 whitespace-nowrap">
+          Used by
+        </span>
       )}
-      <div className="flex -space-x-2 [&_[data-slot=avatar]]:ring-2 [&_[data-slot=avatar]]:ring-white">
-        {/* Other adopters */}
-        {visibleOthers.map((adopter) => (
-          <Tooltip key={adopter._id}>
-            <TooltipTrigger asChild>
-              <Avatar className={`${sizeClasses} bg-zinc-100 cursor-default`}>
-                <AvatarImage src={adopter.avatarUrl} alt={adopter.name} />
-                <AvatarFallback className="font-semibold text-zinc-600">
-                  {(adopter.name || "U").slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </TooltipTrigger>
-            <TooltipContent>{adopter.name}</TooltipContent>
-          </Tooltip>
-        ))}
-
-        {/* Current user's avatar (if adopted) or +You button */}
-        {renderUserAction()}
-
-        {/* Remaining count badge */}
-        {remainingCount > 0 && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={`${sizeClasses} flex items-center justify-center rounded-full bg-zinc-200 font-medium text-zinc-600 ring-2 ring-white cursor-default`}
-              >
-                +{remainingCount}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              {remainingCount} more {remainingCount === 1 ? "person" : "people"}
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </div>
+      {content}
     </div>
   );
 }
