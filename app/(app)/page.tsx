@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation, useConvexAuth } from "convex/react";
+import { useQuery, useMutation, useConvexAuth, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { motion, LayoutGroup } from "motion/react";
@@ -76,12 +76,41 @@ function getRelativeTime(timestamp: number): string {
 }
 
 export default function Home() {
-  const projects = useQuery(api.projects.list);
+  const { results, status, loadMore } = usePaginatedQuery(
+    api.projects.listPaginated,
+    {},
+    { initialNumItems: 15 }
+  );
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
 
-  const filteredProjects = useMemo(() => {
-    return projects ?? [];
-  }, [projects]);
+  const isLoading = status === "LoadingFirstPage";
+  const canLoadMore = status === "CanLoadMore";
+  const isLoadingMore = status === "LoadingMore";
+
+  // Infinite scroll with Intersection Observer
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  const loadMoreCallback = useCallback(() => {
+    if (canLoadMore) {
+      loadMore(15);
+    }
+  }, [canLoadMore, loadMore]);
+
+  useEffect(() => {
+    if (!canLoadMore || !loadMoreRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreCallback();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [canLoadMore, loadMoreCallback]);
 
   const handleUpvote = async (projectId: Id<"projects">) => {
     try {
@@ -107,26 +136,35 @@ export default function Home() {
             <ShareProjectCallout />
             <LayoutGroup>
               <div className="space-y-0">
-                {!projects ? (
+                {isLoading ? (
                   <div className="py-8 text-center text-sm text-zinc-500">
                     Loading projects...
                   </div>
-                ) : filteredProjects.length ? (
-                  filteredProjects.map((project, index) => (
-                    <React.Fragment key={project._id}>
-                      {index > 0 && <Separator className="bg-zinc-200" />}
-                      <motion.div
-                        layout
-                        layoutId={project._id}
-                        transition={{ type: "spring", stiffness: 500, damping: 35 }}
-                      >
-                        <ProjectRow
-                          project={project}
-                          onUpvote={handleUpvote}
-                        />
-                      </motion.div>
-                    </React.Fragment>
-                  ))
+                ) : results.length ? (
+                  <>
+                    {results.map((project, index) => (
+                      <React.Fragment key={project._id}>
+                        {index > 0 && <Separator className="bg-zinc-200" />}
+                        <motion.div
+                          layout
+                          layoutId={project._id}
+                          transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                        >
+                          <ProjectRow
+                            project={project}
+                            onUpvote={handleUpvote}
+                          />
+                        </motion.div>
+                      </React.Fragment>
+                    ))}
+                    {/* Infinite scroll sentinel */}
+                    <div ref={loadMoreRef} className="h-4" />
+                    {isLoadingMore && (
+                      <div className="py-4 text-center text-sm text-zinc-500">
+                        Loading more projects...
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <EmptyState />
                 )}

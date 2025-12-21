@@ -11,7 +11,7 @@ export const addComment = mutation({
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    return await ctx.db.insert("comments", {
+    const commentId = await ctx.db.insert("comments", {
       projectId: args.projectId,
       userId: user._id,
       content: args.content,
@@ -19,6 +19,16 @@ export const addComment = mutation({
       createdAt: Date.now(),
       upvotes: 0,
     });
+
+    // Increment project engagement score
+    const project = await ctx.db.get(args.projectId);
+    if (project) {
+      await ctx.db.patch(args.projectId, {
+        engagementScore: (project.engagementScore ?? 0) + 1,
+      });
+    }
+
+    return commentId;
   },
 });
 
@@ -102,6 +112,14 @@ export const deleteComment = mutation({
       isDeleted: true,
       upvotes: 0,
     });
+
+    // Decrement project engagement score
+    const project = await ctx.db.get(comment.projectId);
+    if (project) {
+      await ctx.db.patch(comment.projectId, {
+        engagementScore: Math.max(0, (project.engagementScore ?? 0) - 1),
+      });
+    }
 
     const existingUpvotes = await ctx.db
       .query("commentUpvotes")

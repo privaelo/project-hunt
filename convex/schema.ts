@@ -15,12 +15,14 @@ export default defineSchema({
     focusAreaIds: v.array(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
     pinned: v.optional(v.boolean()),
+    engagementScore: v.optional(v.number()),
   })
     .searchIndex("allFields", { searchField: "allFields" })
     .index("by_entryId", ["entryId"])
     .index("by_status", ["status"])
     .index("by_userId", ["userId"])
-    .index("by_teamId", ["teamId"]),
+    .index("by_teamId", ["teamId"])
+    .index("by_status_engagement", ["status", "engagementScore"]),
   mediaFiles: defineTable({
     projectId: v.id("projects"),
     storageId: v.id("_storage"),

@@ -3,12 +3,88 @@ import { mutation, query, action, internalQuery } from "./_generated/server";
 // this internal mutation will be a wrapper for the createProject and updateProjectFields internal mutations
 import { internalMutation } from "./functions";
 import { v } from "convex/values";
+import { paginationOptsValidator } from "convex/server";
 import { internal } from "./_generated/api";
 import { rag } from "./rag";
-import type { Id } from "./_generated/dataModel";
+import type { Id, Doc } from "./_generated/dataModel";
 import type { EntryId } from "@convex-dev/rag";
+import type { QueryCtx } from "./_generated/server";
 import { getCurrentUserOrThrow, getCurrentUser } from "./users";
 import { hybridRank } from "@convex-dev/rag";
+
+// Helper function to enrich projects with computed data
+async function enrichProjects(
+  ctx: QueryCtx,
+  projects: Doc<"projects">[],
+  userId: Id<"users"> | undefined
+) {
+  // Preload all focus areas referenced by these projects for quick lookup
+  const focusAreaIds = Array.from(
+    new Set(projects.flatMap((project) => project.focusAreaIds))
+  );
+  const focusAreaDocs = await Promise.all(
+    focusAreaIds.map((id) => ctx.db.get(id))
+  );
+  const focusAreaMap = new Map(
+    focusAreaDocs
+      .filter((fa): fa is NonNullable<typeof fa> => fa !== null)
+      .map((fa) => [fa._id, fa])
+  );
+
+  // Enrich each project with computed data
+  return Promise.all(
+    projects.map(async (project) => {
+      const [upvotes, comments, creator, team, mediaFiles] = await Promise.all([
+        ctx.db
+          .query("upvotes")
+          .withIndex("by_project", (q) => q.eq("projectId", project._id))
+          .collect(),
+        ctx.db
+          .query("comments")
+          .withIndex("by_project", (q) => q.eq("projectId", project._id))
+          .filter((q) => q.neq(q.field("isDeleted"), true))
+          .collect(),
+        ctx.db.get(project.userId),
+        project.teamId ? ctx.db.get(project.teamId) : Promise.resolve(null),
+        ctx.db
+          .query("mediaFiles")
+          .withIndex("by_project_ordered", (q) => q.eq("projectId", project._id))
+          .order("asc")
+          .collect(),
+      ]);
+
+      const previewMedia = await Promise.all(
+        mediaFiles.map(async (media) => ({
+          _id: media._id,
+          storageId: media.storageId,
+          type: media.type,
+          url: await ctx.storage.getUrl(media.storageId),
+        }))
+      );
+
+      const focusAreas = project.focusAreaIds
+        .map((id) => focusAreaMap.get(id))
+        .filter((fa): fa is NonNullable<typeof fa> => fa !== undefined)
+        .map((fa) => ({
+          _id: fa._id,
+          name: fa.name,
+          group: fa.group,
+        }));
+
+      return {
+        ...project,
+        team: team?.name ?? "",
+        upvotes: upvotes.length,
+        commentCount: comments.length,
+        hasUpvoted: userId ? upvotes.some((u) => u.userId === userId) : false,
+        creatorName: creator?.name ?? "Unknown User",
+        creatorAvatar: creator?.avatarUrlId ?? "",
+        focusAreas,
+        previewMedia,
+      };
+    })
+  );
+}
 
 // Internal query to get current user for use in actions
 export const getCurrentUserInternal = internalQuery({
@@ -518,6 +594,40 @@ export const backfillProject = action({
   },
 });
 
+// Backfill engagementScore for existing projects (run until returns 0)
+export const backfillEngagementScores = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const projects = await ctx.db
+      .query("projects")
+      .filter((q) => q.eq(q.field("engagementScore"), undefined))
+      .take(100);
+
+    for (const project of projects) {
+      const upvoteCount = (
+        await ctx.db
+          .query("upvotes")
+          .withIndex("by_project", (q) => q.eq("projectId", project._id))
+          .collect()
+      ).length;
+
+      const commentCount = (
+        await ctx.db
+          .query("comments")
+          .withIndex("by_project", (q) => q.eq("projectId", project._id))
+          .filter((q) => q.neq(q.field("isDeleted"), true))
+          .collect()
+      ).length;
+
+      await ctx.db.patch(project._id, {
+        engagementScore: upvoteCount + commentCount,
+      });
+    }
+
+    return projects.length;
+  },
+});
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
@@ -631,6 +741,45 @@ export const list = query({
 
       return b._creationTime - a._creationTime;
     });
+  },
+});
+
+// Paginated version of list query for infinite scroll
+export const listPaginated = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const currentUser = await getCurrentUser(ctx);
+    const userId = currentUser?._id;
+
+    // Fetch pinned projects separately (always show all on first page)
+    const isFirstPage = !args.paginationOpts.cursor;
+    let pinnedProjects: Doc<"projects">[] = [];
+    if (isFirstPage) {
+      pinnedProjects = await ctx.db
+        .query("projects")
+        .withIndex("by_status", (q) => q.eq("status", "active"))
+        .filter((q) => q.eq(q.field("pinned"), true))
+        .collect();
+    }
+
+    // Paginate non-pinned projects by engagement score (descending)
+    const paginatedResult = await ctx.db
+      .query("projects")
+      .withIndex("by_status_engagement", (q) => q.eq("status", "active"))
+      .filter((q) => q.neq(q.field("pinned"), true))
+      .order("desc")
+      .paginate(args.paginationOpts);
+
+    // Combine pinned (first page only) + paginated projects
+    const projectsToEnrich = [...pinnedProjects, ...paginatedResult.page];
+
+    // Enrich with computed data
+    const enrichedProjects = await enrichProjects(ctx, projectsToEnrich, userId);
+
+    return {
+      ...paginatedResult,
+      page: enrichedProjects,
+    };
   },
 });
 
@@ -1003,15 +1152,28 @@ export const toggleUpvote = mutation({
       )
       .first();
 
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
     if (existingUpvote) {
       // User has upvoted - remove it
       await ctx.db.delete(existingUpvote._id);
+      // Decrement engagement score
+      await ctx.db.patch(args.projectId, {
+        engagementScore: Math.max(0, (project.engagementScore ?? 0) - 1),
+      });
     } else {
       // User hasn't upvoted - add it
       await ctx.db.insert("upvotes", {
         projectId: args.projectId,
         userId: user._id,
         createdAt: Date.now(),
+      });
+      // Increment engagement score
+      await ctx.db.patch(args.projectId, {
+        engagementScore: (project.engagementScore ?? 0) + 1,
       });
     }
   },
