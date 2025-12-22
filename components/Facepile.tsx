@@ -108,7 +108,7 @@ export function Facepile({
               href="/sign-in"
               prefetch={false}
               onClick={(e) => e.stopPropagation()}
-              className={`${sizeClasses} flex items-center justify-center rounded-full bg-zinc-100 font-medium text-zinc-500 ring-2 ring-white hover:bg-zinc-200 hover:text-zinc-700 transition-colors cursor-pointer`}
+              className={`${sizeClasses} relative z-10 flex items-center justify-center rounded-full bg-zinc-100 font-medium text-zinc-500 ring-2 ring-white hover:bg-zinc-200 hover:text-zinc-700 transition-colors cursor-pointer`}
             >
               <Plus className={iconSize} />
             </Link>
@@ -127,7 +127,7 @@ export function Facepile({
               whileTap={{ scale: 1.1 }}
               transition={{ type: "spring", stiffness: 800, damping: 20 }}
               onClick={handleClick}
-              className="relative cursor-pointer"
+              className="relative z-10 cursor-pointer"
             >
               <Avatar
                 className={`${sizeClasses} bg-emerald-100 ring-2 ring-emerald-500`}
@@ -155,7 +155,7 @@ export function Facepile({
             whileTap={{ scale: 1.1 }}
             transition={{ type: "spring", stiffness: 800, damping: 20 }}
             onClick={handleClick}
-            className={`${sizeClasses} flex items-center justify-center rounded-full bg-zinc-100 font-medium text-zinc-500 ring-2 ring-white hover:bg-emerald-100 hover:text-emerald-600 hover:ring-emerald-200 transition-colors cursor-pointer`}
+            className={`${sizeClasses} relative z-10 flex items-center justify-center rounded-full bg-zinc-100 font-medium text-zinc-500 ring-2 ring-white hover:bg-emerald-100 hover:text-emerald-600 hover:ring-emerald-200 transition-colors cursor-pointer`}
           >
             <Plus className={iconSize} />
           </motion.button>

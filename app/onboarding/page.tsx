@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, startTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -17,22 +17,24 @@ export default function OnboardingPage() {
   const focusAreasGrouped = useQuery(api.focusAreas.listActiveGrouped);
   const completeOnboarding = useMutation(api.users.completeOnboarding);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const initializedRef = useRef(false);
   const [focusAreaIds, setFocusAreaIds] = useState<Id<'focusAreas'>[]>([]);
   const [userIntent, setUserIntent] = useState<'looking' | 'sharing' | 'both' | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize state with user's existing values when user data loads
+  // Update state when user data loads (only once)
   useEffect(() => {
-    if (user && !isInitialized) {
-      if (user.focusAreaIds) {
-        setFocusAreaIds(user.focusAreaIds);
-      }
-      if (user.userIntent) {
-        setUserIntent(user.userIntent);
-      }
-      setIsInitialized(true);
+    if (user && !initializedRef.current) {
+      initializedRef.current = true;
+      startTransition(() => {
+        if (user.focusAreaIds) {
+          setFocusAreaIds(user.focusAreaIds);
+        }
+        if (user.userIntent) {
+          setUserIntent(user.userIntent);
+        }
+      });
     }
-  }, [user, isInitialized]);
+  }, [user]);
 
   useEffect(() => {
     if (user?.onboardingCompleted) {

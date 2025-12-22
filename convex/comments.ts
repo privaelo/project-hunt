@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { getCurrentUserOrThrow } from "./users";
+import { getCurrentUserOrThrow, getCurrentUser } from "./users";
 import { createProjectNotification } from "./notifications";
 
 export const addComment = mutation({
@@ -56,7 +56,7 @@ export const getComments = query({
 
     const sorted = comments.sort((a, b) => a.createdAt - b.createdAt);
 
-    const user = await getCurrentUserOrThrow(ctx);
+    const user = await getCurrentUser(ctx);
     const userId = user?._id;
 
     if (!userId) {
