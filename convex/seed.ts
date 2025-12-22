@@ -144,7 +144,7 @@ export const seed = internalMutation({
         focusAreaIds: [focusAreaIds[3], focusAreaIds[0]],
         status: "active" as const,
         readinessStatus: "ready_to_use" as const,
-        upvotes: 5,
+        upvotes: 3,
         entryId: "entry_privacy_pulse",
         link: "https://example.com/privacy-pulse",
         pinned: true,
