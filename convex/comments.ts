@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserOrThrow, getCurrentUser } from "./users";
 import { createProjectNotification } from "./notifications";
+import { calculateHotScore } from "./projects";
 
 export const addComment = mutation({
   args: {
@@ -21,11 +22,14 @@ export const addComment = mutation({
       upvotes: 0,
     });
 
-    // Increment project engagement score
+    // Increment project engagement score and update hot score
     const project = await ctx.db.get(args.projectId);
     if (project) {
+      const now = Date.now();
+      const newEngagementScore = (project.engagementScore ?? 0) + 1;
       await ctx.db.patch(args.projectId, {
-        engagementScore: (project.engagementScore ?? 0) + 1,
+        engagementScore: newEngagementScore,
+        hotScore: calculateHotScore(newEngagementScore, project._creationTime, now),
       });
     }
 
@@ -124,11 +128,14 @@ export const deleteComment = mutation({
       upvotes: 0,
     });
 
-    // Decrement project engagement score
+    // Decrement project engagement score and update hot score
     const project = await ctx.db.get(comment.projectId);
     if (project) {
+      const now = Date.now();
+      const newEngagementScore = Math.max(0, (project.engagementScore ?? 0) - 1);
       await ctx.db.patch(comment.projectId, {
-        engagementScore: Math.max(0, (project.engagementScore ?? 0) - 1),
+        engagementScore: newEngagementScore,
+        hotScore: calculateHotScore(newEngagementScore, project._creationTime, now),
       });
     }
 

@@ -17,13 +17,15 @@ export default defineSchema({
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
     pinned: v.optional(v.boolean()),
     engagementScore: v.optional(v.number()),
+    hotScore: v.optional(v.number()),
   })
     .searchIndex("allFields", { searchField: "allFields" })
     .index("by_entryId", ["entryId"])
     .index("by_status", ["status"])
     .index("by_userId", ["userId"])
     .index("by_teamId", ["teamId"])
-    .index("by_status_engagement", ["status", "engagementScore"]),
+    .index("by_status_engagement", ["status", "engagementScore"])
+    .index("by_status_hotScore", ["status", "hotScore"]),
   mediaFiles: defineTable({
     projectId: v.id("projects"),
     storageId: v.id("_storage"),

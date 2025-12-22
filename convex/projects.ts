@@ -17,6 +17,23 @@ import {
   upsertUpvoteNotification,
 } from "./notifications";
 
+// Hot score calculation constants (HN-style algorithm)
+const HOT_SCORE_GRAVITY = 1.0; // Slow decay: projects visible 2-3 weeks
+const HOT_SCORE_AGE_OFFSET = 2; // Prevents division issues for new posts
+
+/**
+ * Calculate HN-style hot score for a project
+ * Formula: (score + 1) / (age_hours + 2)^gravity
+ */
+export function calculateHotScore(
+  engagementScore: number,
+  creationTime: number,
+  now: number = Date.now()
+): number {
+  const ageHours = (now - creationTime) / (1000 * 60 * 60);
+  return (engagementScore + 1) / Math.pow(ageHours + HOT_SCORE_AGE_OFFSET, HOT_SCORE_GRAVITY);
+}
+
 // Helper function to enrich projects with computed data
 async function enrichProjects(
   ctx: QueryCtx,
@@ -482,8 +499,10 @@ export const confirmProject = mutation({
       throw new Error("Project is not pending");
     }
 
+    const now = Date.now();
     await ctx.db.patch(args.projectId, {
       status: "active" as const,
+      hotScore: calculateHotScore(project.engagementScore ?? 0, project._creationTime, now),
     });
   },
 });
@@ -795,10 +814,10 @@ export const listPaginated = query({
         .collect();
     }
 
-    // Paginate non-pinned projects by engagement score (descending)
+    // Paginate non-pinned projects by hot score (descending)
     const paginatedResult = await ctx.db
       .query("projects")
-      .withIndex("by_status_engagement", (q) => q.eq("status", "active"))
+      .withIndex("by_status_hotScore", (q) => q.eq("status", "active"))
       .filter((q) => q.neq(q.field("pinned"), true))
       .order("desc")
       .paginate(args.paginationOpts);
@@ -1368,9 +1387,12 @@ export const toggleUpvote = mutation({
     if (existingUpvote) {
       // User has upvoted - remove it
       await ctx.db.delete(existingUpvote._id);
-      // Decrement engagement score
+      // Decrement engagement score and update hot score
+      const now = Date.now();
+      const newEngagementScore = Math.max(0, (project.engagementScore ?? 0) - 1);
       await ctx.db.patch(args.projectId, {
-        engagementScore: Math.max(0, (project.engagementScore ?? 0) - 1),
+        engagementScore: newEngagementScore,
+        hotScore: calculateHotScore(newEngagementScore, project._creationTime, now),
       });
 
       if (project.userId !== user._id) {
@@ -1381,14 +1403,17 @@ export const toggleUpvote = mutation({
       }
     } else {
       // User hasn't upvoted - add it
+      const now = Date.now();
       await ctx.db.insert("upvotes", {
         projectId: args.projectId,
         userId: user._id,
-        createdAt: Date.now(),
+        createdAt: now,
       });
-      // Increment engagement score
+      // Increment engagement score and update hot score
+      const newEngagementScore = (project.engagementScore ?? 0) + 1;
       await ctx.db.patch(args.projectId, {
-        engagementScore: (project.engagementScore ?? 0) + 1,
+        engagementScore: newEngagementScore,
+        hotScore: calculateHotScore(newEngagementScore, project._creationTime, now),
       });
 
       if (project.userId !== user._id) {
@@ -1505,5 +1530,28 @@ export const getAdopters = query({
     );
 
     return adoptersWithInfo;
+  },
+});
+
+// Refresh hot scores for all active projects (called by cron job)
+export const refreshHotScores = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const projects = await ctx.db
+      .query("projects")
+      .withIndex("by_status", (q) => q.eq("status", "active"))
+      .collect();
+
+    for (const project of projects) {
+      const hotScore = calculateHotScore(
+        project.engagementScore ?? 0,
+        project._creationTime,
+        now
+      );
+      await ctx.db.patch(project._id, { hotScore });
+    }
+
+    return { updated: projects.length };
   },
 });
