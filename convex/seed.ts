@@ -165,6 +165,7 @@ export const seed = internalMutation({
         status: project.status,
         readinessStatus: project.readinessStatus,
         upvotes: project.upvotes,
+        viewCount: 0,
         entryId: project.entryId,
         link: project.link,
         pinned: project.pinned,

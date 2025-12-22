@@ -12,7 +12,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
-import { MessageCircle, Flame } from "lucide-react";
+import { Eye, MessageCircle, Flame } from "lucide-react";
 import { ProjectMediaCarousel } from "@/components/ProjectMediaCarousel";
 import { FocusAreaBadges } from "@/components/FocusAreaBadges";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
@@ -33,6 +33,7 @@ type Project = {
   summary?: string;
   team?: string;
   upvotes: number;
+  viewCount: number;
   commentCount: number;
   hasUpvoted: boolean;
   userId: Id<"users">;
@@ -382,6 +383,10 @@ function ProjectRow({
             <span>{project.commentCount}</span>
           </Button>
         </motion.div>
+        <div className="flex items-center gap-1.5 rounded-full border border-zinc-200 px-3 h-8 text-sm text-zinc-600">
+          <Eye className="h-4 w-4" aria-hidden="true" />
+          <span>{project.viewCount}</span>
+        </div>
 
         {project.focusAreas.length > 0 && (
           <div className="ml-auto">

@@ -97,6 +97,7 @@ async function enrichProjects(
         ...project,
         team: team?.name ?? "",
         upvotes: upvotes.length,
+        viewCount: project.viewCount ?? 0,
         commentCount: comments.length,
         hasUpvoted: userId ? upvotes.some((u) => u.userId === userId) : false,
         creatorName: creator?.name ?? "Unknown User",
@@ -343,6 +344,7 @@ export const createProject = internalMutation({
       summary: args.summary,
       teamId,
       upvotes: 0,
+      viewCount: 0,
       status: args.status,
       userId: args.userId,
       link: args.link,
@@ -1100,6 +1102,7 @@ export const getById = query({
       ...project,
       team: teamName,
       upvotes: upvotes.length,
+      viewCount: project.viewCount ?? 0,
       hasUpvoted,
       creatorName: creator?.name ?? "Unknown User",
       creatorAvatar: creator?.avatarUrlId ?? "",
@@ -1108,6 +1111,42 @@ export const getById = query({
       adopters: adoptersWithInfo,
       hasAdopted,
     };
+  },
+});
+
+export const trackView = mutation({
+  args: {
+    projectId: v.id("projects"),
+    viewerId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("projectViews")
+      .withIndex("by_project_and_viewer", (q) =>
+        q.eq("projectId", args.projectId).eq("viewerId", args.viewerId)
+      )
+      .first();
+
+    if (existing) {
+      return { counted: false };
+    }
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    await ctx.db.insert("projectViews", {
+      projectId: args.projectId,
+      viewerId: args.viewerId,
+      viewedAt: Date.now(),
+    });
+
+    await ctx.db.patch(args.projectId, {
+      viewCount: (project.viewCount ?? 0) + 1,
+    });
+
+    return { counted: true };
   },
 });
 

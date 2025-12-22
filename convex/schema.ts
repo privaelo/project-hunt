@@ -7,6 +7,7 @@ export default defineSchema({
     summary: v.optional(v.string()),
     teamId: v.optional(v.id("teams")),
     upvotes: v.number(),
+    viewCount: v.optional(v.number()),
     entryId: v.optional(v.string()),
     status: v.union(v.literal("pending"), v.literal("active")),
     userId: v.id("users"),
@@ -48,6 +49,13 @@ export default defineSchema({
     .index("by_project", ["projectId"])
     .index("by_project_and_user", ["projectId", "userId"])
     .index("by_user", ["userId"]),
+  projectViews: defineTable({
+    projectId: v.id("projects"),
+    viewerId: v.string(),
+    viewedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_project_and_viewer", ["projectId", "viewerId"]),
   comments: defineTable({
     projectId: v.id("projects"),
     userId: v.id("users"),

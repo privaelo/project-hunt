@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/app/useCurrentUser";
@@ -16,7 +16,31 @@ import { FocusAreaBadges } from "@/components/FocusAreaBadges";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Facepile } from "@/components/Facepile";
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Eye, Pencil } from "lucide-react";
+
+const VIEWER_ID_STORAGE_KEY = "ph_viewer_id";
+
+function getOrCreateViewerId(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const stored = window.localStorage.getItem(VIEWER_ID_STORAGE_KEY);
+    if (stored) {
+      return stored;
+    }
+
+    const created =
+      typeof crypto?.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `viewer_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    window.localStorage.setItem(VIEWER_ID_STORAGE_KEY, created);
+    return created;
+  } catch {
+    return null;
+  }
+}
 
 function formatProjectLink(link?: string | null): {
   href: string;
@@ -60,12 +84,32 @@ export default function ProjectPage({
   const comments = useQuery(api.comments.getComments, { projectId });
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
   const toggleAdoption = useMutation(api.projects.toggleAdoption);
+  const trackView = useMutation(api.projects.trackView);
+  const trackedProjectId = useRef<Id<"projects"> | null>(null);
 
   const isOwner = user && project && project.userId === user._id;
 
   // Get top-level comments (no parent)
   const topLevelComments =
     comments?.filter((c) => !c.parentCommentId && !c.isDeleted) || [];
+
+  useEffect(() => {
+    if (!project) {
+      return;
+    }
+
+    if (trackedProjectId.current === projectId) {
+      return;
+    }
+
+    const viewerId = getOrCreateViewerId();
+    if (!viewerId) {
+      return;
+    }
+
+    trackedProjectId.current = projectId;
+    void trackView({ projectId, viewerId });
+  }, [project, projectId, trackView]);
 
   const handleUpvote = async () => {
     try {
@@ -199,6 +243,10 @@ export default function ProjectPage({
                     </Button>
                 </motion.div>
               )}
+              <div className="flex items-center gap-1 text-sm text-zinc-500">
+                <Eye className="h-4 w-4" aria-hidden="true" />
+                <span>{project.viewCount ?? 0} views</span>
+              </div>
             </div>
           </div>
 
