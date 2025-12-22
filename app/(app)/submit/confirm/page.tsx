@@ -14,10 +14,12 @@ import Link from "next/link";
 type Project = {
   _id: Id<"projects">;
   name: string;
-  summary: string;
+  summary?: string;
   team: string;
   upvotes: number;
   status?: "pending" | "active";
+  userId?: Id<"users">;
+  creatorId?: Id<"users">;
   creatorName: string;
   creatorAvatar: string;
 };
@@ -145,23 +147,43 @@ function ConfirmSubmissionContent() {
                   <h3 className="text-xl font-semibold text-zinc-900">
                     {project.name}
                   </h3>
-                  <p className="mt-2 text-sm text-zinc-600">
-                    {project.summary}
-                  </p>
+                  {project.summary && (
+                    <p className="mt-2 text-sm text-zinc-600">
+                      {project.summary}
+                    </p>
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500">
-                  <span className="flex items-center gap-2">
-                    <Avatar className="h-9 w-9 bg-zinc-100 text-sm font-semibold text-zinc-600">
-                      <AvatarImage src={project.creatorAvatar} alt={project.creatorName || "User"} />
-                      <AvatarFallback>{(project.creatorName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <span>
-                      By{" "}
-                      <span className="font-medium text-zinc-900">
-                        {project.creatorName || "Unknown User"}
+                  {project.userId ? (
+                    <Link
+                      href={`/profile/${project.userId}`}
+                      className="flex items-center gap-2"
+                    >
+                      <Avatar className="h-9 w-9 bg-zinc-100 text-sm font-semibold text-zinc-600">
+                        <AvatarImage src={project.creatorAvatar} alt={project.creatorName || "User"} />
+                        <AvatarFallback>{(project.creatorName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <span>
+                        By{" "}
+                        <span className="font-medium text-zinc-900 hover:underline">
+                          {project.creatorName || "Unknown User"}
+                        </span>
+                      </span>
+                    </Link>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Avatar className="h-9 w-9 bg-zinc-100 text-sm font-semibold text-zinc-600">
+                        <AvatarImage src={project.creatorAvatar} alt={project.creatorName || "User"} />
+                        <AvatarFallback>{(project.creatorName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <span>
+                        By{" "}
+                        <span className="font-medium text-zinc-900">
+                          {project.creatorName || "Unknown User"}
+                        </span>
                       </span>
                     </span>
-                  </span>
+                  )}
                   {project.team ? (
                     <>
                       <Separator
@@ -263,21 +285,43 @@ function SimilarProjectCard({ project }: { project: Project }) {
           <h4 className="text-lg font-semibold text-zinc-900">
             {project.name}
           </h4>
-          <p className="mt-1 text-sm text-zinc-600">
-            {project.summary}
-          </p>
+          {project.summary && (
+            <p className="mt-1 text-sm text-zinc-600">
+              {project.summary}
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500">
-          <span className="flex items-center gap-2">
-            <Avatar className="h-9 w-9 bg-zinc-100 text-sm font-semibold text-zinc-600">
-              <AvatarImage src={project.creatorAvatar} alt={project.creatorName || "User"} />
-              <AvatarFallback>{(project.creatorName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <span>
-              By{" "}
-              <span className="font-medium text-zinc-900">{project.creatorName || "Unknown User"}</span>
+          {project.creatorId ? (
+            <Link
+              href={`/profile/${project.creatorId}`}
+              className="flex items-center gap-2"
+            >
+              <Avatar className="h-9 w-9 bg-zinc-100 text-sm font-semibold text-zinc-600">
+                <AvatarImage src={project.creatorAvatar} alt={project.creatorName || "User"} />
+                <AvatarFallback>{(project.creatorName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <span>
+                By{" "}
+                <span className="font-medium text-zinc-900 hover:underline">
+                  {project.creatorName || "Unknown User"}
+                </span>
+              </span>
+            </Link>
+          ) : (
+            <span className="flex items-center gap-2">
+              <Avatar className="h-9 w-9 bg-zinc-100 text-sm font-semibold text-zinc-600">
+                <AvatarImage src={project.creatorAvatar} alt={project.creatorName || "User"} />
+                <AvatarFallback>{(project.creatorName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <span>
+                By{" "}
+                <span className="font-medium text-zinc-900">
+                  {project.creatorName || "Unknown User"}
+                </span>
+              </span>
             </span>
-          </span>
+          )}
           {project.team ? (
             <>
               <Separator

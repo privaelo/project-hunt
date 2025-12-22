@@ -5,15 +5,15 @@ export const seed = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();
+    const at = (offsetMs: number) => now + offsetMs;
 
-    // 1. Create Focus Areas
+    // 1. Focus Areas
     const focusAreaIds: Id<"focusAreas">[] = [];
     const focusAreas = [
-      { name: "Focus Area A", group: "Technical", description: "Technical focus area" },
-      { name: "Focus Area B", group: "Technical", description: "Another technical focus area" },
-      { name: "Focus Area C", group: "Business", description: "Business focus area" },
-      { name: "Focus Area D", group: "Business", description: "Another business focus area" },
-      { name: "Focus Area E", group: "Design", description: "Design focus area" },
+      { name: "AI Infrastructure", group: "Technical", description: "Systems and tooling for AI." },
+      { name: "Go-to-Market", group: "Business", description: "Launch and distribution strategy." },
+      { name: "UX Research", group: "Design", description: "User discovery and research." },
+      { name: "Data Privacy", group: "Compliance", description: "Privacy and governance." },
     ];
 
     for (const focusArea of focusAreas) {
@@ -25,48 +25,58 @@ export const seed = internalMutation({
       focusAreaIds.push(id);
     }
 
-    // 2. Create Teams
+    // 2. Teams
     const teamIds: Id<"teams">[] = [];
     const teams = [
-      { name: "Team A", description: "Sample team A" },
-      { name: "Team B", description: "Sample team B" },
+      { name: "Velocity Lab", description: "R&D skunkworks." },
+      { name: "Product Studio", description: "Product design and launch." },
     ];
 
     for (const team of teams) {
       const id = await ctx.db.insert("teams", {
         ...team,
-        createdAt: now,
+        createdAt: at(1000),
       });
       teamIds.push(id);
     }
 
-    // 3. Create Users
+    // 3. Users
     const userIds: Id<"users">[] = [];
     const users = [
-      { name: "User 1", teamId: teamIds[0] },
-      { name: "User 2", teamId: teamIds[0] },
-      { name: "User 3", teamId: teamIds[1] },
-      { name: "User 4", teamId: undefined }, // No team
+      { name: "Alex Johnson", teamId: teamIds[0], userIntent: "sharing" as const },
+      { name: "Riley Chen", teamId: teamIds[0], userIntent: "looking" as const },
+      { name: "Jordan Lee", teamId: teamIds[1], userIntent: "both" as const },
+      { name: "Casey Patel", teamId: undefined, userIntent: undefined },
+      { name: "Morgan Brooks", teamId: teamIds[1], userIntent: "sharing" as const },
+      { name: "Sam Rivera", teamId: teamIds[0], userIntent: "looking" as const },
+      { name: "Taylor Nguyen", teamId: undefined, userIntent: "both" as const },
+      { name: "Jamie Ortiz", teamId: teamIds[1], userIntent: "looking" as const },
     ];
 
-    for (let i = 0; i < users.length; i++) {
+    for (let i = 0; i < users.length; i += 1) {
       const user = users[i];
       const id = await ctx.db.insert("users", {
         name: user.name,
         tokenIdentifier: `https://preview-workos.com/oauth/user_${String(i + 1).padStart(2, "0")}`,
         workosUserId: `user_preview_${String(i + 1).padStart(2, "0")}`,
+        avatarUrlId: i % 2 === 0 ? `avatar_${i + 1}` : undefined,
         onboardingCompleted: true,
         teamId: user.teamId,
+        userIntent: user.userIntent,
       });
       userIds.push(id);
     }
 
-    // 4. Create User Focus Areas
+    // 4. User Focus Areas
     const userFocusAreaMappings = [
-      { userId: userIds[0], focusAreaIds: [focusAreaIds[0], focusAreaIds[1]] },
-      { userId: userIds[1], focusAreaIds: [focusAreaIds[2]] },
-      { userId: userIds[2], focusAreaIds: [focusAreaIds[3], focusAreaIds[4]] },
+      { userId: userIds[0], focusAreaIds: [focusAreaIds[0], focusAreaIds[2]] },
+      { userId: userIds[1], focusAreaIds: [focusAreaIds[1]] },
+      { userId: userIds[2], focusAreaIds: [focusAreaIds[3]] },
       { userId: userIds[3], focusAreaIds: [focusAreaIds[0]] },
+      { userId: userIds[4], focusAreaIds: [focusAreaIds[1], focusAreaIds[3]] },
+      { userId: userIds[5], focusAreaIds: [focusAreaIds[0]] },
+      { userId: userIds[6], focusAreaIds: [focusAreaIds[2]] },
+      { userId: userIds[7], focusAreaIds: [focusAreaIds[1], focusAreaIds[2]] },
     ];
 
     let userFocusAreaCount = 0;
@@ -75,68 +85,77 @@ export const seed = internalMutation({
         await ctx.db.insert("userFocusAreas", {
           userId: mapping.userId,
           focusAreaId,
-          createdAt: now,
+          createdAt: at(2000),
         });
-        userFocusAreaCount++;
+        userFocusAreaCount += 1;
       }
     }
 
-    // 5. Create Projects
+    // 5. Projects
     const projectIds: Id<"projects">[] = [];
     const projects = [
       {
-        name: "Project 1",
-        summary: "This is a sample project for testing.",
+        name: "Signal Atlas",
+        summary: "Discover competitor signals across the web.",
         userId: userIds[0],
         teamId: teamIds[0],
         focusAreaIds: [focusAreaIds[0], focusAreaIds[1]],
         status: "active" as const,
         readinessStatus: "ready_to_use" as const,
-        upvotes: 5,
+        upvotes: 2,
+        entryId: "entry_signal_atlas",
+        link: "https://example.com/signal-atlas",
+        pinned: true,
+        engagementScore: 78,
       },
       {
-        name: "Project 2",
-        summary: "Another sample project for testing.",
+        name: "Launch Compass",
+        summary: "Plan and execute launch playbooks.",
         userId: userIds[1],
-        teamId: teamIds[0],
-        focusAreaIds: [focusAreaIds[2]],
-        status: "active" as const,
-        readinessStatus: "in_progress" as const,
-        upvotes: 3,
-      },
-      {
-        name: "Project 3",
-        summary: "Third sample project.",
-        userId: userIds[2],
-        teamId: teamIds[1],
-        focusAreaIds: [focusAreaIds[3]],
-        status: "pending" as const,
-        readinessStatus: "in_progress" as const,
-        upvotes: 1,
-      },
-      {
-        name: "Project 4",
-        summary: "Fourth sample project.",
-        userId: userIds[3],
-        teamId: undefined,
-        focusAreaIds: [focusAreaIds[0], focusAreaIds[4]],
-        status: "active" as const,
-        readinessStatus: "ready_to_use" as const,
-        upvotes: 8,
-      },
-      {
-        name: "Project 5",
-        summary: "Fifth sample project.",
-        userId: userIds[0],
         teamId: teamIds[0],
         focusAreaIds: [focusAreaIds[1]],
         status: "active" as const,
+        readinessStatus: "in_progress" as const,
+        upvotes: 1,
+        entryId: "entry_launch_compass",
+        link: "https://example.com/launch-compass",
+        pinned: false,
+        engagementScore: 52,
+      },
+      {
+        name: "Insight Vault",
+        summary: "Organize user research in one place.",
+        userId: userIds[2],
+        teamId: teamIds[1],
+        focusAreaIds: [focusAreaIds[2]],
+        status: "pending" as const,
+        readinessStatus: "in_progress" as const,
+        upvotes: 1,
+        entryId: "entry_insight_vault",
+        link: "https://example.com/insight-vault",
+        pinned: undefined,
+        engagementScore: undefined,
+      },
+      {
+        name: "Privacy Pulse",
+        summary: "Track privacy posture and compliance gaps.",
+        userId: userIds[3],
+        teamId: undefined,
+        focusAreaIds: [focusAreaIds[3], focusAreaIds[0]],
+        status: "active" as const,
         readinessStatus: "ready_to_use" as const,
-        upvotes: 2,
+        upvotes: 3,
+        entryId: "entry_privacy_pulse",
+        link: "https://example.com/privacy-pulse",
+        pinned: true,
+        engagementScore: 90,
       },
     ];
 
     for (const project of projects) {
+      const allFields = [project.name, project.summary, project.entryId, project.link]
+        .filter(Boolean)
+        .join(" ");
       const id = await ctx.db.insert("projects", {
         name: project.name,
         summary: project.summary,
@@ -146,56 +165,67 @@ export const seed = internalMutation({
         status: project.status,
         readinessStatus: project.readinessStatus,
         upvotes: project.upvotes,
+        viewCount: 0,
+        entryId: project.entryId,
+        link: project.link,
+        pinned: project.pinned,
+        engagementScore: project.engagementScore,
+        allFields,
       });
       projectIds.push(id);
     }
 
-    // 6. Create Comments
+    // 6. Media Files
+    // Note: ctx.storage.store() is not available in mutations.
+    // Media files require client-side upload via generateUploadUrl().
+    // Skipping media seeding - upload files manually if needed.
+    const mediaFilesInserted = 0;
+
+    // 7. Comments
     const commentIds: Id<"comments">[] = [];
     const comments = [
-      { projectId: projectIds[0], userId: userIds[1], content: "This is a comment." },
-      { projectId: projectIds[0], userId: userIds[2], content: "Another comment." },
-      { projectId: projectIds[1], userId: userIds[0], content: "Great project!" },
+      { projectId: projectIds[0], userId: userIds[1], content: "Love the direction." },
+      { projectId: projectIds[0], userId: userIds[2], content: "Would like a demo." },
+      { projectId: projectIds[1], userId: userIds[0], content: "Great execution." },
       { projectId: projectIds[2], userId: userIds[3], content: "Interesting idea." },
-      { projectId: projectIds[3], userId: userIds[1], content: "Nice work!" },
     ];
 
     for (const comment of comments) {
       const id = await ctx.db.insert("comments", {
         ...comment,
-        createdAt: now,
+        createdAt: at(4000),
         upvotes: 0,
       });
       commentIds.push(id);
     }
 
-    // Add a couple reply comments
-    await ctx.db.insert("comments", {
+    const replyId = await ctx.db.insert("comments", {
       projectId: projectIds[0],
       userId: userIds[0],
-      content: "Thanks for the feedback!",
+      content: "Thanks! Happy to share a walkthrough.",
       parentCommentId: commentIds[0],
-      createdAt: now,
+      createdAt: at(4200),
       upvotes: 1,
     });
 
     await ctx.db.insert("comments", {
-      projectId: projectIds[1],
-      userId: userIds[1],
-      content: "Appreciate it!",
-      parentCommentId: commentIds[2],
-      createdAt: now,
+      projectId: projectIds[2],
+      userId: userIds[2],
+      content: "Removed due to duplication.",
+      parentCommentId: undefined,
+      createdAt: at(4300),
+      isDeleted: true,
       upvotes: 0,
     });
 
-    // 7. Create Project Upvotes
+    commentIds.push(replyId);
+
+    // 8. Project Upvotes
     let projectUpvoteCount = 0;
     const projectUpvotes = [
-      { projectId: projectIds[0], userIds: [userIds[1], userIds[2], userIds[3]] },
-      { projectId: projectIds[1], userIds: [userIds[0], userIds[3]] },
-      { projectId: projectIds[2], userIds: [userIds[1]] },
+      { projectId: projectIds[0], userIds: [userIds[1], userIds[2]] },
+      { projectId: projectIds[1], userIds: [userIds[0]] },
       { projectId: projectIds[3], userIds: [userIds[0], userIds[1], userIds[2]] },
-      { projectId: projectIds[4], userIds: [userIds[2], userIds[3]] },
     ];
 
     for (const mapping of projectUpvotes) {
@@ -203,20 +233,61 @@ export const seed = internalMutation({
         await ctx.db.insert("upvotes", {
           projectId: mapping.projectId,
           userId,
-          createdAt: now,
+          createdAt: at(5000),
         });
-        projectUpvoteCount++;
+        projectUpvoteCount += 1;
       }
     }
 
-    // 8. Create Comment Upvotes
+    // 9. Adoptions
+    let adoptionCount = 0;
+    const adoptionMappings = [
+      {
+        projectId: projectIds[0],
+        userIds: [
+          userIds[0],
+          userIds[1],
+          userIds[2],
+          userIds[3],
+          userIds[4],
+          userIds[5],
+          userIds[6],
+          userIds[7],
+        ],
+      },
+      {
+        projectId: projectIds[1],
+        userIds: [
+          userIds[0],
+          userIds[1],
+          userIds[2],
+          userIds[3],
+          userIds[4],
+          userIds[5],
+          userIds[6],
+          userIds[7],
+        ],
+      },
+      { projectId: projectIds[2], userIds: [userIds[1], userIds[3]] },
+    ];
+
+    for (const mapping of adoptionMappings) {
+      for (const userId of mapping.userIds) {
+        await ctx.db.insert("adoptions", {
+          projectId: mapping.projectId,
+          userId,
+          createdAt: at(5200),
+        });
+        adoptionCount += 1;
+      }
+    }
+
+    // 10. Comment Upvotes
     let commentUpvoteCount = 0;
     const commentUpvotes = [
       { commentId: commentIds[0], userIds: [userIds[0], userIds[3]] },
       { commentId: commentIds[1], userIds: [userIds[1]] },
-      { commentId: commentIds[2], userIds: [userIds[2], userIds[3]] },
-      { commentId: commentIds[3], userIds: [userIds[0]] },
-      { commentId: commentIds[4], userIds: [userIds[0], userIds[2]] },
+      { commentId: commentIds[2], userIds: [userIds[2]] },
     ];
 
     for (const mapping of commentUpvotes) {
@@ -224,9 +295,9 @@ export const seed = internalMutation({
         await ctx.db.insert("commentUpvotes", {
           commentId: mapping.commentId,
           userId,
-          createdAt: now,
+          createdAt: at(5400),
         });
-        commentUpvoteCount++;
+        commentUpvoteCount += 1;
       }
     }
 
@@ -238,8 +309,10 @@ export const seed = internalMutation({
         users: users.length,
         userFocusAreas: userFocusAreaCount,
         projects: projects.length,
-        comments: comments.length + 2, // +2 for reply comments
+        mediaFiles: mediaFilesInserted,
+        comments: commentIds.length + 1, // includes deleted comment
         projectUpvotes: projectUpvoteCount,
+        adoptions: adoptionCount,
         commentUpvotes: commentUpvoteCount,
       },
     };

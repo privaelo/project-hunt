@@ -11,6 +11,11 @@ import type { EntryId } from "@convex-dev/rag";
 import type { QueryCtx } from "./_generated/server";
 import { getCurrentUserOrThrow, getCurrentUser } from "./users";
 import { hybridRank } from "@convex-dev/rag";
+import {
+  createProjectNotification,
+  syncUpvoteNotification,
+  upsertUpvoteNotification,
+} from "./notifications";
 
 // Helper function to enrich projects with computed data
 async function enrichProjects(
@@ -34,7 +39,7 @@ async function enrichProjects(
   // Enrich each project with computed data
   return Promise.all(
     projects.map(async (project) => {
-      const [upvotes, comments, creator, team, mediaFiles] = await Promise.all([
+      const [upvotes, comments, creator, team, mediaFiles, adoptions] = await Promise.all([
         ctx.db
           .query("upvotes")
           .withIndex("by_project", (q) => q.eq("projectId", project._id))
@@ -50,6 +55,11 @@ async function enrichProjects(
           .query("mediaFiles")
           .withIndex("by_project_ordered", (q) => q.eq("projectId", project._id))
           .order("asc")
+          .collect(),
+        ctx.db
+          .query("adoptions")
+          .withIndex("by_project", (q) => q.eq("projectId", project._id))
+          .order("desc")
           .collect(),
       ]);
 
@@ -71,16 +81,32 @@ async function enrichProjects(
           group: fa.group,
         }));
 
+      // Get top 4 adopters with user info for facepile
+      const adoptersWithInfo = await Promise.all(
+        adoptions.slice(0, 4).map(async (adoption) => {
+          const user = await ctx.db.get(adoption.userId);
+          return {
+            _id: adoption.userId,
+            name: user?.name ?? "Unknown User",
+            avatarUrl: user?.avatarUrlId ?? "",
+          };
+        })
+      );
+
       return {
         ...project,
         team: team?.name ?? "",
         upvotes: upvotes.length,
+        viewCount: project.viewCount ?? 0,
         commentCount: comments.length,
         hasUpvoted: userId ? upvotes.some((u) => u.userId === userId) : false,
         creatorName: creator?.name ?? "Unknown User",
         creatorAvatar: creator?.avatarUrlId ?? "",
         focusAreas,
         previewMedia,
+        adoptionCount: adoptions.length,
+        adopters: adoptersWithInfo,
+        hasAdopted: userId ? adoptions.some((a) => a.userId === userId) : false,
       };
     })
   );
@@ -218,7 +244,7 @@ export const getProjectMedia = query({
 export const create = action({
   args: {
     name: v.string(),
-    summary: v.string(),
+    summary: v.optional(v.string()),
     link: v.optional(v.string()),
     focusAreaIds: v.array(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
@@ -228,7 +254,7 @@ export const create = action({
     similarProjects: Array<{
       _id: Id<"projects">;
       name: string;
-      summary: string;
+      summary?: string;
       team: string;
       upvotes: number;
     }>;
@@ -254,7 +280,7 @@ export const create = action({
     );
 
     // Embed the project content
-    const text = `${args.name}\n\n${args.summary}`;
+    const text = args.summary ? `${args.name}\n\n${args.summary}` : args.name;
     const { entryId } = await rag.add(ctx, {
       namespace: "projects",
       text,
@@ -297,7 +323,7 @@ export const create = action({
 export const createProject = internalMutation({
   args: {
     name: v.string(),
-    summary: v.string(),
+    summary: v.optional(v.string()),
     status: v.union(v.literal("pending"), v.literal("active")),
     userId: v.id("users"),
     link: v.optional(v.string()),
@@ -318,6 +344,7 @@ export const createProject = internalMutation({
       summary: args.summary,
       teamId,
       upvotes: 0,
+      viewCount: 0,
       status: args.status,
       userId: args.userId,
       link: args.link,
@@ -381,7 +408,7 @@ export const populateProjectDetails = internalQuery({
       v.object({
         _id: v.id("projects"),
         name: v.string(),
-        summary: v.string(),
+        summary: v.optional(v.string()),
         teamId: v.optional(v.id("teams")),
         upvotes: v.number(),
         entryId: v.optional(v.string()),
@@ -420,6 +447,7 @@ export const populateProjectDetails = internalQuery({
           summary: project.summary,
           team: teamName,
           upvotes: upvotes.length,
+          creatorId: project.userId,
           creatorName: creator?.name ?? "Unknown User",
           creatorAvatar: creator?.avatarUrlId ?? "",
         };
@@ -464,7 +492,7 @@ export const updateProjectFields = internalMutation({
   args: {
     projectId: v.id("projects"),
     name: v.string(),
-    summary: v.string(),
+    summary: v.optional(v.string()),
     link: v.optional(v.string()),
     focusAreaIds: v.array(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
@@ -484,7 +512,7 @@ export const updateProject = action({
   args: {
     projectId: v.id("projects"),
     name: v.string(),
-    summary: v.string(),
+    summary: v.optional(v.string()),
     link: v.optional(v.string()),
     focusAreaIds: v.array(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
@@ -517,7 +545,7 @@ export const updateProject = action({
     });
 
     // Update the RAG index
-    const text = `${args.name}\n\n${args.summary}`;
+    const text = args.summary ? `${args.name}\n\n${args.summary}` : args.name;
 
     const { entryId } = await rag.add(ctx, {
       namespace: "projects",
@@ -528,6 +556,11 @@ export const updateProject = action({
     await ctx.runMutation(internal.projects.updateEntryId, {
       projectId: args.projectId,
       entryId,
+    });
+
+    await ctx.runMutation(internal.notifications.notifyProjectUpdate, {
+      projectId: args.projectId,
+      actorUserId: user._id,
     });
   },
 });
@@ -578,7 +611,7 @@ export const backfillProject = action({
       return { message: "Project already has an embedding", entryId: project.entryId };
     }
 
-    const text = `${project.name}\n\n${project.summary}`;
+    const text = project.summary ? `${project.name}\n\n${project.summary}` : project.name;
     const { entryId } = await rag.add(ctx, {
       namespace: "projects",
       text,
@@ -830,6 +863,116 @@ export const getUserProjects = query({
   },
 });
 
+export const getByUserId = query({
+  args: {
+    userId: v.id("users"),
+    includePending: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const viewer = await getCurrentUser(ctx);
+    if (!viewer) {
+      return [];
+    }
+
+    const includePending = args.includePending ?? false;
+    const canSeePending = includePending && viewer._id === args.userId;
+
+    let projectQuery = ctx.db
+      .query("projects")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId));
+
+    if (!canSeePending) {
+      projectQuery = projectQuery.filter((q) => q.eq(q.field("status"), "active"));
+    }
+
+    const projects = await projectQuery.collect();
+
+    const projectsWithDetails = await Promise.all(
+      projects.map(async (project) => {
+        const [upvotes, team, comments, adoptions] = await Promise.all([
+          ctx.db
+            .query("upvotes")
+            .withIndex("by_project", (q) => q.eq("projectId", project._id))
+            .collect(),
+          project.teamId ? ctx.db.get(project.teamId) : Promise.resolve(null),
+          ctx.db
+            .query("comments")
+            .withIndex("by_project", (q) => q.eq("projectId", project._id))
+            .filter((q) => q.neq(q.field("isDeleted"), true))
+            .collect(),
+          ctx.db
+            .query("adoptions")
+            .withIndex("by_project", (q) => q.eq("projectId", project._id))
+            .collect(),
+        ]);
+
+        return {
+          ...project,
+          team: team?.name ?? "",
+          upvotes: upvotes.length,
+          commentCount: comments.length,
+          adoptionCount: adoptions.length,
+        };
+      })
+    );
+
+    return projectsWithDetails.sort((a, b) => b._creationTime - a._creationTime);
+  },
+});
+
+export const getAdoptedByUser = query({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const viewer = await getCurrentUser(ctx);
+    if (!viewer) {
+      return [];
+    }
+
+    const adoptions = await ctx.db
+      .query("adoptions")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .collect();
+
+    const adoptedProjects = await Promise.all(
+      adoptions.map(async (adoption) => {
+        const project = await ctx.db.get(adoption.projectId);
+        if (!project || project.status !== "active") {
+          return null;
+        }
+
+        const [upvotes, team, creator] = await Promise.all([
+          ctx.db
+            .query("upvotes")
+            .withIndex("by_project", (q) => q.eq("projectId", project._id))
+            .collect(),
+          project.teamId ? ctx.db.get(project.teamId) : Promise.resolve(null),
+          ctx.db.get(project.userId),
+        ]);
+
+        return {
+          _id: project._id,
+          name: project.name,
+          summary: project.summary,
+          readinessStatus: project.readinessStatus,
+          team: team?.name ?? "",
+          upvotes: upvotes.length,
+          creatorId: project.userId,
+          creatorName: creator?.name ?? "Unknown User",
+          creatorAvatar: creator?.avatarUrlId ?? "",
+          adoptedAt: adoption.createdAt,
+        };
+      })
+    );
+
+    return adoptedProjects.filter(
+      (project): project is NonNullable<typeof project> => project !== null
+    );
+  },
+});
+
 // Public query: Fetch the newest active projects for sidebar display
 // Returns minimal enriched data sorted by creation time descending
 export const getNewestProjects = query({
@@ -900,9 +1043,17 @@ export const getById = query({
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
       .collect();
 
-    // Check if current user has upvoted
+    // Get adoption data
+    const adoptions = await ctx.db
+      .query("adoptions")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .order("desc")
+      .collect();
+
+    // Check if current user has upvoted and adopted
     const currentUser = await getCurrentUser(ctx);
     let hasUpvoted = false;
+    let hasAdopted = false;
     if (currentUser) {
       const userUpvote = await ctx.db
         .query("upvotes")
@@ -911,6 +1062,7 @@ export const getById = query({
         )
         .first();
       hasUpvoted = !!userUpvote;
+      hasAdopted = adoptions.some((a) => a.userId === currentUser._id);
     }
 
     // Get creator information
@@ -934,15 +1086,67 @@ export const getById = query({
         group: fa.group,
       }));
 
+    // Get top 6 adopters with user info
+    const adoptersWithInfo = await Promise.all(
+      adoptions.slice(0, 6).map(async (adoption) => {
+        const user = await ctx.db.get(adoption.userId);
+        return {
+          _id: adoption.userId,
+          name: user?.name ?? "Unknown User",
+          avatarUrl: user?.avatarUrlId ?? "",
+        };
+      })
+    );
+
     return {
       ...project,
       team: teamName,
       upvotes: upvotes.length,
+      viewCount: project.viewCount ?? 0,
       hasUpvoted,
       creatorName: creator?.name ?? "Unknown User",
       creatorAvatar: creator?.avatarUrlId ?? "",
       focusAreas,
+      adoptionCount: adoptions.length,
+      adopters: adoptersWithInfo,
+      hasAdopted,
     };
+  },
+});
+
+export const trackView = mutation({
+  args: {
+    projectId: v.id("projects"),
+    viewerId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("projectViews")
+      .withIndex("by_project_and_viewer", (q) =>
+        q.eq("projectId", args.projectId).eq("viewerId", args.viewerId)
+      )
+      .first();
+
+    if (existing) {
+      return { counted: false };
+    }
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    await ctx.db.insert("projectViews", {
+      projectId: args.projectId,
+      viewerId: args.viewerId,
+      viewedAt: Date.now(),
+    });
+
+    await ctx.db.patch(args.projectId, {
+      viewCount: (project.viewCount ?? 0) + 1,
+    });
+
+    return { counted: true };
   },
 });
 
@@ -970,12 +1174,12 @@ export const searchProjects = action({
       rag.search(ctx, {
         namespace: "projects",
         query: args.query,
-        limit: 8,
+        limit: 15,
         vectorScoreThreshold: 0.3,
       }),
       ctx.runQuery(internal.projects.fullTextSearchProjects, {
         query: args.query,
-        limit: 8,
+        limit: 15,
       }),
     ]);
 
@@ -989,8 +1193,9 @@ export const searchProjects = action({
     const hybridRankedEntryIds = hybridRank(
       [entryIds, fullTextEntryIds],
       {
-        k: 10,
+        k: 15,
         weights: [2, 1],
+        cutoffScore: 0.05,
       }
     );
 
@@ -1029,9 +1234,10 @@ export const getSimilarProjects = action({
     Array<{
       _id: Id<"projects">;
       name: string;
-      summary: string;
+      summary?: string;
       team: string;
       upvotes: number;
+      creatorId: Id<"users">;
       creatorName: string;
       creatorAvatar: string;
     }>
@@ -1044,7 +1250,7 @@ export const getSimilarProjects = action({
       return [];
     }
 
-    const text = `${project.name}\n\n${project.summary}`;
+    const text = project.summary ? `${project.name}\n\n${project.summary}` : project.name;
     const { entries } = await rag.search(ctx, {
       namespace: "projects",
       query: text,
@@ -1074,7 +1280,7 @@ export const getSimilarProjects = action({
 export const searchSimilarProjectsByText = action({
   args: {
     name: v.string(),
-    summary: v.string(),
+    summary: v.optional(v.string()),
   },
   handler: async (
     ctx,
@@ -1083,19 +1289,21 @@ export const searchSimilarProjectsByText = action({
     Array<{
       _id: Id<"projects">;
       name: string;
-      summary: string;
+      summary?: string;
       team: string;
       upvotes: number;
+      creatorId: Id<"users">;
       creatorName: string;
       creatorAvatar: string;
     }>
   > => {
     // Don't search if inputs are too short
-    if (args.name.trim().length < 2 && args.summary.trim().length < 2) {
+    const summaryLength = args.summary?.trim().length ?? 0;
+    if (args.name.trim().length < 2 && summaryLength < 2) {
       return [];
     }
 
-    const text = `${args.name}\n\n${args.summary}`;
+    const text = args.summary ? `${args.name}\n\n${args.summary}` : args.name;
 
     const { entries } = await rag.search(ctx, {
       namespace: "projects",
@@ -1164,6 +1372,13 @@ export const toggleUpvote = mutation({
       await ctx.db.patch(args.projectId, {
         engagementScore: Math.max(0, (project.engagementScore ?? 0) - 1),
       });
+
+      if (project.userId !== user._id) {
+        await syncUpvoteNotification(ctx, {
+          recipientUserId: project.userId,
+          projectId: args.projectId,
+        });
+      }
     } else {
       // User hasn't upvoted - add it
       await ctx.db.insert("upvotes", {
@@ -1175,6 +1390,59 @@ export const toggleUpvote = mutation({
       await ctx.db.patch(args.projectId, {
         engagementScore: (project.engagementScore ?? 0) + 1,
       });
+
+      if (project.userId !== user._id) {
+        await upsertUpvoteNotification(ctx, {
+          recipientUserId: project.userId,
+          projectId: args.projectId,
+        });
+      }
+    }
+  },
+});
+
+export const toggleAdoption = mutation({
+  args: {
+    projectId: v.id("projects"),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+
+    // Check if user has already adopted
+    const existingAdoption = await ctx.db
+      .query("adoptions")
+      .withIndex("by_project_and_user", (q) =>
+        q.eq("projectId", args.projectId).eq("userId", user._id)
+      )
+      .first();
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    if (existingAdoption) {
+      // User has adopted - remove it
+      await ctx.db.delete(existingAdoption._id);
+      return { adopted: false };
+    } else {
+      // User hasn't adopted - add it
+      await ctx.db.insert("adoptions", {
+        projectId: args.projectId,
+        userId: user._id,
+        createdAt: Date.now(),
+      });
+
+      if (project.userId !== user._id) {
+        await createProjectNotification(ctx, {
+          recipientUserId: project.userId,
+          actorUserId: user._id,
+          projectId: project._id,
+          type: "adoption",
+        });
+      }
+
+      return { adopted: true };
     }
   },
 });
@@ -1211,5 +1479,31 @@ export const getUpvoteCount = query({
       .collect();
 
     return upvotes.length;
+  },
+});
+
+export const getAdopters = query({
+  args: {
+    projectId: v.id("projects"),
+  },
+  handler: async (ctx, args) => {
+    const adoptions = await ctx.db
+      .query("adoptions")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .order("desc")
+      .collect();
+
+    const adoptersWithInfo = await Promise.all(
+      adoptions.map(async (adoption) => {
+        const user = await ctx.db.get(adoption.userId);
+        return {
+          _id: adoption.userId,
+          name: user?.name ?? "Unknown User",
+          avatarUrl: user?.avatarUrlId ?? "",
+        };
+      })
+    );
+
+    return adoptersWithInfo;
   },
 });

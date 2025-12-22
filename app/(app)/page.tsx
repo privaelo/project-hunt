@@ -3,7 +3,7 @@
 import { useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation, useConvexAuth, usePaginatedQuery } from "convex/react";
+import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { motion, LayoutGroup } from "motion/react";
@@ -12,11 +12,13 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
-import { MessageCircle, Flame } from "lucide-react";
+import { Eye, MessageCircle, Flame } from "lucide-react";
 import { ProjectMediaCarousel } from "@/components/ProjectMediaCarousel";
 import { FocusAreaBadges } from "@/components/FocusAreaBadges";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Separator } from "@/components/ui/separator";
+import { Facepile } from "@/components/Facepile";
+import { useCurrentUser } from "@/app/useCurrentUser";
 
 type FocusArea = {
   _id: Id<"focusAreas">;
@@ -28,11 +30,13 @@ type Project = {
   _id: Id<"projects">;
   _creationTime: number;
   name: string;
-  summary: string;
+  summary?: string;
   team?: string;
   upvotes: number;
+  viewCount: number;
   commentCount: number;
   hasUpvoted: boolean;
+  userId: Id<"users">;
   creatorName: string;
   creatorAvatar: string;
   focusAreas: FocusArea[];
@@ -43,6 +47,13 @@ type Project = {
     type: string;
     url: string | null;
   }>;
+  adoptionCount: number;
+  adopters: Array<{
+    _id: Id<"users">;
+    name: string;
+    avatarUrl: string;
+  }>;
+  hasAdopted: boolean;
 };
 
 type NewestProject = {
@@ -81,7 +92,14 @@ export default function Home() {
     {},
     { initialNumItems: 15 }
   );
+  const { isAuthenticated, user } = useCurrentUser();
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
+  const toggleAdoption = useMutation(api.projects.toggleAdoption);
+
+  // Build current user object for Facepile
+  const currentUser = user
+    ? { _id: user._id, name: user.name, avatarUrl: user.avatarUrlId || "" }
+    : null;
 
   const isLoading = status === "LoadingFirstPage";
   const canLoadMore = status === "CanLoadMore";
@@ -120,6 +138,14 @@ export default function Home() {
     }
   };
 
+  const handleAdopt = async (projectId: Id<"projects">) => {
+    try {
+      await toggleAdoption({ projectId });
+    } catch (error) {
+      console.error("Failed to toggle adoption:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
@@ -153,6 +179,9 @@ export default function Home() {
                           <ProjectRow
                             project={project}
                             onUpvote={handleUpvote}
+                            onAdopt={handleAdopt}
+                            currentUser={currentUser}
+                            isAuthenticated={isAuthenticated}
                           />
                         </motion.div>
                       </React.Fragment>
@@ -218,12 +247,17 @@ function ShareProjectCallout() {
 function ProjectRow({
   project,
   onUpvote,
+  onAdopt,
+  currentUser,
+  isAuthenticated,
 }: {
   project: Project;
   onUpvote: (projectId: Id<"projects">) => void;
+  onAdopt: (projectId: Id<"projects">) => void;
+  currentUser: { _id: Id<"users">; name: string; avatarUrl: string } | null;
+  isAuthenticated: boolean;
 }) {
   const router = useRouter();
-  const { isAuthenticated } = useConvexAuth();
 
   const handleProjectClick = () => {
     router.push(`/project/${project._id}`);
@@ -239,6 +273,10 @@ function ProjectRow({
     router.push(`/project/${project._id}#discussion`);
   };
 
+  const handleAdoptClick = () => {
+    onAdopt(project._id);
+  };
+
   const hasMedia = project.previewMedia.length > 0;
 
   return (
@@ -246,25 +284,49 @@ function ProjectRow({
       className="flex flex-col gap-3 pb-4 pt-4 cursor-pointer hover:bg-zinc-100 rounded-lg transition-colors px-4 -mx-4"
       onClick={handleProjectClick}
     >
-      {/* Header: Creator info, team */}
-      <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-500">
-        <span className="flex items-center gap-2 whitespace-nowrap">
-          <Avatar className="h-6 w-6 bg-zinc-100 text-xs font-semibold text-zinc-600">
-            <AvatarImage src={project.creatorAvatar} alt={project.creatorName || "User"} />
-            <AvatarFallback>{(project.creatorName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <span className="font-medium text-zinc-700">{project.creatorName || "Unknown User"}</span>
-        </span>
-        {project.team && (
-          <>
-            <span className="text-zinc-300">•</span>
-            <span className="whitespace-nowrap text-zinc-500">{project.team}</span>
-          </>
-        )}
-        <span className="text-zinc-300">•</span>
-        <span className="whitespace-nowrap text-zinc-500">
-          {getRelativeTime(project._creationTime)}
-        </span>
+      {/* Header: Creator info, team, facepile */}
+      <div className="flex items-center justify-between gap-2 text-sm text-zinc-500">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={`/profile/${project.userId}`}
+            onClick={(event) => event.stopPropagation()}
+            className="flex items-center gap-2 whitespace-nowrap"
+          >
+            <Avatar className="h-6 w-6 bg-zinc-100 text-xs font-semibold text-zinc-600">
+              <AvatarImage src={project.creatorAvatar} alt={project.creatorName || "User"} />
+              <AvatarFallback>{(project.creatorName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <span className="font-medium text-zinc-700 hover:underline">
+              {project.creatorName || "Unknown User"}
+            </span>
+          </Link>
+          {project.team && (
+            <>
+              <span className="text-zinc-300">•</span>
+              <span className="whitespace-nowrap text-zinc-500">{project.team}</span>
+            </>
+          )}
+          <span className="text-zinc-300">•</span>
+          <span className="whitespace-nowrap text-zinc-500">
+            {getRelativeTime(project._creationTime)}
+          </span>
+          <span className="text-zinc-300">•</span>
+          <span className="flex items-center gap-1 whitespace-nowrap text-xs text-zinc-400">
+            <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+            {project.viewCount}
+          </span>
+        </div>
+        <Facepile
+          adopters={project.adopters}
+          totalCount={project.adoptionCount}
+          maxVisible={4}
+          size="sm"
+          hasAdopted={project.hasAdopted}
+          currentUser={currentUser}
+          isAuthenticated={isAuthenticated}
+          onToggle={handleAdoptClick}
+          projectId={project._id}
+        />
       </div>
 
       {/* Title */}
@@ -278,11 +340,11 @@ function ProjectRow({
         <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
           <ProjectMediaCarousel media={project.previewMedia} />
         </div>
-      ) : (
+      ) : project.summary ? (
         <p className="text-sm text-zinc-600 line-clamp-2 break-words">
           {project.summary}
         </p>
-      )}
+      ) : null}
 
       {/* Action buttons */}
       <div className="flex items-center gap-2">
@@ -326,7 +388,6 @@ function ProjectRow({
             <span>{project.commentCount}</span>
           </Button>
         </motion.div>
-
         {project.focusAreas.length > 0 && (
           <div className="ml-auto">
             <FocusAreaBadges
@@ -358,7 +419,10 @@ function EmptyState() {
 
 function ActiveUserCard({ user }: { user: ActiveUser }) {
   return (
-    <div className="rounded-lg p-3 transition-colors hover:bg-zinc-100">
+    <Link
+      href={`/profile/${user._id}`}
+      className="rounded-lg p-3 transition-colors hover:bg-zinc-100"
+    >
       <div className="flex items-center gap-2">
         <Avatar className="h-8 w-8 bg-zinc-100">
           <AvatarImage src={user.avatarUrlId} alt={user.name || "User"} />
@@ -379,7 +443,7 @@ function ActiveUserCard({ user }: { user: ActiveUser }) {
           <span className="text-lg font-semibold text-zinc-900">{user.score}</span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

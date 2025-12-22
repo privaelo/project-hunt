@@ -93,13 +93,7 @@ export default function SubmitProject() {
       return;
     }
 
-    if (!trimmedSummary) {
-      alert("Add a few words about what you built and why.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    const summary = trimmedSummary;
+    const summary = trimmedSummary || undefined;
     const name = deriveName();
 
     let createdProjectId: Id<"projects"> | null = null;
@@ -209,16 +203,27 @@ export default function SubmitProject() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="summary" className="text-sm font-medium text-zinc-900">
-                What did you build and why?
-              </label>
+              <div className="flex items-center gap-2">
+                <label htmlFor="summary" className="text-sm font-medium text-zinc-900">
+                  What did you build and why? <span className="text-xs text-zinc-500">(optional)</span>
+                </label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-xs">
+                      A good description makes your project easier to find when teammates search for solutions. This helps the right people discover your work.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Textarea
                 id="summary"
                 value={formData.summary}
                 onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
                  placeholder="A copy-and-paste prompt I use with AI to turn a few bullet points into a clear, polite email response. It asks for the right details, includes next steps, and keeps the tone consistent."
                 className="min-h-28"
-                required
               />
             </div>
 

@@ -8,11 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentForm } from "./CommentForm";
 import { Id } from "@/convex/_generated/dataModel";
 import { useCurrentUser } from "@/app/useCurrentUser";
+import Link from "next/link";
 
 interface Comment {
   _id: Id<"comments">;
   projectId: Id<"projects">;
-  userId: string;
+  userId: Id<"users">;
   content: string;
   parentCommentId?: Id<"comments">;
   createdAt: number;
@@ -103,17 +104,25 @@ export function CommentThread({
     <div>
       <div className="py-3">
         <div className="flex items-start gap-3">
-          <Avatar className="h-8 w-8 bg-zinc-100">
-            <AvatarImage src={comment.userAvatar} alt={comment.userName || "User"} />
-            <AvatarFallback className="text-xs font-semibold text-zinc-600">
-              {(comment.userName || "U").slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <Link
+            href={`/profile/${comment.userId}`}
+            className="flex items-center gap-3"
+          >
+            <Avatar className="h-8 w-8 bg-zinc-100">
+              <AvatarImage src={comment.userAvatar} alt={comment.userName || "User"} />
+              <AvatarFallback className="text-xs font-semibold text-zinc-600">
+                {(comment.userName || "U").slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-medium text-zinc-900">
+              <Link
+                href={`/profile/${comment.userId}`}
+                className="font-medium text-zinc-900 hover:underline"
+              >
                 {comment.userName || "Unknown User"}
-              </span>
+              </Link>
               <span className="text-sm text-zinc-500">
                 {timeAgo(comment.createdAt)}
               </span>

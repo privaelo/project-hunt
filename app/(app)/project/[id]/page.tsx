@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/app/useCurrentUser";
@@ -14,8 +14,33 @@ import { CommentThread } from "@/components/CommentThread";
 import { ProjectMediaCarousel } from "@/components/ProjectMediaCarousel";
 import { FocusAreaBadges } from "@/components/FocusAreaBadges";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
+import { Facepile } from "@/components/Facepile";
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Eye, Pencil } from "lucide-react";
+
+const VIEWER_ID_STORAGE_KEY = "ph_viewer_id";
+
+function getOrCreateViewerId(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const stored = window.localStorage.getItem(VIEWER_ID_STORAGE_KEY);
+    if (stored) {
+      return stored;
+    }
+
+    const created =
+      typeof crypto?.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `viewer_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    window.localStorage.setItem(VIEWER_ID_STORAGE_KEY, created);
+    return created;
+  } catch {
+    return null;
+  }
+}
 
 function formatProjectLink(link?: string | null): {
   href: string;
@@ -58,6 +83,9 @@ export default function ProjectPage({
   const projectMedia = useQuery(api.projects.getProjectMedia, { projectId });
   const comments = useQuery(api.comments.getComments, { projectId });
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
+  const toggleAdoption = useMutation(api.projects.toggleAdoption);
+  const trackView = useMutation(api.projects.trackView);
+  const trackedProjectId = useRef<Id<"projects"> | null>(null);
 
   const isOwner = user && project && project.userId === user._id;
 
@@ -65,11 +93,37 @@ export default function ProjectPage({
   const topLevelComments =
     comments?.filter((c) => !c.parentCommentId && !c.isDeleted) || [];
 
+  useEffect(() => {
+    if (!project) {
+      return;
+    }
+
+    if (trackedProjectId.current === projectId) {
+      return;
+    }
+
+    const viewerId = getOrCreateViewerId();
+    if (!viewerId) {
+      return;
+    }
+
+    trackedProjectId.current = projectId;
+    void trackView({ projectId, viewerId });
+  }, [project, projectId, trackView]);
+
   const handleUpvote = async () => {
     try {
       await toggleUpvote({ projectId });
     } catch (error) {
       console.error("Failed to toggle upvote:", error);
+    }
+  };
+
+  const handleAdopt = async () => {
+    try {
+      await toggleAdoption({ projectId });
+    } catch (error) {
+      console.error("Failed to toggle adoption:", error);
     }
   };
 
@@ -155,34 +209,54 @@ export default function ProjectPage({
               )}
             </div>
             <div className="flex flex-col items-end gap-3">
-              {isAuthenticated ? (
-                <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
-                  <Button
-                    variant={project.hasUpvoted ? "default" : "outline"}
-                    onClick={handleUpvote}
-                    className={`rounded-full px-4 py-2.5 text-sm font-semibold hover:ring-2 hover:ring-accent hover:ring-offset-2 transition-all ${project.hasUpvoted ? "!text-primary-foreground hover:!bg-primary hover:!text-primary-foreground" : "!text-foreground hover:!bg-background hover:!text-foreground"}`}
-                  >
-                    ↑ {project.upvotes}
-                  </Button>
-                </motion.div>
-              ) : (
-                <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
+              <Facepile
+                adopters={project.adopters}
+                totalCount={project.adoptionCount}
+                maxVisible={6}
+                size="md"
+                hasAdopted={project.hasAdopted}
+                currentUser={user ? { _id: user._id, name: user.name, avatarUrl: user.avatarUrlId || "" } : null}
+                isAuthenticated={isAuthenticated}
+                onToggle={handleAdopt}
+                projectId={projectId}
+              />
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1 text-xs text-zinc-400 whitespace-nowrap">
+                  <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                  {project.viewCount ?? 0} views
+                </span>
+                {isAuthenticated ? (
+                  <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
                     <Button
-                      variant="outline"
-                      className="rounded-full border-zinc-200 px-4 py-2.5 text-sm font-semibold !text-foreground hover:!bg-background hover:!text-foreground hover:ring-2 hover:ring-accent hover:ring-offset-2 transition-all"
-                      asChild
+                      variant={project.hasUpvoted ? "default" : "outline"}
+                      onClick={handleUpvote}
+                      className={`rounded-full px-4 py-2.5 text-sm font-semibold hover:ring-2 hover:ring-accent hover:ring-offset-2 transition-all ${project.hasUpvoted ? "!text-primary-foreground hover:!bg-primary hover:!text-primary-foreground" : "!text-foreground hover:!bg-background hover:!text-foreground"}`}
                     >
-                      <Link href="/sign-in" prefetch={false}>
                       ↑ {project.upvotes}
-                      </Link>
                     </Button>
-                </motion.div>
-              )}
+                  </motion.div>
+                ) : (
+                  <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
+                      <Button
+                        variant="outline"
+                        className="rounded-full border-zinc-200 px-4 py-2.5 text-sm font-semibold !text-foreground hover:!bg-background hover:!text-foreground hover:ring-2 hover:ring-accent hover:ring-offset-2 transition-all"
+                        asChild
+                      >
+                        <Link href="/sign-in" prefetch={false}>
+                        ↑ {project.upvotes}
+                        </Link>
+                      </Button>
+                  </motion.div>
+                )}
+              </div>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 text-base sm:flex-nowrap">
-            <span className="flex items-center gap-2 whitespace-nowrap">
+            <Link
+              href={`/profile/${project.userId}`}
+              className="flex items-center gap-2 whitespace-nowrap"
+            >
               <Avatar className="h-10 w-10 bg-zinc-100 text-sm font-semibold text-zinc-600">
                 <AvatarImage
                   src={project.creatorAvatar}
@@ -194,11 +268,11 @@ export default function ProjectPage({
               </Avatar>
               <span className="text-zinc-500">
                 By{" "}
-                <span className="font-medium text-zinc-900">
+                <span className="font-medium text-zinc-900 hover:underline">
                   {project.creatorName || "Unknown User"}
                 </span>
               </span>
-            </span>
+            </Link>
             {project.team && (
               <>
                 <span className="text-zinc-300">•</span>
@@ -212,11 +286,13 @@ export default function ProjectPage({
             )}
           </div>
 
-          <div className="space-y-3">
-            <p className="whitespace-pre-wrap text-base leading-relaxed text-zinc-600">
-              {project.summary}
-            </p>
-          </div>
+          {project.summary && (
+            <div className="space-y-3">
+              <p className="whitespace-pre-wrap text-base leading-relaxed text-zinc-600">
+                {project.summary}
+              </p>
+            </div>
+          )}
 
           {projectMedia && projectMedia.length > 0 && (
             <div className="my-8">

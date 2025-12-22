@@ -154,6 +154,62 @@ export const getUserFocusAreas = query({
   },
 });
 
+export const getProfile = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const viewer = await getCurrentUser(ctx);
+    if (!viewer) {
+      return null;
+    }
+
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      return null;
+    }
+
+    const [team, focusAreaLinks, projects, adoptions] = await Promise.all([
+      user.teamId ? ctx.db.get(user.teamId) : Promise.resolve(null),
+      ctx.db
+        .query("userFocusAreas")
+        .withIndex("by_user", (q) => q.eq("userId", user._id))
+        .collect(),
+      ctx.db
+        .query("projects")
+        .withIndex("by_userId", (q) => q.eq("userId", user._id))
+        .collect(),
+      ctx.db
+        .query("adoptions")
+        .withIndex("by_user", (q) => q.eq("userId", user._id))
+        .collect(),
+    ]);
+
+    const focusAreas = await Promise.all(
+      focusAreaLinks.map(async (link) => {
+        const focusArea = await ctx.db.get(link.focusAreaId);
+        if (!focusArea) {
+          return null;
+        }
+        return {
+          _id: focusArea._id,
+          name: focusArea.name,
+          group: focusArea.group,
+        };
+      })
+    );
+
+    return {
+      _id: user._id,
+      name: user.name,
+      avatarUrlId: user.avatarUrlId ?? "",
+      team: team?.name ?? "",
+      userIntent: user.userIntent ?? null,
+      focusAreas: focusAreas.filter((fa): fa is NonNullable<typeof fa> => fa !== null),
+      projectCount: projects.length,
+      adoptionCount: adoptions.length,
+    };
+  },
+});
+
 export const completeOnboarding = mutation({
   args: {
     teamId: v.optional(v.id("teams")),

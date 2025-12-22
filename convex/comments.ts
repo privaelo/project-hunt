@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserOrThrow } from "./users";
+import { createProjectNotification } from "./notifications";
 
 export const addComment = mutation({
   args: {
@@ -25,6 +26,16 @@ export const addComment = mutation({
     if (project) {
       await ctx.db.patch(args.projectId, {
         engagementScore: (project.engagementScore ?? 0) + 1,
+      });
+    }
+
+    if (project && project.userId !== user._id) {
+      await createProjectNotification(ctx, {
+        recipientUserId: project.userId,
+        actorUserId: user._id,
+        projectId: project._id,
+        type: "comment",
+        commentId,
       });
     }
 
