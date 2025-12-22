@@ -102,7 +102,7 @@ export const seed = internalMutation({
         focusAreaIds: [focusAreaIds[0], focusAreaIds[1]],
         status: "active" as const,
         readinessStatus: "ready_to_use" as const,
-        upvotes: 4,
+        upvotes: 2,
         entryId: "entry_signal_atlas",
         link: "https://example.com/signal-atlas",
         pinned: true,
