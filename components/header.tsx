@@ -70,6 +70,10 @@ export function Header() {
       return `${notification.actorName} adopted ${projectName}`;
     }
 
+    if (notification.type === "project_update") {
+      return `${notification.actorName} updated ${projectName}`;
+    }
+
     const verb = notification.isReply ? "replied on" : "commented on";
     return `${notification.actorName} ${verb} ${projectName}`;
   };
@@ -122,7 +126,7 @@ export function Header() {
                         )}
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent align="end" className="w-80 p-0">
+                    <PopoverContent align="end" className="w-96 p-0">
                       <div className="border-b border-zinc-100 px-4 py-3 text-sm font-semibold text-zinc-900">
                         Notifications
                       </div>

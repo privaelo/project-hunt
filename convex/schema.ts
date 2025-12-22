@@ -75,7 +75,8 @@ export default defineSchema({
     type: v.union(
       v.literal("comment"),
       v.literal("upvote"),
-      v.literal("adoption")
+      v.literal("adoption"),
+      v.literal("project_update")
     ),
     commentId: v.optional(v.id("comments")),
     count: v.optional(v.number()),

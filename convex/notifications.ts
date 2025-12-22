@@ -1,5 +1,5 @@
 import type { MutationCtx } from "./_generated/server";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
@@ -28,7 +28,7 @@ export async function createProjectNotification(
     recipientUserId: Id<"users">;
     actorUserId: Id<"users">;
     projectId: Id<"projects">;
-    type: "comment" | "adoption";
+    type: "comment" | "adoption" | "project_update";
     commentId?: Id<"comments">;
   }
 ) {
@@ -46,6 +46,43 @@ export async function createProjectNotification(
 
   await pruneNotifications(ctx, args.recipientUserId);
 }
+
+export const notifyProjectUpdate = internalMutation({
+  args: {
+    projectId: v.id("projects"),
+    actorUserId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      return;
+    }
+
+    const adoptions = await ctx.db
+      .query("adoptions")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    const recipients = Array.from(
+      new Set(adoptions.map((adoption) => adoption.userId))
+    ).filter((userId) => userId !== args.actorUserId);
+
+    if (recipients.length === 0) {
+      return;
+    }
+
+    await Promise.all(
+      recipients.map((recipientUserId) =>
+        createProjectNotification(ctx, {
+          recipientUserId,
+          actorUserId: args.actorUserId,
+          projectId: args.projectId,
+          type: "project_update",
+        })
+      )
+    );
+  },
+});
 
 async function updateUpvoteNotification(
   ctx: MutationCtx,

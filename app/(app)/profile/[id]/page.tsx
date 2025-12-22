@@ -325,6 +325,8 @@ function ProjectCard({
 }
 
 function AdoptedCard({ project }: { project: AdoptedProject }) {
+  const router = useRouter();
+
   return (
     <Link
       href={`/project/${project._id}`}
@@ -350,10 +352,14 @@ function AdoptedCard({ project }: { project: AdoptedProject }) {
             </div>
             <Separator className="bg-zinc-200" />
             <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-500">
-              <Link
-                href={`/profile/${project.creatorId}`}
-                className="flex items-center gap-2"
-                onClick={(event) => event.stopPropagation()}
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
+                  router.push(`/profile/${project.creatorId}`);
+                }}
+                className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity"
               >
                 <Avatar className="h-8 w-8 bg-zinc-100 text-xs font-semibold text-zinc-600">
                   <AvatarImage src={project.creatorAvatar} alt={project.creatorName} />
@@ -367,7 +373,7 @@ function AdoptedCard({ project }: { project: AdoptedProject }) {
                     {project.creatorName}
                   </span>
                 </span>
-              </Link>
+              </button>
               {project.team && (
                 <Badge variant="outline" className="border-zinc-300">
                   Team {project.team}

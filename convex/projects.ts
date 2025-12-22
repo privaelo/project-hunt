@@ -555,6 +555,11 @@ export const updateProject = action({
       projectId: args.projectId,
       entryId,
     });
+
+    await ctx.runMutation(internal.notifications.notifyProjectUpdate, {
+      projectId: args.projectId,
+      actorUserId: user._id,
+    });
   },
 });
 
