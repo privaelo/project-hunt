@@ -24,7 +24,6 @@ Garden is an internal Product Hunt-style platform that provides launch visibilit
 - **shadcn/ui** components (Radix UI primitives)
 - **Lucide React** for icons
 - **Framer Motion** for animations
-- **Embla Carousel** for carousels
 
 ### Analytics & Monitoring
 - **PostHog** for product analytics
@@ -68,6 +67,12 @@ npm run dev
 - `npm run build` - Build the application for production
 - `npm start` - Start the production server
 - `npm run lint` - Run ESLint to check code quality
+
+- `npx convex dev` - Start the Convex development server, watch local files, sync code to your dev deployment, and regenerate types in convex/_generated.​
+- `npx convex deploy` - Deploy Convex functions, schema, and indexes to your production deployment, optionally running a build command via --cmd.​
+- `npx convex codegen` - Regenerate TypeScript types and client bindings in convex/_generated for your current schema and server functions.​
+- `npx convex run <function>` - Run a Convex query, mutation, or action from the CLI against the configured deployment (e.g. npx convex run messages:send ...).
+​
 
 ## Coding Conventions
 
