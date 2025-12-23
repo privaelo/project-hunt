@@ -14,11 +14,48 @@ const getWorkosRedirectUri = () => {
   return 'http://localhost:3000/callback';
 };
 
+// Helper to get Convex hostname from env
+const getConvexRemotePattern = () => {
+  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+  if (!convexUrl) return null;
+  try {
+    const url = new URL(convexUrl);
+    return {
+      protocol: url.protocol.replace(':', '') as 'http' | 'https',
+      hostname: url.hostname,
+    };
+  } catch {
+    return null;
+  }
+};
+
+const convexRemotePattern = getConvexRemotePattern();
+
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
     remotePatterns: [
-      new URL('https://workoscdn.com/**'),
+      {
+        protocol: 'https',
+        hostname: 'workoscdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.convex.cloud',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.convex.site',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+      },
+      ...(convexRemotePattern ? [convexRemotePattern] : []),
     ],
   },
   env: {
