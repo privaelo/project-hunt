@@ -67,7 +67,7 @@ export function Header() {
     }
 
     if (notification.type === "adoption") {
-      return `${notification.actorName} adopted ${projectName}`;
+      return `${notification.actorName} is using ${projectName}`;
     }
 
     if (notification.type === "project_update") {

@@ -140,6 +140,7 @@ export default function ProfilePage({
   const intentLabel = profile.userIntent
     ? intentLabels[profile.userIntent]
     : "";
+  const firstName = (profile.name || "").trim().split(" ")[0] || "User";
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -192,7 +193,7 @@ export default function ProfilePage({
                 </Badge>
               </TabsTrigger>
               <TabsTrigger value="adopted" className="gap-2">
-                {`Tools ${(profile.name || "").trim().split(" ")[0] || "User"} Uses`}
+                {`Tools ${firstName} uses`}
                 <Badge variant="secondary" className="bg-zinc-100">
                   {profile.adoptionCount}
                 </Badge>

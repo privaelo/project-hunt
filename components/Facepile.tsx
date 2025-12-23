@@ -140,8 +140,8 @@ export function Facepile({
               <div className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white">
                 <Check className="h-2 w-2 text-white" strokeWidth={3} />
               </div>
-            </motion.button>
-          </TooltipTrigger>
+          </motion.button>
+        </TooltipTrigger>
           <TooltipContent>You&apos;re using this · Click to remove</TooltipContent>
         </Tooltip>
       );
