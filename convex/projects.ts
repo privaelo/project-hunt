@@ -437,6 +437,9 @@ export const populateProjectDetails = internalQuery({
         focusAreaIds: v.array(v.id("focusAreas")),
         readinessStatus: v.optional(v.union(v.literal("in_progress"), v.literal("ready_to_use"))),
         pinned: v.optional(v.boolean()),
+        engagementScore: v.optional(v.number()),
+        hotScore: v.optional(v.number()),
+        viewCount: v.optional(v.number()),
       })
     ),
   },
