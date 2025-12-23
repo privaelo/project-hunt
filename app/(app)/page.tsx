@@ -140,8 +140,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
-        <section className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6 pb-16 pt-10">
+        <section className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-semibold tracking-tight flex items-center gap-3">
@@ -521,10 +521,10 @@ function SpotlightProjectCard({
 
   return (
     <div
-      className="cursor-pointer flex gap-4 rounded-lg p-3 transition-colors hover:bg-zinc-100"
+      className="cursor-pointer flex gap-5 rounded-xl p-4 transition-colors hover:bg-zinc-100"
       onClick={() => router.push(`/project/${project._id}`)}
     >
-      <div className="flex flex-col gap-2 flex-1 min-w-0">
+      <div className="flex flex-col gap-3 flex-1 min-w-0">
         {/* Header: Avatar | Creator Name | • | Time */}
         <div className="flex items-center gap-2 text-xs text-zinc-500">
           <Avatar className="h-5 w-5 bg-zinc-100 text-[10px] font-semibold text-zinc-600">
@@ -546,25 +546,25 @@ function SpotlightProjectCard({
         </div>
 
         {/* Title */}
-        <h4 className="text-base font-semibold text-zinc-900 line-clamp-2">
+        <h4 className="text-lg font-semibold text-zinc-900 line-clamp-2 leading-snug">
           {project.name}
         </h4>
 
         {/* Footer: X upvotes • Y comments • Focus Areas */}
-        <div className="flex items-center gap-2 text-xs text-zinc-500">
-          <span className="flex items-center gap-1 flex-shrink-0">
-            <span aria-hidden="true">↑</span>
+        <div className="flex items-center gap-3 text-xs text-zinc-500 mt-1">
+          <span className="flex items-center gap-1.5 flex-shrink-0">
+            <span aria-hidden="true" className="text-sm">↑</span>
             <span>{project.upvotes}</span>
           </span>
-          <span className="text-zinc-400 flex-shrink-0">•</span>
-          <span className="flex items-center gap-1 flex-shrink-0">
-            <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+          <span className="text-zinc-300 flex-shrink-0">|</span>
+          <span className="flex items-center gap-1.5 flex-shrink-0">
+            <MessageCircle className="h-4 w-4" aria-hidden="true" />
             <span>{project.commentCount}</span>
           </span>
           {focusAreas.length > 0 && (
             <>
-              <span className="text-zinc-400 flex-shrink-0">•</span>
-              <div className="overflow-x-auto scrollbar-hide flex-1 min-w-0">
+              <span className="text-zinc-300 flex-shrink-0">|</span>
+              <div className="overflow-x-auto scrollbar-hide flex-1 min-w-0 flex items-center gap-1">
                 <FocusAreaBadges focusAreas={focusAreas} className="text-[11px]" />
               </div>
             </>
@@ -574,7 +574,7 @@ function SpotlightProjectCard({
 
       {/* Thumbnail Column */}
       {thumbnailUrl && (
-        <div className="flex-shrink-0 relative w-24 h-20 self-start mt-1 group overflow-hidden rounded-md bg-zinc-100">
+        <div className="flex-shrink-0 relative w-28 h-20 self-start mt-1 group overflow-hidden rounded-lg bg-zinc-100 border border-zinc-200/50">
           {isVideo ? (
             <video
               src={thumbnailUrl}
