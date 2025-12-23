@@ -64,8 +64,8 @@ body {
   --popover-foreground: oklch(0.24 0.04 50);
   --primary: oklch(0.54 0.08 50);
   --primary-foreground: oklch(0.95 0.01 80);
-  --secondary: oklch(0.63 0.05 142);
-  --secondary-foreground: oklch(0.24 0.04 50);
+  --secondary: oklch(0.90 0.01 80);
+  --secondary-foreground: oklch(0.40 0.02 80);
   --muted: oklch(0.86 0.02 80);
   --muted-foreground: oklch(0.44 0.05 50);
   --accent: oklch(0.59 0.15 38);

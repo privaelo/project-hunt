@@ -540,10 +540,8 @@ function SpotlightProjectCard({
 
         {/* Footer: Focus Areas */}
         {focusAreas.length > 0 && (
-          <div className="flex items-center gap-3 text-xs text-zinc-500">
-            <div className="overflow-x-auto scrollbar-hide flex-1 min-w-0 flex items-center gap-1">
-              <FocusAreaBadges focusAreas={focusAreas} className="text-[11px]" />
-            </div>
+          <div className="overflow-x-auto overflow-y-hidden scrollbar-hide -mx-1 px-1">
+            <FocusAreaBadges focusAreas={focusAreas} className="text-[11px]" />
           </div>
         )}
       </div>
