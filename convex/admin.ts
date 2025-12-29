@@ -8,7 +8,6 @@ export const insertDomain = internalMutation({
   args: {
     domain: v.string(),
     organizationId: v.string(),
-    organizationName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     // Check if domain already exists
@@ -25,7 +24,6 @@ export const insertDomain = internalMutation({
     await ctx.db.insert("allowedDomains", {
       domain: args.domain,
       organizationId: args.organizationId,
-      organizationName: args.organizationName,
     });
     console.log(`Inserted domain: ${args.domain}`);
   },
@@ -54,7 +52,6 @@ export const seedAllowedDomains = internalAction({
         await ctx.runMutation(internal.admin.insertDomain, {
           domain: domain.domain,
           organizationId: org.id,
-          organizationName: org.name,
         });
         domainsInserted++;
       }

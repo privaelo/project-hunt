@@ -137,6 +137,5 @@ export default defineSchema({
   allowedDomains: defineTable({
     domain: v.string(),
     organizationId: v.string(),
-    organizationName: v.optional(v.string()),
   }).index("by_domain", ["domain"]),
 });

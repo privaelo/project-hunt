@@ -8,9 +8,8 @@ const authFunctions: AuthFunctions = internal.auth;
 export const authKit = new AuthKit<DataModel>(components.workOSAuthKit, {
   authFunctions,
   additionalEventTypes: [
-    "organization.created",
-    "organization.updated",
-    "organization.deleted",
+    "organization_domain.created",
+    "organization_domain.deleted",
   ],
 });
 
@@ -51,44 +50,34 @@ export const { authKitEvent } = authKit.events({
   },
 
   // Organization domain sync events
-  "organization.created": async (ctx, event) => {
-    console.log("onCreateOrganization", event);
-    const domains = event.data.domains ?? [];
-    for (const domain of domains) {
-      await ctx.db.insert("allowedDomains", {
-        domain: domain.domain,
-        organizationId: event.data.id,
-        organizationName: event.data.name,
-      });
-    }
-  },
-  "organization.updated": async (ctx, event) => {
-    console.log("onUpdateOrganization", event);
-    // Remove existing domains for this org
-    const existingDomains = await ctx.db
+  "organization_domain.created": async (ctx, event) => {
+    console.log("onDomainCreated", event);
+
+    // Check if domain already exists
+    const existing = await ctx.db
       .query("allowedDomains")
-      .filter((q) => q.eq(q.field("organizationId"), event.data.id))
-      .collect();
-    for (const domain of existingDomains) {
-      await ctx.db.delete(domain._id);
+      .withIndex("by_domain", (q) => q.eq("domain", event.data.domain))
+      .unique();
+
+    if (existing) {
+      console.log(`Domain ${event.data.domain} already exists, skipping`);
+      return;
     }
-    // Add updated domains
-    const domains = event.data.domains ?? [];
-    for (const domain of domains) {
-      await ctx.db.insert("allowedDomains", {
-        domain: domain.domain,
-        organizationId: event.data.id,
-        organizationName: event.data.name,
-      });
-    }
+
+    await ctx.db.insert("allowedDomains", {
+      domain: event.data.domain,
+      organizationId: event.data.organizationId,
+    });
   },
-  "organization.deleted": async (ctx, event) => {
-    console.log("onDeleteOrganization", event);
-    const domains = await ctx.db
+  "organization_domain.deleted": async (ctx, event) => {
+    console.log("onDomainDeleted", event);
+
+    const domain = await ctx.db
       .query("allowedDomains")
-      .filter((q) => q.eq(q.field("organizationId"), event.data.id))
-      .collect();
-    for (const domain of domains) {
+      .withIndex("by_domain", (q) => q.eq("domain", event.data.domain))
+      .unique();
+
+    if (domain) {
       await ctx.db.delete(domain._id);
     }
   },
