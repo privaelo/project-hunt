@@ -1,4 +1,5 @@
-import { internalMutation } from "./_generated/server";
+import { internalAction, internalMutation } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 
 export const seed = internalMutation({
@@ -421,6 +422,28 @@ export const seed = internalMutation({
         notifications: notifications.length,
         allowedDomains: allowedDomains.length,
       },
+    };
+  },
+});
+
+// Seed everything: WorkOS data (real users/domains) + test data
+export const seedAll = internalAction({
+  args: {},
+  handler: async (ctx): Promise<{ success: boolean; workos: unknown; testData: unknown }> => {
+    console.log("Running full seed: WorkOS + test data...");
+
+    // First, seed real users and domains from WorkOS
+    const workosResult = await ctx.runAction(internal.admin.seedFromWorkOS, {});
+    console.log("WorkOS seeding complete:", workosResult);
+
+    // Then, seed test data (fake users, projects, comments, etc.)
+    const testDataResult = await ctx.runMutation(internal.seed.seed, {});
+    console.log("Test data seeding complete:", testDataResult);
+
+    return {
+      success: true,
+      workos: workosResult,
+      testData: testDataResult,
     };
   },
 });
