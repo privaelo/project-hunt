@@ -15,7 +15,7 @@ import { FocusAreaBadges } from "@/components/FocusAreaBadges";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
-import { Eye, MessageCircle, Pencil, Target, Users } from "lucide-react";
+import { Eye, MessageSquare, Pencil, Target, Users } from "lucide-react";
 
 const intentLabels: Record<string, string> = {
   looking: "Looking for tools",
@@ -27,6 +27,7 @@ type Profile = {
   _id: Id<"users">;
   name: string;
   avatarUrlId: string;
+  email?: string | null;
   team: string;
   userIntent: "looking" | "sharing" | "both" | null;
   focusAreas: Array<{ _id: Id<"focusAreas">; name: string; group: string }>;
@@ -141,11 +142,34 @@ export default function ProfilePage({
     ? intentLabels[profile.userIntent]
     : "";
   const firstName = (profile.name || "").trim().split(" ")[0] || "User";
+  const email = profile.email?.trim() || "";
+  const teamsChatLink = email
+    ? `https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(
+        email
+      )}`
+    : "";
 
   return (
     <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto w-full max-w-5xl space-y-8 px-6 pb-16 pt-10">
-        <div className="flex flex-col items-center gap-6 text-center md:grid md:grid-cols-[auto,1fr] md:items-center md:gap-8 md:text-left">
+        <div className="relative flex flex-col items-center gap-6 pr-12 text-center md:items-start md:text-left">
+          {!isOwner && teamsChatLink && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 top-0 h-10 w-10"
+              asChild
+            >
+              <a
+                href={teamsChatLink}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Chat with ${profile.name} in Teams`}
+              >
+                <MessageSquare className="h-5 w-5 text-zinc-600" aria-hidden="true" />
+              </a>
+            </Button>
+          )}
           <div className="flex flex-col items-center gap-4 md:flex-row md:items-center">
             <Avatar className="h-16 w-16 border border-white shadow-sm">
               <AvatarImage src={profile.avatarUrlId} alt={profile.name} />
@@ -179,8 +203,6 @@ export default function ProfilePage({
               </div>
             </div>
           </div>
-
-          <div />
         </div>
 
         <Tabs defaultValue="projects" className="space-y-6">
@@ -312,7 +334,7 @@ function ProjectCard({
                 <span>↑</span>
                 <span>{project.upvotes}</span>
                 <span className="text-zinc-300">•</span>
-                <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                <MessageSquare className="h-4 w-4" aria-hidden="true" />
                 <span>{project.commentCount}</span>
                 <span className="text-zinc-300">•</span>
                 <Users className="h-4 w-4" aria-hidden="true" />

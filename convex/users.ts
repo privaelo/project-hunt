@@ -113,6 +113,7 @@ export const getProfile = query({
       _id: user._id,
       name: user.name,
       avatarUrlId: user.avatarUrlId ?? "",
+      email: user.email ?? null,
       team: team?.name ?? "",
       userIntent: user.userIntent ?? null,
       focusAreas: focusAreas.filter((fa): fa is NonNullable<typeof fa> => fa !== null),
