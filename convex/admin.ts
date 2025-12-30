@@ -153,7 +153,7 @@ export const seedUsersFromWorkOS = internalAction({
   handler: async (ctx) => {
     console.log("Fetching users from WorkOS...");
 
-    const { data: users } = await authKit.workos.userManagement.listUsers();
+    const users = await (await authKit.workos.userManagement.listUsers()).autoPagination();
 
     console.log(`Found ${users.length} users in WorkOS`);
 
