@@ -35,8 +35,14 @@ export const seedAllowedDomains = internalAction({
   handler: async (ctx) => {
     console.log("Fetching organizations from WorkOS...");
 
-    const { data: organizations } =
-      await authKit.workos.organizations.listOrganizations();
+    let organizations;
+    try {
+      const { data } = await authKit.workos.organizations.listOrganizations();
+      organizations = data;
+    } catch (error) {
+      console.error("Failed to fetch organizations from WorkOS", error);
+      throw new Error("Failed to fetch organizations from WorkOS");
+    }
 
     console.log(`Found ${organizations.length} organizations`);
 
