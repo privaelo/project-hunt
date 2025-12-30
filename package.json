@@ -16,6 +16,7 @@
     "@convex-dev/auth": "^0.0.90",
     "@convex-dev/rag": "^0.5.4",
     "@convex-dev/workos": "^0.0.1",
+    "@convex-dev/workos-authkit": "^0.1.4",
     "@convex-dev/workpool": "^0.2.19",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-avatar": "^1.1.10",

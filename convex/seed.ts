@@ -1,4 +1,5 @@
-import { internalMutation } from "./_generated/server";
+import { internalAction, internalMutation } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 
 export const seed = internalMutation({
@@ -14,13 +15,15 @@ export const seed = internalMutation({
       { name: "Go-to-Market", group: "Business", description: "Launch and distribution strategy." },
       { name: "UX Research", group: "Design", description: "User discovery and research." },
       { name: "Data Privacy", group: "Compliance", description: "Privacy and governance." },
+      { name: "Developer Productivity", group: "Technical", description: undefined },
     ];
 
-    for (const focusArea of focusAreas) {
+    for (let i = 0; i < focusAreas.length; i += 1) {
+      const focusArea = focusAreas[i];
       const id = await ctx.db.insert("focusAreas", {
         ...focusArea,
-        isActive: true,
-        createdAt: now,
+        isActive: i !== focusAreas.length - 1,
+        createdAt: now + i * 10,
       });
       focusAreaIds.push(id);
     }
@@ -30,12 +33,14 @@ export const seed = internalMutation({
     const teams = [
       { name: "Velocity Lab", description: "R&D skunkworks." },
       { name: "Product Studio", description: "Product design and launch." },
+      { name: "Community Collective", description: undefined },
     ];
 
-    for (const team of teams) {
+    for (let i = 0; i < teams.length; i += 1) {
+      const team = teams[i];
       const id = await ctx.db.insert("teams", {
         ...team,
-        createdAt: at(1000),
+        createdAt: at(1000 + i * 10),
       });
       teamIds.push(id);
     }
@@ -51,18 +56,20 @@ export const seed = internalMutation({
       { name: "Sam Rivera", teamId: teamIds[0], userIntent: "looking" as const },
       { name: "Taylor Nguyen", teamId: undefined, userIntent: "both" as const },
       { name: "Jamie Ortiz", teamId: teamIds[1], userIntent: "looking" as const },
+      { name: "Devon Blake", teamId: teamIds[2], userIntent: undefined },
     ];
 
     for (let i = 0; i < users.length; i += 1) {
       const user = users[i];
       const id = await ctx.db.insert("users", {
         name: user.name,
-        tokenIdentifier: `https://preview-workos.com/oauth/user_${String(i + 1).padStart(2, "0")}`,
+        email: i === 3 ? undefined : `preview_user_${String(i + 1).padStart(2, "0")}@example.com`,
         workosUserId: `user_preview_${String(i + 1).padStart(2, "0")}`,
         avatarUrlId: i % 2 === 0 ? `avatar_${i + 1}` : undefined,
-        onboardingCompleted: true,
+        onboardingCompleted: i !== 4,
         teamId: user.teamId,
         userIntent: user.userIntent,
+        tokenIdentifier: i === 5 ? `token_preview_${i + 1}` : undefined,
       });
       userIds.push(id);
     }
@@ -77,6 +84,7 @@ export const seed = internalMutation({
       { userId: userIds[5], focusAreaIds: [focusAreaIds[0]] },
       { userId: userIds[6], focusAreaIds: [focusAreaIds[2]] },
       { userId: userIds[7], focusAreaIds: [focusAreaIds[1], focusAreaIds[2]] },
+      { userId: userIds[8], focusAreaIds: [focusAreaIds[4]] },
     ];
 
     let userFocusAreaCount = 0;
@@ -107,6 +115,7 @@ export const seed = internalMutation({
         link: "https://example.com/signal-atlas",
         pinned: true,
         engagementScore: 78,
+        hotScore: 92,
       },
       {
         name: "Launch Compass",
@@ -121,6 +130,7 @@ export const seed = internalMutation({
         link: "https://example.com/launch-compass",
         pinned: false,
         engagementScore: 52,
+        hotScore: 40,
       },
       {
         name: "Insight Vault",
@@ -135,6 +145,7 @@ export const seed = internalMutation({
         link: "https://example.com/insight-vault",
         pinned: undefined,
         engagementScore: undefined,
+        hotScore: undefined,
       },
       {
         name: "Privacy Pulse",
@@ -149,6 +160,22 @@ export const seed = internalMutation({
         link: "https://example.com/privacy-pulse",
         pinned: true,
         engagementScore: 90,
+        hotScore: 98,
+      },
+      {
+        name: "Signal Forge",
+        summary: undefined,
+        userId: userIds[8],
+        teamId: teamIds[2],
+        focusAreaIds: [focusAreaIds[4]],
+        status: "pending" as const,
+        readinessStatus: "ready_to_use" as const,
+        upvotes: 0,
+        entryId: undefined,
+        link: undefined,
+        pinned: false,
+        engagementScore: 12,
+        hotScore: 10,
       },
     ];
 
@@ -165,11 +192,12 @@ export const seed = internalMutation({
         status: project.status,
         readinessStatus: project.readinessStatus,
         upvotes: project.upvotes,
-        viewCount: 0,
+        viewCount: project.upvotes * 10,
         entryId: project.entryId,
         link: project.link,
         pinned: project.pinned,
         engagementScore: project.engagementScore,
+        hotScore: project.hotScore,
         allFields,
       });
       projectIds.push(id);
@@ -184,17 +212,19 @@ export const seed = internalMutation({
     // 7. Comments
     const commentIds: Id<"comments">[] = [];
     const comments = [
-      { projectId: projectIds[0], userId: userIds[1], content: "Love the direction." },
-      { projectId: projectIds[0], userId: userIds[2], content: "Would like a demo." },
-      { projectId: projectIds[1], userId: userIds[0], content: "Great execution." },
-      { projectId: projectIds[2], userId: userIds[3], content: "Interesting idea." },
+      { projectId: projectIds[0], userId: userIds[1], content: "Love the direction.", upvotes: 0 },
+      { projectId: projectIds[0], userId: userIds[2], content: "Would like a demo.", upvotes: 1 },
+      { projectId: projectIds[1], userId: userIds[0], content: "Great execution.", upvotes: undefined },
+      { projectId: projectIds[2], userId: userIds[3], content: "Interesting idea.", upvotes: 2 },
     ];
 
     for (const comment of comments) {
       const id = await ctx.db.insert("comments", {
-        ...comment,
+        projectId: comment.projectId,
+        userId: comment.userId,
+        content: comment.content,
         createdAt: at(4000),
-        upvotes: 0,
+        upvotes: comment.upvotes,
       });
       commentIds.push(id);
     }
@@ -269,6 +299,7 @@ export const seed = internalMutation({
         ],
       },
       { projectId: projectIds[2], userIds: [userIds[1], userIds[3]] },
+      { projectId: projectIds[4], userIds: [userIds[8]] },
     ];
 
     for (const mapping of adoptionMappings) {
@@ -301,6 +332,79 @@ export const seed = internalMutation({
       }
     }
 
+    // 11. Project Views
+    const projectViews = [
+      { projectId: projectIds[0], viewerId: "anon_001" },
+      { projectId: projectIds[0], viewerId: "anon_002" },
+      { projectId: projectIds[1], viewerId: "anon_001" },
+      { projectId: projectIds[3], viewerId: "anon_003" },
+    ];
+    for (const view of projectViews) {
+      await ctx.db.insert("projectViews", {
+        ...view,
+        viewedAt: at(5600),
+      });
+    }
+
+    // 12. Notifications
+    const notifications = [
+      {
+        recipientUserId: userIds[0],
+        actorUserId: userIds[1],
+        projectId: projectIds[0],
+        type: "comment" as const,
+        commentId: commentIds[0],
+        count: 1,
+      },
+      {
+        recipientUserId: userIds[1],
+        actorUserId: userIds[0],
+        projectId: projectIds[1],
+        type: "upvote" as const,
+        commentId: undefined,
+        count: undefined,
+      },
+      {
+        recipientUserId: userIds[2],
+        actorUserId: userIds[3],
+        projectId: projectIds[2],
+        type: "adoption" as const,
+        commentId: undefined,
+        count: 2,
+      },
+      {
+        recipientUserId: userIds[3],
+        actorUserId: userIds[0],
+        projectId: projectIds[3],
+        type: "project_update" as const,
+        commentId: undefined,
+        count: undefined,
+      },
+    ];
+    for (let i = 0; i < notifications.length; i += 1) {
+      const notification = notifications[i];
+      await ctx.db.insert("notifications", {
+        recipientUserId: notification.recipientUserId,
+        actorUserId: notification.actorUserId,
+        projectId: notification.projectId,
+        type: notification.type,
+        commentId: notification.commentId,
+        count: notification.count,
+        isRead: i % 2 === 0,
+        createdAt: at(5800 + i * 10),
+        lastActivityAt: at(5900 + i * 10),
+      });
+    }
+
+    // 13. Allowed Domains
+    const allowedDomains = [
+      { domain: "example.com", organizationId: "org_example" },
+      { domain: "projecthunt.dev", organizationId: "org_projecthunt" },
+    ];
+    for (const domain of allowedDomains) {
+      await ctx.db.insert("allowedDomains", domain);
+    }
+
     return {
       success: true,
       summary: {
@@ -314,7 +418,32 @@ export const seed = internalMutation({
         projectUpvotes: projectUpvoteCount,
         adoptions: adoptionCount,
         commentUpvotes: commentUpvoteCount,
+        projectViews: projectViews.length,
+        notifications: notifications.length,
+        allowedDomains: allowedDomains.length,
       },
+    };
+  },
+});
+
+// Seed everything: WorkOS data (real users/domains) + test data
+export const seedAll = internalAction({
+  args: {},
+  handler: async (ctx): Promise<{ success: boolean; workos: unknown; testData: unknown }> => {
+    console.log("Running full seed: WorkOS + test data...");
+
+    // First, seed real users and domains from WorkOS
+    const workosResult = await ctx.runAction(internal.admin.seedFromWorkOS, {});
+    console.log("WorkOS seeding complete:", workosResult);
+
+    // Then, seed test data (fake users, projects, comments, etc.)
+    const testDataResult = await ctx.runMutation(internal.seed.seed, {});
+    console.log("Test data seeding complete:", testDataResult);
+
+    return {
+      success: true,
+      workos: workosResult,
+      testData: testDataResult,
     };
   },
 });

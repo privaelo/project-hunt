@@ -139,7 +139,7 @@ export const getCurrentUserInternal = internalQuery({
     }
     return await ctx.db
       .query("users")
-      .withIndex("by_tokenIdentifier", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .withIndex("by_workosUserId", (q) => q.eq("workosUserId", identity.subject))
       .unique();
   },
 });
