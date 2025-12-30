@@ -35,6 +35,7 @@ export const { authKitEvent } = authKit.events({
     await ctx.db.patch(user._id, {
       email: event.data.email,
       name: `${event.data.firstName} ${event.data.lastName}`,
+      avatarUrlId: event.data.profilePictureUrl ?? undefined,
     });
   },
   "user.deleted": async (ctx, event) => {
@@ -86,11 +87,11 @@ export const { authKitEvent } = authKit.events({
 // Action handlers (replaces your API route)
 export const { authKitAction } = authKit.actions({
   userRegistration: async (ctx, action, response) => {
-    const emailDomain = action.userData.email.split("@")[1];
-
-    if (!emailDomain) {
+    const email = action.userData.email;
+    if (typeof email !== "string") {
       return response.deny("Invalid email address");
     }
+    const emailDomain = email.split("@")[1];
 
     // Check if domain is allowed
     const allowed = await ctx.db
