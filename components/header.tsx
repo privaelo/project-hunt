@@ -12,9 +12,17 @@ import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/SearchBar";
 import { useAuth } from '@workos-inc/authkit-nextjs/components';
 import { signOut } from "@workos-inc/authkit-nextjs";
-import { Bell, LogOut, User } from "lucide-react";
+import { Bell, LogOut, User, MessageSquare } from "lucide-react";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { api } from "@/convex/_generated/api";
+import { ChatInterface } from "./ChatInterface";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -109,6 +117,27 @@ export function Header() {
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
+
+              <Authenticated>
+                <NavigationMenuItem>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button
+                        className={`${navigationMenuTriggerStyle()} relative w-9 px-0`}
+                        aria-label="Open chat"
+                      >
+                        <MessageSquare className="h-5 w-5" />
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="p-0 border-0 bg-transparent shadow-none max-w-md">
+                      <VisuallyHidden>
+                        <DialogTitle>Project Assistant Chat</DialogTitle>
+                      </VisuallyHidden>
+                      <ChatInterface />
+                    </DialogContent>
+                  </Dialog>
+                </NavigationMenuItem>
+              </Authenticated>
 
               <Authenticated>
                 <NavigationMenuItem>
