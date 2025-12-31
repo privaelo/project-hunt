@@ -46,26 +46,45 @@ export const searchProjects = createTool({
       }
     );
 
-    // Build a map of entryId -> text from both sources
-    const textMap = new Map<string, string>();
+    // Build a map of entryId -> structured project info
+    type ProjectInfo = { name: string; summary?: string };
+    const projectMap = new Map<string, ProjectInfo>();
     
-    // Add vector search results (these have the RAG text)
-    entries.forEach((e: { entryId: string; text: string }) => {
-      textMap.set(e.entryId, e.text);
+    // Add full-text search results first (these have structured data)
+    fullTextSearchProjects.forEach((p: { entryId?: string; name: string; summary?: string }) => {
+      if (p.entryId) {
+        projectMap.set(p.entryId, { name: p.name, summary: p.summary });
+      }
     });
     
-    // Add full-text search results (reconstruct text from project data)
-    fullTextSearchProjects.forEach((p: { entryId?: string; name: string; summary?: string }) => {
-      if (p.entryId && !textMap.has(p.entryId)) {
-        const text = p.summary ? `${p.name}\n\n${p.summary}` : p.name;
-        textMap.set(p.entryId, text);
+    // Add vector search results (parse name/summary from RAG text if not already in map)
+    entries.forEach((e: { entryId: string; text: string }) => {
+      if (!projectMap.has(e.entryId)) {
+        // RAG text format is: "name\n\nsummary" or just "name"
+        const parts = e.text.split("\n\n");
+        const name = parts[0] || "Untitled";
+        const summary = parts.length > 1 ? parts.slice(1).join("\n\n") : undefined;
+        projectMap.set(e.entryId, { name, summary });
       }
     });
 
-    // Get text for all hybrid-ranked entries in order
+    // Format results with clear labels
     const combinedResults: string = hybridRankedEntryIds
-      .map((entryId: string) => textMap.get(entryId))
-      .filter((text: string | undefined): text is string => text !== undefined)
+      .map((entryId: string, index: number) => {
+        const project = projectMap.get(entryId);
+        if (!project) return null;
+        
+        const lines = [
+          `[Result ${index + 1}]`,
+          `Entry ID: ${entryId}`,
+          `Name: ${project.name}`,
+        ];
+        if (project.summary) {
+          lines.push(`Summary: ${project.summary}`);
+        }
+        return lines.join("\n");
+      })
+      .filter((text: string | null): text is string => text !== null)
       .join("\n\n---\n\n");
 
     return combinedResults || "No projects found matching your query.";
