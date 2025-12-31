@@ -2,6 +2,8 @@ import { internalAction, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { authKit } from "./auth";
 import { internal } from "./_generated/api";
+import { rag } from "./rag";
+import { vNamespaceId } from "@convex-dev/rag";
 
 // Internal mutation to insert a domain
 export const insertDomain = internalMutation({
@@ -205,6 +207,46 @@ export const seedFromWorkOS = internalAction({
       success: true,
       users: usersResult,
       domains: domainsResult,
+    };
+  },
+});
+
+
+export const deleteOrphanedRagEntries = internalMutation({
+  args: {
+    namespaceId: v.optional(vNamespaceId), // branded id (or omit to scan all namespaces)
+    cursor: v.optional(v.string()),
+    dryRun: v.optional(v.boolean()),
+  },
+  handler: async (ctx, { namespaceId, cursor, dryRun }) => {
+    const page = await rag.list(ctx, {
+      ...(namespaceId ? { namespaceId } : {}),
+      // optionally filter statuses; "ready" is usually what you want to keep clean
+      // status: "ready",
+      paginationOpts: { cursor: cursor ?? null, numItems: 100 },
+    });
+
+    let deleted = 0;
+
+    for (const entry of page.page) {
+      // The entryId is the join key you stored on your project documents.
+      const project = await ctx.db
+        .query("projects")
+        .withIndex("by_entryId", (q) => q.eq("entryId", entry.entryId))
+        .first();
+
+      if (!project) {
+        if (!dryRun) {
+          await rag.deleteAsync(ctx, { entryId: entry.entryId });
+        }
+        deleted += 1;
+      }
+    }
+
+    return {
+      deleted,
+      continueCursor: page.isDone ? null : page.continueCursor,
+      isDone: page.isDone,
     };
   },
 });
