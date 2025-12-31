@@ -20,6 +20,7 @@ export const projectAgent = new Agent(components.agent, {
   tools: { searchProjects, showProjects },
   languageModel: bedrock("us.anthropic.claude-haiku-4-5-20251001-v1:0"),
   textEmbeddingModel: openai.embedding("text-embedding-3-small"),
+  maxSteps: 10,
 });
 
 export const createThread = mutation({
