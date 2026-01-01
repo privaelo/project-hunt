@@ -1,6 +1,7 @@
 import { internalAction, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
+import { rag } from "./rag";
 
 export const seed = internalMutation({
   args: {},
@@ -111,7 +112,6 @@ export const seed = internalMutation({
         status: "active" as const,
         readinessStatus: "ready_to_use" as const,
         upvotes: 2,
-        entryId: "entry_signal_atlas",
         link: "https://example.com/signal-atlas",
         pinned: true,
         engagementScore: 78,
@@ -126,7 +126,6 @@ export const seed = internalMutation({
         status: "active" as const,
         readinessStatus: "in_progress" as const,
         upvotes: 1,
-        entryId: "entry_launch_compass",
         link: "https://example.com/launch-compass",
         pinned: false,
         engagementScore: 52,
@@ -141,7 +140,6 @@ export const seed = internalMutation({
         status: "pending" as const,
         readinessStatus: "in_progress" as const,
         upvotes: 1,
-        entryId: "entry_insight_vault",
         link: "https://example.com/insight-vault",
         pinned: undefined,
         engagementScore: undefined,
@@ -156,7 +154,6 @@ export const seed = internalMutation({
         status: "active" as const,
         readinessStatus: "ready_to_use" as const,
         upvotes: 3,
-        entryId: "entry_privacy_pulse",
         link: "https://example.com/privacy-pulse",
         pinned: true,
         engagementScore: 90,
@@ -171,7 +168,6 @@ export const seed = internalMutation({
         status: "pending" as const,
         readinessStatus: "ready_to_use" as const,
         upvotes: 0,
-        entryId: undefined,
         link: undefined,
         pinned: false,
         engagementScore: 12,
@@ -180,7 +176,7 @@ export const seed = internalMutation({
     ];
 
     for (const project of projects) {
-      const allFields = [project.name, project.summary, project.entryId, project.link]
+      const allFields = [project.name, project.summary, project.link]
         .filter(Boolean)
         .join(" ");
       const id = await ctx.db.insert("projects", {
@@ -193,7 +189,6 @@ export const seed = internalMutation({
         readinessStatus: project.readinessStatus,
         upvotes: project.upvotes,
         viewCount: project.upvotes * 10,
-        entryId: project.entryId,
         link: project.link,
         pinned: project.pinned,
         engagementScore: project.engagementScore,
@@ -405,6 +400,13 @@ export const seed = internalMutation({
       await ctx.db.insert("allowedDomains", domain);
     }
 
+    // Build project data for RAG indexing (to be done in seedAll action)
+    const projectsForRag = projects.map((project, index) => ({
+      projectId: projectIds[index],
+      name: project.name,
+      summary: project.summary,
+    }));
+
     return {
       success: true,
       summary: {
@@ -422,6 +424,7 @@ export const seed = internalMutation({
         notifications: notifications.length,
         allowedDomains: allowedDomains.length,
       },
+      projectsForRag,
     };
   },
 });
@@ -429,7 +432,12 @@ export const seed = internalMutation({
 // Seed everything: WorkOS data (real users/domains) + test data
 export const seedAll = internalAction({
   args: {},
-  handler: async (ctx): Promise<{ success: boolean; workos: unknown; testData: unknown }> => {
+  handler: async (ctx): Promise<{
+    success: boolean;
+    workos: unknown;
+    testData: unknown;
+    ragIndexed: number;
+  }> => {
     console.log("Running full seed: WorkOS + test data...");
 
     // First, seed real users and domains from WorkOS
@@ -440,10 +448,35 @@ export const seedAll = internalAction({
     const testDataResult = await ctx.runMutation(internal.seed.seed, {});
     console.log("Test data seeding complete:", testDataResult);
 
+    // Index projects in RAG component
+    console.log("Indexing projects in RAG...");
+    let ragIndexed = 0;
+    for (const project of testDataResult.projectsForRag) {
+      const text = project.summary
+        ? `${project.name}\n\n${project.summary}`
+        : project.name;
+
+      const { entryId } = await rag.add(ctx, {
+        namespace: "projects",
+        text,
+        key: project.projectId,
+      });
+
+      // Update project with entryId
+      await ctx.runMutation(internal.projects.updateEntryId, {
+        projectId: project.projectId,
+        entryId,
+      });
+
+      ragIndexed++;
+    }
+    console.log(`RAG indexing complete: ${ragIndexed} projects indexed`);
+
     return {
       success: true,
       workos: workosResult,
       testData: testDataResult,
+      ragIndexed,
     };
   },
 });
