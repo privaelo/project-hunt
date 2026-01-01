@@ -130,10 +130,30 @@ export function MessageList({ threadId }: MessageListProps) {
           Ask me anything about projects!
         </div>
       ) : (
-        messages.map((msg, index) => {
-          const role = msg.message?.role;
-          const content = msg.message?.content;
-          if (!content || !role) return null;
+        // Deduplicate messages by tracking showProjects tool calls we've seen
+        (() => {
+          const seenShowProjectsCalls = new Set<string>();
+          return messages.map((msg, index) => {
+            const role = msg.message?.role;
+            const content = msg.message?.content;
+            if (!content || !role) return null;
+
+            // Skip tool result messages (they duplicate what tool-call shows)
+            if (role === "tool") return null;
+
+            // Deduplicate showProjects tool calls by their args
+            if (Array.isArray(content)) {
+              const showProjectsPart = content.find(
+                (part) => isToolCallPart(part) && part.toolName === "showProjects"
+              );
+              if (showProjectsPart && isToolCallPart(showProjectsPart)) {
+                const key = JSON.stringify(showProjectsPart.args);
+                if (seenShowProjectsCalls.has(key)) {
+                  return null; // Skip duplicate
+                }
+                seenShowProjectsCalls.add(key);
+              }
+            }
 
           // For array content, check what types of content we have
           if (Array.isArray(content)) {
@@ -177,7 +197,8 @@ export function MessageList({ threadId }: MessageListProps) {
               }
             </div>
           </div>
-        )})
+        );})
+        })()
       )}
       <div ref={bottomRef} />
     </div>
