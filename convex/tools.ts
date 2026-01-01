@@ -6,8 +6,8 @@ import { hybridRank } from "@convex-dev/rag";
 
 // Tool 1: The "Eye" (Search)
 export const searchProjects = createTool({
-  description: "Search the database for projects matching the query.",
-  args: z.object({ query: z.string() }),
+  description: "Search the database for projects matching the query using hybrid search (vector search and full text search).",
+  args: z.object({ query: z.string() }).describe("The query to be used in the hybrid search to find projects"),
   handler: async (ctx, { query }): Promise<string> => {
     // Don't search if query is too short
     if (query.trim().length < 2) {
