@@ -245,19 +245,19 @@ export default function ProfilePage({
               {isOwner && (
                 <Button variant="outline" asChild>
                   <Link href="/submit" prefetch={false}>
-                    Share a project
+                    Share a tool
                   </Link>
                 </Button>
               )}
             </div>
             {projects === undefined ? (
-              <EmptyState message="Loading builds..." />
+              <EmptyState message="Loading tools..." />
             ) : projects.length === 0 ? (
               <EmptyState
                 message={
                   isOwner
-                    ? "You have not shared any builds yet."
-                    : "No shared builds yet."
+                    ? "You have not shared any tools yet."
+                    : "No shared tools yet."
                 }
               />
             ) : (

@@ -606,7 +606,7 @@ function NewestProjects() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2 px-3">
-        <h3 className="text-2xl font-semibold text-zinc-900">Newest projects</h3>
+        <h3 className="text-2xl font-semibold text-zinc-900">Newest tools</h3>
       </div>
 
       {!newestProjects ? (
@@ -621,7 +621,7 @@ function NewestProjects() {
         </div>
       ) : newestProjects.length === 0 ? (
         // Empty state
-        <p className="text-sm text-zinc-500 px-3">No projects yet.</p>
+        <p className="text-sm text-zinc-500 px-3">No tools yet.</p>
       ) : (
         // Projects list
         <div className="flex flex-col gap-3">

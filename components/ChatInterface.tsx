@@ -13,12 +13,21 @@ const EXAMPLE_PROMPTS = [
   "Copilot prompts for writing emails",
 ];
 
+type OptimisticMessage = {
+  id: string;
+  role: 'user';
+  content: string;
+  timestamp: number;
+};
+
 export function ChatInterface() {
   const [threadId, setThreadId] = useState<string | null>(null);
   const createThread = useMutation(api.ragbot.createThread);
 
   const sendMessageToAgent = useAction(api.ragbot.sendMessageToAgent);
   const [inputValue, setInputValue] = useState("");
+  const [optimisticMessages, setOptimisticMessages] = useState<OptimisticMessage[]>([]);
+
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +35,15 @@ export function ChatInterface() {
 
     const userMessage = inputValue.trim();
     setInputValue("");
+
+    // Add optimistic message immediately
+    const optimisticMessage: OptimisticMessage = {
+      id: `optimistic-${Date.now()}`,
+      role: 'user',
+      content: userMessage,
+      timestamp: Date.now(),
+    };
+    setOptimisticMessages(prev => [...prev, optimisticMessage]);
 
     try {
       let currentThreadId = threadId;
@@ -37,8 +55,15 @@ export function ChatInterface() {
       }
 
       await sendMessageToAgent({ threadId: currentThreadId, prompt: userMessage });
+      
+      // Clear optimistic message after successful send with a delay to allow DB to update
+      setTimeout(() => {
+        setOptimisticMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+      }, 2000);
     } catch (error) {
       console.error("Failed to send message:", error);
+      // Remove optimistic message on error immediately
+      setOptimisticMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
     }
   };
 
@@ -52,7 +77,7 @@ export function ChatInterface() {
         <h2 className="text-sm font-semibold text-zinc-900">Find Tools on Garden</h2>
       </div>
       {threadId ? (
-        <MessageList threadId={threadId} />
+        <MessageList threadId={threadId} optimisticMessages={optimisticMessages} />
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center p-6 gap-6">
           <div className="text-center space-y-2">

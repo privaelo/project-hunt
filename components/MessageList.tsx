@@ -1,14 +1,22 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { useThreadMessages } from "@convex-dev/agent/react";
 import { api } from "@/convex/_generated/api";
 import { SearchingIndicator } from "@/components/chat/SearchingIndicator";
 import { ProjectCardsDisplay } from "@/components/chat/ProjectCardsDisplay";
 import ReactMarkdown from "react-markdown";
 
+type OptimisticMessage = {
+  id: string;
+  role: 'user';
+  content: string;
+  timestamp: number;
+};
+
 interface MessageListProps {
   threadId: string;
+  optimisticMessages?: OptimisticMessage[];
 }
 
 // Type for tool-call content parts
@@ -111,7 +119,7 @@ function renderContentPart(part: unknown, index: number) {
   return null;
 }
 
-export function MessageList({ threadId }: MessageListProps) {
+export function MessageList({ threadId, optimisticMessages = [] }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const { results: messages } = useThreadMessages(
     api.ragbot.listThreadMessages,
@@ -119,17 +127,40 @@ export function MessageList({ threadId }: MessageListProps) {
     { initialNumItems: 20, stream: true }
   );
 
+  // Filter out optimistic messages that already exist in the database
+  const filteredOptimisticMessages = useMemo(() => {
+    if (!messages || messages.length === 0) return optimisticMessages;
+
+    // Collect all user message contents from database
+    const dbUserMessageContents = new Set(
+      messages
+        .filter(msg => msg.message?.role === 'user')
+        .map(msg => {
+          const content = msg.message?.content;
+          return typeof content === 'string' ? content : '';
+        })
+        .filter(Boolean)
+    );
+
+    // Filter out optimistic messages that match database messages
+    return optimisticMessages.filter(
+      optimistic => !dbUserMessageContents.has(optimistic.content)
+    );
+  }, [optimisticMessages, messages]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   return (
     <div className="flex-1 p-4 overflow-y-auto space-y-4">
-      {(!messages || messages.length === 0) ? (
+      {(!messages || messages.length === 0) && filteredOptimisticMessages.length === 0 ? (
         <div className="text-center text-sm text-muted-foreground mt-8">
           Ask me anything about projects!
         </div>
       ) : (
+        <>
+        {messages && messages.length > 0 && (
         // Deduplicate messages by tracking showProjects tool calls we've seen
         (() => {
           const seenShowProjectsCalls = new Set<string>();
@@ -199,6 +230,16 @@ export function MessageList({ threadId }: MessageListProps) {
           </div>
         );})
         })()
+        )}
+        {/* Render optimistic messages with reduced opacity */}
+        {filteredOptimisticMessages.map((optimisticMsg) => (
+          <div key={optimisticMsg.id} className="flex justify-end opacity-70">
+            <div className="max-w-[80%] rounded-lg p-3 text-sm bg-primary text-primary-foreground">
+              <Markdown>{optimisticMsg.content}</Markdown>
+            </div>
+          </div>
+        ))}
+        </>
       )}
       <div ref={bottomRef} />
     </div>

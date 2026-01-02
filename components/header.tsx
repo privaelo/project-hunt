@@ -62,7 +62,7 @@ export function Header() {
   };
 
   const renderNotificationText = (notification: (typeof notifications)[number]) => {
-    const projectName = notification.projectName ?? "your project";
+    const projectName = notification.projectName ?? "your tool";
     if (notification.type === "upvote") {
       const count = notification.count ?? 1;
       if (count > 1) {
@@ -203,7 +203,7 @@ export function Header() {
                 <NavigationMenuItem>
                   <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
                     <Link href="/submit" prefetch={false}>
-                      Submit Project
+                      Share a Tool
                     </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>

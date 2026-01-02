@@ -242,7 +242,7 @@ export const getNotifications = query({
           lastActivityAt: notification.lastActivityAt,
           actorName: actor?.name ?? "Someone",
           actorAvatar: actor?.avatarUrlId ?? "",
-          projectName: project?.name ?? "your project",
+          projectName: project?.name ?? "your tool",
           isReply: Boolean(comment?.parentCommentId),
         };
       })
