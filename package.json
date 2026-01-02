@@ -40,6 +40,7 @@
     "@workos-inc/authkit-nextjs": "^2.11.1",
     "@workos-inc/widgets": "^1.5.1",
     "ai": "^5.0.81",
+    "bootstrap-icons": "^1.13.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "convex": "^1.28.0",

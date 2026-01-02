@@ -55,11 +55,7 @@ export function ChatInterface() {
       }
 
       await sendMessageToAgent({ threadId: currentThreadId, prompt: userMessage });
-      
-      // Clear optimistic message after successful send with a delay to allow DB to update
-      setTimeout(() => {
-        setOptimisticMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
-      }, 2000);
+      // Optimistic message will be automatically filtered out by MessageList when DB message arrives
     } catch (error) {
       console.error("Failed to send message:", error);
       // Remove optimistic message on error immediately

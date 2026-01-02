@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "bootstrap-icons/font/bootstrap-icons.css";
 
 /* Provides styles for Radix Themes components and its theming API */
 @import '@radix-ui/themes/styles.css';
