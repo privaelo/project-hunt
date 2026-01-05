@@ -1579,13 +1579,11 @@ export const getProjectsByEntryIdsPublic = query({
         }
 
         const firstMedia =
-          (
-            await ctx.db
-              .query("mediaFiles")
-              .withIndex("by_project_ordered", (q) => q.eq("projectId", project._id))
-              .order("asc")
-              .collect()
-          )[0] ?? null;
+          (await ctx.db
+            .query("mediaFiles")
+            .withIndex("by_project_ordered", (q) => q.eq("projectId", project._id))
+            .order("asc")
+            .first()) ?? null;
 
         const previewMedia = firstMedia
           ? [
