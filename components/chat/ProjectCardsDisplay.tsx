@@ -69,6 +69,7 @@ export function ProjectCardsDisplay({
           projects.map((project) => {
             const firstMedia = project.previewMedia?.[0];
             const isVideo = firstMedia?.type === "video";
+            const hasValidUrl = firstMedia?.url != null;
 
             return (
               <Link
@@ -79,11 +80,11 @@ export function ProjectCardsDisplay({
                 <Card className="h-full cursor-pointer overflow-hidden transition-colors hover:bg-muted/50">
                   <div className="flex h-full flex-col gap-2 p-3">
                     <div className="group relative aspect-[16/9] w-full overflow-hidden rounded-md bg-muted">
-                      {firstMedia ? (
+                      {firstMedia && hasValidUrl ? (
                         isVideo ? (
                           <>
                             <video
-                              src={firstMedia.url ?? ""}
+                              src={firstMedia.url!}
                               className="h-full w-full object-cover"
                               muted
                               playsInline
@@ -98,7 +99,7 @@ export function ProjectCardsDisplay({
                           </>
                         ) : (
                           <Image
-                            src={firstMedia.url ?? ""}
+                            src={firstMedia.url!}
                             alt={project.name}
                             fill
                             className="object-cover"
