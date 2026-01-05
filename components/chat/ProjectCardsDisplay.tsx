@@ -90,7 +90,7 @@ export function ProjectCardsDisplay({
                             />
                             <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/10">
                               <div className="rounded-full bg-black/50 p-1.5 backdrop-blur-sm">
-                                <Play className="h-4 w-4 fill-white text-white" />
+                                <Play aria-hidden="true" className="h-4 w-4 fill-white text-white" />
                               </div>
                             </div>
                           </>
