@@ -87,6 +87,8 @@ export function ProjectCardsDisplay({
                               className="h-full w-full object-cover"
                               muted
                               playsInline
+                              preload="metadata"
+                              aria-label={`${project.name} preview video`}
                             />
                             <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/10">
                               <div className="rounded-full bg-black/50 p-1.5 backdrop-blur-sm">
