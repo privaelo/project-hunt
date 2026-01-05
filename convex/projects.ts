@@ -1568,11 +1568,42 @@ export const getProjectsByEntryIdsPublic = query({
   handler: async (ctx, args) => {
     const projects = await Promise.all(
       args.entryIds.map(async (entryId) => {
-        return await ctx.db
+        const project = await ctx.db
           .query("projects")
           .withIndex("by_entryId", (q) => q.eq("entryId", entryId))
           .filter((q) => q.eq(q.field("status"), "active"))
           .first();
+
+        if (!project) {
+          return null;
+        }
+
+        const firstMedia =
+          (
+            await ctx.db
+              .query("mediaFiles")
+              .withIndex("by_project_ordered", (q) => q.eq("projectId", project._id))
+              .order("asc")
+              .collect()
+          )[0] ?? null;
+
+        const previewMedia = firstMedia
+          ? [
+              {
+                _id: firstMedia._id,
+                storageId: firstMedia.storageId,
+                type: firstMedia.type,
+                url: await ctx.storage.getUrl(firstMedia.storageId),
+              },
+            ]
+          : [];
+
+        return {
+          _id: project._id,
+          name: project.name,
+          summary: project.summary,
+          previewMedia,
+        };
       })
     );
 
@@ -1582,6 +1613,7 @@ export const getProjectsByEntryIdsPublic = query({
         _id: p._id,
         name: p.name,
         summary: p.summary,
+        previewMedia: p.previewMedia,
       }));
   },
 });

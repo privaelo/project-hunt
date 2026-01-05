@@ -19,13 +19,25 @@ interface ProjectCardsDisplayProps {
   summary: string;
 }
 
+type ProjectCardProject = {
+  _id: string;
+  name: string;
+  summary?: string;
+  previewMedia?: Array<{
+    _id: string;
+    storageId: string;
+    type: string;
+    url: string | null;
+  }>;
+};
+
 export function ProjectCardsDisplay({
   projectIds,
   summary,
 }: ProjectCardsDisplayProps) {
   const projects = useQuery(api.projects.getProjectsByEntryIdsPublic, {
     entryIds: projectIds,
-  });
+  }) as ProjectCardProject[] | undefined;
 
   const isLoading = projects === undefined;
 
