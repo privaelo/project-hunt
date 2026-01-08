@@ -54,14 +54,16 @@ export function ProjectMediaCarousel({
     <div className="relative">
       <Carousel setApi={setApi} className="w-full">
         <CarouselContent>
-          {media.map((item) => (
+          {media.map((item, index) => (
             <CarouselItem key={item._id}>
               <MediaSlide
                 media={item}
                 variant={variant}
                 aspectRatio={baseAspectRatio}
                 onAspectRatio={(ratio) => {
-                  setBaseAspectRatio((prev) => prev ?? ratio);
+                  if (index === 0) {
+                    setBaseAspectRatio((prev) => prev ?? ratio);
+                  }
                 }}
               />
             </CarouselItem>
@@ -137,7 +139,7 @@ function MediaSlide({
   return (
     <div
       className={`relative w-full rounded-lg overflow-hidden bg-zinc-100 ${
-        isDetail ? "min-h-[400px] max-h-[600px]" : ""
+        isDetail ? "min-h-[400px] max-h-[600px]" : "max-h-[300px]"
       }`}
       style={{ aspectRatio: aspectRatioValue }}
     >
@@ -196,9 +198,10 @@ function MediaSlide({
           fill
           className={isDetail ? "object-contain" : "object-cover"}
           unoptimized
-          onLoadingComplete={({ naturalWidth, naturalHeight }) => {
-            if (naturalWidth && naturalHeight) {
-              onAspectRatio(naturalWidth / naturalHeight);
+          onLoad={(e) => {
+            const img = e.currentTarget as HTMLImageElement;
+            if (img.naturalWidth && img.naturalHeight) {
+              onAspectRatio(img.naturalWidth / img.naturalHeight);
             }
           }}
           sizes={isDetail ? "(max-width: 768px) 100vw, 896px" : "(max-width: 768px) 100vw, 672px"}
