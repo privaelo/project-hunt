@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useMutation, useAction, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -17,30 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDropzone } from "react-dropzone";
-import { Upload, Info, GripVertical } from "lucide-react";
+import { Info } from "lucide-react";
 import { SimilarProjectsPreview } from "@/components/SimilarProjectsPreview";
 import { FocusAreaPicker } from "@/components/FocusAreaPicker";
+import { MediaUploadField, type NewFileItem } from "@/components/MediaUploadField";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  DndContext,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  rectSortingStrategy,
-  arrayMove,
-  useSortable,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 const thingsThatBelong = [
   "a script you wrote for yourself",
@@ -50,66 +34,6 @@ const thingsThatBelong = [
   "a prototype that never shipped",
   "a compliance/reporting solution",
 ];
-
-function SortableSelectedFile({
-  item,
-  onRemove,
-}: {
-  item: { file: File; id: string };
-  onRemove: () => void;
-}) {
-  const { file, id } = item;
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 10 : "auto",
-    opacity: isDragging ? 0.9 : 1,
-  };
-
-  const isImage = file.type.startsWith("image/");
-
-  return (
-    <div className="relative group" ref={setNodeRef} style={style}>
-      <button
-        type="button"
-        className="absolute left-2 top-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-zinc-200 bg-white/80 text-zinc-600 shadow-sm transition hover:bg-white"
-        aria-label="Drag to reorder"
-        {...listeners}
-        {...attributes}
-      >
-        <GripVertical className="h-4 w-4" />
-      </button>
-      <div className="aspect-square rounded-lg border border-zinc-200 bg-zinc-100 overflow-hidden">
-        {isImage ? (
-          <Image
-            src={URL.createObjectURL(file)}
-            alt={file.name}
-            width={200}
-            height={200}
-            className="h-full w-full object-cover"
-            unoptimized
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <div className="text-4xl">🎥</div>
-          </div>
-        )}
-      </div>
-      <button
-        type="button"
-        onClick={onRemove}
-        className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors"
-      >
-        ×
-      </button>
-      <div className="mt-1 text-xs text-zinc-500 truncate">{file.name}</div>
-    </div>
-  );
-}
 
 export default function SubmitProject() {
   const router = useRouter();
@@ -125,52 +49,9 @@ export default function SubmitProject() {
     link: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<Array<{ file: File; id: string }>>([]);
+  const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
   const [selectedFocusAreas, setSelectedFocusAreas] = useState<Id<"focusAreas">[]>([]);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"in_progress" | "ready_to_use">("in_progress");
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 },
-    })
-  );
-
-  const { getRootProps, getInputProps, fileRejections, isDragActive } = useDropzone({
-    accept: {
-      'image/png': ['.png'],
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/gif': ['.gif'],
-      'image/webp': ['.webp'],
-      'video/mp4': ['.mp4'],
-      'video/webm': ['.webm'],
-    },
-    onDrop: (acceptedFiles) => {
-      setSelectedFiles((prev) => [
-        ...prev,
-        ...acceptedFiles.map((file) => ({
-          file,
-          id:
-            (globalThis.crypto?.randomUUID?.() as string | undefined) ??
-            `${file.name}-${file.lastModified}-${file.size}-${Math.random()}`,
-        })),
-      ]);
-    },
-  });
-
-  const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    setSelectedFiles((items) => {
-      const oldIndex = items.findIndex((item) => item.id === active.id);
-      const newIndex = items.findIndex((item) => item.id === over.id);
-      if (oldIndex === -1 || newIndex === -1) return items;
-      return arrayMove(items, oldIndex, newIndex);
-    });
-  };
 
   const deriveName = () => {
     const title = formData.workingTitle.trim();
@@ -327,65 +208,11 @@ export default function SubmitProject() {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-900">
-                Media <span className="text-xs text-zinc-500">(optional)</span>
-              </label>
-              <div
-                {...getRootProps()}
-                className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors cursor-pointer ${
-                  isDragActive
-                    ? 'border-zinc-900 bg-zinc-100'
-                    : 'border-zinc-300 bg-zinc-50 hover:border-zinc-400'
-                }`}
-              >
-                <input {...getInputProps()} />
-                <div className="space-y-2">
-                  <Upload className="mx-auto h-10 w-10 text-zinc-400" />
-                  <div className="text-sm text-zinc-600">
-                    {isDragActive ? (
-                      <span className="font-medium text-zinc-900">Drop files here</span>
-                    ) : (
-                        <span className="text-zinc-500">
-                          Add Screenshots or short clips that show the problem and your fix in action.
-                        </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {fileRejections.length > 0 && (
-                <div className="text-sm text-red-600 mt-2">
-                  Invalid file type(s): {fileRejections.map(({ file }) => file.name).join(', ')}.
-                  Please upload images or videos only.
-                </div>
-              )}
-
-              {selectedFiles.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <SortableContext
-                      items={selectedFiles.map((item) => item.id)}
-                      strategy={rectSortingStrategy}
-                    >
-                      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                        {selectedFiles.map((item, index) => (
-                          <SortableSelectedFile
-                            key={item.id}
-                            item={item}
-                            onRemove={() => removeFile(index)}
-                          />
-                        ))}
-                      </div>
-                    </SortableContext>
-                  </DndContext>
-                </div>
-              )}
-            </div>
+            <MediaUploadField
+              newFiles={selectedFiles}
+              onNewFilesChange={setSelectedFiles}
+              disabled={isSubmitting}
+            />
 
             <div className="flex items-center pt-4">
               <Button type="submit" className="whitespace-nowrap" disabled={isSubmitting}>
