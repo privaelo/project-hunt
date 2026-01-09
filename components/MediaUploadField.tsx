@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -128,6 +129,8 @@ function SortableNewFileThumbnail({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
   });
+  
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -137,6 +140,19 @@ function SortableNewFileThumbnail({
   };
 
   const isImage = file.type.startsWith("image/");
+
+  // Create and cleanup object URL for image preview
+  useEffect(() => {
+    if (!isImage) return;
+
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+
+    // Cleanup: revoke the object URL when component unmounts or file changes
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [file, isImage]);
 
   return (
     <div className="relative group" ref={setNodeRef} style={style}>
@@ -150,9 +166,9 @@ function SortableNewFileThumbnail({
         <GripVertical className="h-4 w-4" />
       </button>
       <div className="aspect-square rounded-lg border border-zinc-200 bg-zinc-100 overflow-hidden">
-        {isImage ? (
+        {isImage && previewUrl ? (
           <Image
-            src={URL.createObjectURL(file)}
+            src={previewUrl}
             alt={file.name}
             width={200}
             height={200}
