@@ -34,7 +34,17 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   const generateUploadUrl = useMutation(api.projects.generateUploadUrl);
   const deleteMediaFromProject = useMutation(api.projects.deleteMediaFromProject);
   const addMediaToProject = useMutation(api.projects.addMediaToProject);
-  const reorderProjectMedia = useMutation(api.projects.reorderProjectMedia);
+  const reorderProjectMedia = useMutation(api.projects.reorderProjectMedia)
+    .withOptimisticUpdate((localStore, args) => {
+      const existing = localStore.getQuery(api.projects.getProjectMedia, { projectId: args.projectId });
+      if (existing) {
+        // Reorder in the local cache immediately based on the new order
+        const reordered = args.orderedMediaIds
+          .map(id => existing.find(m => m._id === id))
+          .filter((m): m is NonNullable<typeof m> => m !== undefined);
+        localStore.setQuery(api.projects.getProjectMedia, { projectId: args.projectId }, reordered);
+      }
+    });
   const focusAreasGrouped = useQuery(api.focusAreas.listActiveGrouped);
 
   const [formData, setFormData] = useState({
@@ -47,11 +57,8 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
   const [selectedFocusAreas, setSelectedFocusAreas] = useState<Id<"focusAreas">[]>([]);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"in_progress" | "ready_to_use">("in_progress");
-  const [orderedMedia, setOrderedMedia] = useState<ExistingMediaItem[]>([]);
 
   const handleExistingMediaReorder = async (reorderedMedia: ExistingMediaItem[]) => {
-    const previous = orderedMedia;
-    setOrderedMedia(reorderedMedia);
     try {
       await reorderProjectMedia({
         projectId,
@@ -60,14 +67,13 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
     } catch (error) {
       console.error("Failed to reorder media:", error);
       alert("Failed to reorder media. Please try again.");
-      setOrderedMedia(previous);
+      // No manual rollback needed - Convex optimistic update handles this
     }
   };
 
   const handleExistingMediaDelete = async (mediaId: Id<"mediaFiles">) => {
     try {
       await deleteMediaFromProject({ projectId, mediaId });
-      setOrderedMedia((items) => items.filter((item) => item._id !== mediaId));
     } catch (error) {
       console.error("Failed to delete media:", error);
       alert("Failed to delete media. Please try again.");
@@ -87,12 +93,6 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       setIsLoading(false);
     }
   }, [project]);
-
-  useEffect(() => {
-    if (projectMedia) {
-      setOrderedMedia(projectMedia);
-    }
-  }, [projectMedia]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -227,7 +227,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
               </div>
 
               <MediaUploadField
-                existingMedia={orderedMedia}
+                existingMedia={projectMedia}
                 onExistingMediaReorder={handleExistingMediaReorder}
                 onExistingMediaDelete={handleExistingMediaDelete}
                 newFiles={selectedFiles}
