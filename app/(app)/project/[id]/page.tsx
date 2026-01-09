@@ -296,7 +296,7 @@ export default function ProjectPage({
 
           {projectMedia && projectMedia.length > 0 && (
             <div className="my-8">
-              <ProjectMediaCarousel media={projectMedia} variant="detail" />
+              <ProjectMediaCarousel media={projectMedia} />
             </div>
           )}
 
