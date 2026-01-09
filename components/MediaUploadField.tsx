@@ -143,7 +143,10 @@ function SortableNewFileThumbnail({
 
   // Create and cleanup object URL for image preview
   useEffect(() => {
-    if (!isImage) return;
+    if (!isImage) {
+      setPreviewUrl(null);
+      return;
+    }
 
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
