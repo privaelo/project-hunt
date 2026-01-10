@@ -84,7 +84,7 @@ export function ProjectMediaCarousel({ media }: ProjectMediaCarouselProps) {
 
   return (
     <>
-      <div className="relative w-full max-w-2xl">
+      <div className="relative w-full max-w-2xl mx-auto">
         <Carousel setApi={setApi} className="w-full">
           <CarouselContent>
             {media.map((item) => (
