@@ -150,10 +150,10 @@ export default function Home() {
           <div className="space-y-2">
             <div>
               <h2 className="text-3xl font-semibold tracking-tight flex items-center gap-3">
-                Tools built inside Honda
+                What builders are making
               </h2>
               <p className="mt-2 text-lg text-zinc-600">
-                If it made work easier, it belongs here.
+                See what&apos;s growing — or share your own.
               </p>
             </div>
             <ShareProjectCallout />
@@ -213,27 +213,27 @@ function ShareProjectCallout() {
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white/90 px-3 py-2 shadow-sm">
       <div>
         <p className="text-sm text-zinc-600">
-          Have one? Share it in two lines.
+          Working on something? Share it in two lines.
         </p>
       </div>
       <div className="flex items-center gap-2">
         <Authenticated>
           <Link href="/submit">
             <Button size="sm" className="whitespace-nowrap">
-              Share something you built
+              Share what you&apos;re working on
             </Button>
           </Link>
         </Authenticated>
         <Unauthenticated>
             <Button size="sm" className="whitespace-nowrap" asChild>
               <Link href="/sign-in" prefetch={false}>
-                Share something you built
+                Share what you&apos;re working on
               </Link>
             </Button>
         </Unauthenticated>
         <AuthLoading>
           <Button size="sm" className="whitespace-nowrap" disabled>
-            Share something you built
+            Share what you&apos;re working on
           </Button>
         </AuthLoading>
       </div>
@@ -401,13 +401,13 @@ function ProjectRow({
 function EmptyState() {
   return (
     <div className="rounded-3xl bg-zinc-100/60 p-6 text-center text-sm text-zinc-500 space-y-3">
-      <p className="font-medium text-zinc-900">Nothing here yet.</p>
+      <p className="font-medium text-zinc-900">Quiet right now.</p>
       <p className="text-zinc-600">
-        Be the first to share a workaround that made work easier.
+        Plant something?
       </p>
       <Link href="/submit">
         <Button size="sm" className="whitespace-nowrap">
-          Share something you built
+          Share what you&apos;re working on
         </Button>
       </Link>
     </div>
@@ -489,7 +489,7 @@ function FocusAreaSpotlight({
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <h3 className="text-2xl font-semibold text-zinc-900">
-            Focus area spotlight
+            For you
           </h3>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -606,7 +606,7 @@ function NewestProjects() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2 px-3">
-        <h3 className="text-2xl font-semibold text-zinc-900">Newest tools</h3>
+        <h3 className="text-2xl font-semibold text-zinc-900">Recently shared</h3>
       </div>
 
       {!newestProjects ? (
@@ -621,7 +621,7 @@ function NewestProjects() {
         </div>
       ) : newestProjects.length === 0 ? (
         // Empty state
-        <p className="text-sm text-zinc-500 px-3">No tools yet.</p>
+        <p className="text-sm text-zinc-500 px-3">Nothing here yet.</p>
       ) : (
         // Projects list
         <div className="flex flex-col gap-3">

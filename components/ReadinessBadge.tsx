@@ -41,7 +41,7 @@ export function ReadinessBadge({ status, className }: ReadinessBadgeProps) {
 export function getReadinessStatusDescription(status: ReadinessStatus | undefined): string {
   const effectiveStatus = status ?? "in_progress";
   if (effectiveStatus === "ready_to_use") {
-    return "This project is stable and usable today.";
+    return "Stable and ready to use.";
   }
-  return "Rough cut — sharing early. Expect rough edges. Feedback and questions are welcome.";
+  return "Work in progress, feedback welcome.";
 }

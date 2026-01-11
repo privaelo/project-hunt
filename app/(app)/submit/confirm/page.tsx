@@ -116,11 +116,11 @@ function ConfirmSubmissionContent() {
     <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
         <div className="mb-2 space-y-2">
-          <h2 className="text-3xl font-semibold tracking-tight">Share something you built</h2>
+          <h2 className="text-3xl font-semibold tracking-tight">Share what you&apos;re working on</h2>
           <Accordion type="single" collapsible>
             <AccordionItem value="things" className="border-b-0">
               <AccordionTrigger className="py-1 text-sm font-medium text-zinc-700">
-                If you built something to make work easier, it belongs here, even if it&apos;s rough, unfinished, or hacky.
+                If you built something, it belongs here — rough, unfinished, or hacky.
               </AccordionTrigger>
               <AccordionContent className="pt-2">
                 <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600">
@@ -139,7 +139,7 @@ function ConfirmSubmissionContent() {
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold text-zinc-900">Your project</h3>
                 <p className="text-sm text-zinc-500">
-                  Quick check before it goes live.
+                  Quick look before it&apos;s live.
                 </p>
               </div>
               <div className="space-y-4">
@@ -206,7 +206,7 @@ function ConfirmSubmissionContent() {
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold text-zinc-900">Similar projects</h3>
                 <p className="text-sm text-zinc-500">
-                  If you see a close match, it might be worth connecting or sharing notes.
+                  See something similar? Might be worth connecting.
                 </p>
               </div>
 
@@ -248,7 +248,7 @@ function ConfirmSubmissionContent() {
           </div>
 
           <p className="text-center text-xs text-zinc-400">
-            Posting rough work is encouraged. You can always edit later.
+            Rough is fine. You can always edit later.
           </p>
         </section>
       </main>
