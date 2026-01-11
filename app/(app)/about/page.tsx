@@ -13,7 +13,7 @@ export default function AboutPage() {
             Where builders share what they&apos;re making
           </h1>
           <p className="text-xl text-zinc-600 leading-relaxed">
-            Garden is a simple, social place for Honda associates to share and discover tools that make work easier. Post what you built, scripts, dashboards, Power Automate flows, Copilot prompt templates, CAD macros, templates, and more, so it doesn&apos;t get lost in chats and folders.
+            Garden is a simple, social place for associates to share and discover tools that make work easier. Post what you built, scripts, dashboards, Power Automate flows, Copilot prompt templates, CAD macros, templates, and more, so it doesn&apos;t get lost in chats and folders.
           </p>
         </section>
 

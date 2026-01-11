@@ -153,7 +153,7 @@ export default function Home() {
                 What builders are making
               </h2>
               <p className="mt-2 text-lg text-zinc-600">
-                See what&apos;s growing — or share your own.
+                See what&apos;s growing, or share your own.
               </p>
             </div>
             <ShareProjectCallout />
