@@ -256,8 +256,8 @@ export default function ProfilePage({
               <EmptyState
                 message={
                   isOwner
-                    ? "You have not shared any tools yet."
-                    : "No shared tools yet."
+                    ? "Your garden is empty. What are you working on?"
+                    : "Nothing shared yet."
                 }
               />
             ) : (
@@ -277,7 +277,7 @@ export default function ProfilePage({
             {adoptedProjects === undefined ? (
               <EmptyState message="Loading tools in use..." />
             ) : adoptedProjects.length === 0 ? (
-              <EmptyState message="No tools in use yet." />
+              <EmptyState message="Nothing gathered yet." />
             ) : (
               <div className="space-y-3">
                 {adoptedProjects.map((project) => (

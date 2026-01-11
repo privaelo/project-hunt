@@ -70,7 +70,7 @@ export function ChatInterface() {
   return (
     <div className="flex flex-col h-[70vh] max-h-[700px] border rounded-xl overflow-hidden bg-background shadow-sm">
       <div className="px-4 py-3 border-b bg-white">
-        <h2 className="text-sm font-semibold text-zinc-900">Find Tools on Garden</h2>
+        <h2 className="text-sm font-semibold text-zinc-900">Explore Garden</h2>
       </div>
       {threadId ? (
         <MessageList threadId={threadId} optimisticMessages={optimisticMessages} />
@@ -79,7 +79,7 @@ export function ChatInterface() {
           <div className="text-center space-y-2">
             <h3 className="text-lg font-medium text-foreground">What are you trying to do?</h3>
             <p className="text-sm text-muted-foreground">
-              Describe your problem and I&apos;ll help you find tools
+              Describe what you need and I&apos;ll help you find it
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-2">

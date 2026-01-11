@@ -142,7 +142,7 @@ export function Facepile({
               </div>
           </motion.button>
         </TooltipTrigger>
-          <TooltipContent>You&apos;re using this · Click to remove</TooltipContent>
+          <TooltipContent>You&apos;re using this. Click to remove</TooltipContent>
         </Tooltip>
       );
     }
@@ -160,7 +160,7 @@ export function Facepile({
             <Plus className={iconSize} />
           </motion.button>
         </TooltipTrigger>
-        <TooltipContent>I use this</TooltipContent>
+        <TooltipContent>I&apos;m using this</TooltipContent>
       </Tooltip>
     );
   };

@@ -74,7 +74,7 @@ export default function OnboardingPage() {
         <CardHeader className="border-b border-zinc-100">
           <CardTitle className="text-2xl text-zinc-900">Welcome to Garden</CardTitle>
           <CardDescription className="mt-2 text-base space-y-1">
-            <p className="pt-2">Help us personalize your experience by answering a few quick questions.</p>
+            <p className="pt-2">Quick questions to get you started.</p>
           </CardDescription>
         </CardHeader>
 
@@ -88,14 +88,14 @@ export default function OnboardingPage() {
                 variant={userIntent === 'looking' ? 'default' : 'outline'}
                 className="h-auto py-3"
               >
-                Looking for tools
+                See what others built
               </Button>
               <Button
                 onClick={() => setUserIntent('sharing')}
                 variant={userIntent === 'sharing' ? 'default' : 'outline'}
                 className="h-auto py-3"
               >
-                Sharing tools
+                Share what I&apos;m building
               </Button>
               <Button
                 onClick={() => setUserIntent('both')}

@@ -310,7 +310,7 @@ export default function ProjectPage({
               ) : topLevelComments.length === 0 ? (
                 <div className="py-12 text-center">
                   <p className="text-sm text-zinc-500">
-                    No comments yet. Be the first to start the discussion!
+                    No comments yet. Start the conversation?
                   </p>
                 </div>
               ) : (

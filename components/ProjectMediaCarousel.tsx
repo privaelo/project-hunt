@@ -218,11 +218,13 @@ function MediaSlide({
       onClick={onExpand}
     >
       {isVideo ? (
-        <>
+        <div
+          className={`relative w-full ${isSingleItem ? "" : "h-[500px]"} flex items-center justify-center`}
+        >
           <video
             ref={videoRef}
             src={media.url}
-            className="w-full h-auto max-h-[500px] object-contain"
+            className={`w-full object-contain ${isSingleItem ? "h-auto max-h-[500px]" : "max-h-full"}`}
             preload="metadata"
             playsInline
             onEnded={handleVideoEnded}
@@ -249,7 +251,7 @@ function MediaSlide({
               )}
             </button>
           </div>
-        </>
+        </div>
       ) : isSingleItem ? (
         <img
           src={media.url}
