@@ -20,6 +20,7 @@ import { Info } from "lucide-react";
 import { SimilarProjectsPreview } from "@/components/SimilarProjectsPreview";
 import { FocusAreaPicker } from "@/components/FocusAreaPicker";
 import { MediaUploadField, type NewFileItem } from "@/components/MediaUploadField";
+import { ZipUploadField } from "@/components/ZipUploadField";
 import {
   Tooltip,
   TooltipContent,
@@ -42,6 +43,7 @@ export default function SubmitProject() {
   const confirmProject = useMutation(api.projects.confirmProject);
   const generateUploadUrl = useMutation(api.projects.generateUploadUrl);
   const addMediaToProject = useMutation(api.projects.addMediaToProject);
+  const addFileToProject = useMutation(api.projects.addFileToProject);
   const focusAreasGrouped = useQuery(api.focusAreas.listActiveGrouped);
   const [formData, setFormData] = useState({
     summary: "",
@@ -50,6 +52,7 @@ export default function SubmitProject() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
+  const [selectedZipFile, setSelectedZipFile] = useState<File | null>(null);
   const [selectedFocusAreas, setSelectedFocusAreas] = useState<Id<"focusAreas">[]>([]);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"in_progress" | "ready_to_use">("in_progress");
 
@@ -121,6 +124,30 @@ export default function SubmitProject() {
         );
       }
 
+      // Upload zip file if selected
+      if (selectedZipFile) {
+        const uploadUrl = await generateUploadUrl();
+        const uploadResult = await fetch(uploadUrl, {
+          method: "POST",
+          headers: { "Content-Type": selectedZipFile.type },
+          body: selectedZipFile,
+        });
+
+        if (!uploadResult.ok) {
+          throw new Error(`Failed to upload ${selectedZipFile.name}`);
+        }
+
+        const { storageId } = await uploadResult.json();
+
+        await addFileToProject({
+          projectId: result.projectId,
+          storageId,
+          filename: selectedZipFile.name,
+          contentType: selectedZipFile.type,
+          fileSize: selectedZipFile.size,
+        });
+      }
+
       // If no similar projects found, auto-confirm and go home
       if (result.similarProjects.length === 0) {
         await confirmProject({ projectId: result.projectId });
@@ -154,7 +181,7 @@ export default function SubmitProject() {
           <Accordion type="single" collapsible>
             <AccordionItem value="things" className="border-b-0">
               <AccordionTrigger className="py-1 text-sm font-medium text-zinc-700">
-                If you built something, it belongs here, even if it&apos;s rough, unfinished, or hacky.
+                If you built something, it belongs here, even if it&apos;s rough and unfinished.
               </AccordionTrigger>
               <AccordionContent className="pt-2">
                 <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600">
@@ -208,11 +235,19 @@ export default function SubmitProject() {
               />
             </div>
 
-            <MediaUploadField
-              newFiles={selectedFiles}
-              onNewFilesChange={setSelectedFiles}
-              disabled={isSubmitting}
-            />
+            <div className="grid gap-4 lg:grid-cols-2">
+              <MediaUploadField
+                newFiles={selectedFiles}
+                onNewFilesChange={setSelectedFiles}
+                disabled={isSubmitting}
+              />
+
+              <ZipUploadField
+                selectedFile={selectedZipFile}
+                onFileChange={setSelectedZipFile}
+                disabled={isSubmitting}
+              />
+            </div>
 
             <div className="flex items-center pt-4">
               <Button type="submit" className="whitespace-nowrap" disabled={isSubmitting}>
@@ -222,6 +257,19 @@ export default function SubmitProject() {
             </section>
 
             <section className="w-full lg:sticky lg:top-10 lg:self-start space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="link" className="text-sm font-medium text-zinc-900">
+                  Link <span className="text-xs text-zinc-500">(optional)</span>
+                </label>
+                <Input
+                  id="link"
+                  type="url"
+                  value={formData.link}
+                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                  placeholder="https://example.com"
+                />
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -276,19 +324,6 @@ export default function SubmitProject() {
                     onSelectionChange={setSelectedFocusAreas}
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="link" className="text-sm font-medium text-zinc-900">
-                  Link <span className="text-xs text-zinc-500">(optional)</span>
-                </label>
-                <Input
-                  id="link"
-                  type="url"
-                  value={formData.link}
-                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                  placeholder="https://example.com"
-                />
               </div>
 
               <div className="border-t border-zinc-200 pt-4">

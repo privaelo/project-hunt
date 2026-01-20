@@ -6,7 +6,12 @@
       "Bash(npx tsc:*)",
       "Bash(npx eslint:*)",
       "Bash(cat:*)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "mcp__convex__status",
+      "mcp__convex__tables",
+      "Bash(npx convex codegen:*)"
     ]
   }
 }

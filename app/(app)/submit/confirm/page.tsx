@@ -120,7 +120,7 @@ function ConfirmSubmissionContent() {
           <Accordion type="single" collapsible>
             <AccordionItem value="things" className="border-b-0">
               <AccordionTrigger className="py-1 text-sm font-medium text-zinc-700">
-                If you built something, it belongs here — rough, unfinished, or hacky.
+                If you built something, it belongs here — rough and unfinished.
               </AccordionTrigger>
               <AccordionContent className="pt-2">
                 <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600">

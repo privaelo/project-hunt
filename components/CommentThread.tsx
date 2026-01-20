@@ -116,18 +116,18 @@ export function CommentThread({
             </Avatar>
           </Link>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap text-sm text-zinc-500">
               <Link
                 href={`/profile/${comment.userId}`}
                 className="font-medium text-zinc-900 hover:underline"
               >
                 {comment.userName || "Unknown User"}
               </Link>
-              <span className="text-sm text-zinc-500">
+              <span>
                 {timeAgo(comment.createdAt)}
               </span>
             </div>
-            <p className="mt-1 text-zinc-600 whitespace-pre-wrap break-words">
+            <p className="mt-1 text-sm leading-5 text-zinc-600 whitespace-pre-wrap break-words">
               {comment.content}
             </p>
             <div className="mt-2 flex items-center gap-2">

@@ -164,6 +164,110 @@ export const getMediaUrl = query({
   },
 });
 
+// Project file (zip) functions
+export const addFileToProject = mutation({
+  args: {
+    projectId: v.id("projects"),
+    storageId: v.id("_storage"),
+    filename: v.string(),
+    contentType: v.string(),
+    fileSize: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    // Only allow the project creator to add files
+    if (project.userId !== user._id) {
+      throw new Error("You can only edit your own projects");
+    }
+
+    // Delete any existing file for this project (single file limit)
+    const existingFile = await ctx.db
+      .query("projectFiles")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .first();
+
+    if (existingFile) {
+      await ctx.storage.delete(existingFile.storageId);
+      await ctx.db.delete(existingFile._id);
+    }
+
+    // Add new file
+    return await ctx.db.insert("projectFiles", {
+      projectId: args.projectId,
+      storageId: args.storageId,
+      filename: args.filename,
+      contentType: args.contentType,
+      fileSize: args.fileSize,
+      uploadedAt: Date.now(),
+    });
+  },
+});
+
+export const deleteFileFromProject = mutation({
+  args: {
+    projectId: v.id("projects"),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    // Only allow the project creator to delete files
+    if (project.userId !== user._id) {
+      throw new Error("You can only edit your own projects");
+    }
+
+    const file = await ctx.db
+      .query("projectFiles")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .first();
+
+    if (!file) {
+      throw new Error("File not found");
+    }
+
+    // Delete from storage
+    await ctx.storage.delete(file.storageId);
+
+    // Delete file record
+    await ctx.db.delete(file._id);
+  },
+});
+
+export const getProjectFile = query({
+  args: {
+    projectId: v.id("projects"),
+  },
+  handler: async (ctx, args) => {
+    const file = await ctx.db
+      .query("projectFiles")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .first();
+
+    if (!file) {
+      return null;
+    }
+
+    const url = await ctx.storage.getUrl(file.storageId);
+
+    return {
+      _id: file._id,
+      filename: file.filename,
+      contentType: file.contentType,
+      fileSize: file.fileSize,
+      uploadedAt: file.uploadedAt,
+      url,
+    };
+  },
+});
+
 export const addMediaToProject = mutation({
   args: {
     projectId: v.id("projects"),

@@ -65,15 +65,15 @@ export function CommentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-lg border border-zinc-200 bg-white p-4">
+    <form onSubmit={handleSubmit} className="rounded-lg border border-zinc-200 bg-white p-3">
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder={placeholder}
-        className="min-h-12 border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
+        className="min-h-8 border-0 px-0 text-sm leading-5 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
         disabled={isSubmitting}
       />
-      <div className="mt-2 flex justify-end gap-2">
+      <div className="mt-1 flex justify-end gap-2">
         {onCancel && (
           <Button
             type="button"

@@ -36,6 +36,15 @@ export default defineSchema({
   })
     .index("by_project", ["projectId"])
     .index("by_project_ordered", ["projectId", "order"]),
+  projectFiles: defineTable({
+    projectId: v.id("projects"),
+    storageId: v.id("_storage"),
+    filename: v.string(),
+    contentType: v.string(),
+    fileSize: v.number(),
+    uploadedAt: v.number(),
+  })
+    .index("by_project", ["projectId"]),
   upvotes: defineTable({
     projectId: v.id("projects"),
     userId: v.id("users"),

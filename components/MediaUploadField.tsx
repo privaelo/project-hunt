@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useDropzone } from "react-dropzone";
-import { Upload, GripVertical } from "lucide-react";
+import { Image as ImageIcon, GripVertical } from "lucide-react";
 import {
   DndContext,
   PointerSensor,
@@ -130,8 +130,6 @@ function SortableNewFileThumbnail({
     id,
   });
   
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -141,21 +139,23 @@ function SortableNewFileThumbnail({
 
   const isImage = file.type.startsWith("image/");
 
-  // Create and cleanup object URL for image preview
-  useEffect(() => {
+  const previewUrl = useMemo(() => {
     if (!isImage) {
-      setPreviewUrl(null);
+      return null;
+    }
+
+    return URL.createObjectURL(file);
+  }, [file, isImage]);
+
+  useEffect(() => {
+    if (!previewUrl) {
       return;
     }
 
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
-
-    // Cleanup: revoke the object URL when component unmounts or file changes
     return () => {
-      URL.revokeObjectURL(objectUrl);
+      URL.revokeObjectURL(previewUrl);
     };
-  }, [file, isImage]);
+  }, [previewUrl]);
 
   return (
     <div className="relative group" ref={setNodeRef} style={style}>
@@ -265,16 +265,46 @@ export function MediaUploadField({
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-zinc-900">
-        Media <span className="text-xs text-zinc-500">(optional)</span>
+        Screenshots & clips{" "}
+        <span className="text-xs text-zinc-500">(optional)</span>
       </label>
+      
+
+      {/* Dropzone */}
+      <div
+        {...getRootProps()}
+        className={`rounded-lg border-2 border-dashed p-6 text-center transition-colors cursor-pointer ${
+          isDragActive
+            ? "border-zinc-900 bg-zinc-100"
+            : "border-zinc-300 bg-zinc-50 hover:border-zinc-400"
+        } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+      >
+        <input {...getInputProps()} />
+        <div className="space-y-2">
+          <ImageIcon className="mx-auto h-8 w-8 text-zinc-400" />
+          <div className="text-sm text-zinc-600">
+            {isDragActive ? (
+              <span className="font-medium text-zinc-900">Drop files here</span>
+            ) : (
+              <span className="text-zinc-500">
+                UI screenshots or demo
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* File rejection errors */}
+      {fileRejections.length > 0 && (
+        <div className="text-sm text-red-600 mt-2">
+          Invalid file type(s): {fileRejections.map(({ file }) => file.name).join(", ")}.
+          Please upload images or videos only.
+        </div>
+      )}
 
       {/* Existing media section (edit page only) */}
       {hasExistingMedia && (
-        <div className="mb-4 space-y-2">
-          <div className="flex items-center justify-between text-sm font-medium text-zinc-700">
-            <span>Current media ({existingMedia.length})</span>
-            <span className="text-xs font-normal text-zinc-500">Drag to reorder</span>
-          </div>
+        <div className="mt-4 space-y-2">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -295,38 +325,6 @@ export function MediaUploadField({
               </div>
             </SortableContext>
           </DndContext>
-        </div>
-      )}
-
-      {/* Dropzone */}
-      <div
-        {...getRootProps()}
-        className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors cursor-pointer ${
-          isDragActive
-            ? "border-zinc-900 bg-zinc-100"
-            : "border-zinc-300 bg-zinc-50 hover:border-zinc-400"
-        } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
-      >
-        <input {...getInputProps()} />
-        <div className="space-y-2">
-          <Upload className="mx-auto h-10 w-10 text-zinc-400" />
-          <div className="text-sm text-zinc-600">
-            {isDragActive ? (
-              <span className="font-medium text-zinc-900">Drop files here</span>
-            ) : (
-              <span className="text-zinc-500">
-                Add Screenshots or short clips that show the problem and your fix in action.
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* File rejection errors */}
-      {fileRejections.length > 0 && (
-        <div className="text-sm text-red-600 mt-2">
-          Invalid file type(s): {fileRejections.map(({ file }) => file.name).join(", ")}.
-          Please upload images or videos only.
         </div>
       )}
 

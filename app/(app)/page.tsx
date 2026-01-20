@@ -282,7 +282,7 @@ function ProjectRow({
       onClick={handleProjectClick}
     >
       {/* Header: Creator info, team, facepile */}
-      <div className="flex items-center justify-between gap-2 text-sm text-zinc-500">
+      <div className="flex items-center justify-between gap-2 text-[13px] text-zinc-500">
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/profile/${project.userId}`}
@@ -306,11 +306,6 @@ function ProjectRow({
           <span className="text-zinc-300">•</span>
           <span className="whitespace-nowrap text-zinc-500">
             {getRelativeTime(project._creationTime)}
-          </span>
-          <span className="text-zinc-300">•</span>
-          <span className="flex items-center gap-1 whitespace-nowrap text-xs text-zinc-400">
-            <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-            {project.viewCount}
           </span>
         </div>
         <Facepile
@@ -385,14 +380,6 @@ function ProjectRow({
             <span>{project.commentCount}</span>
           </Button>
         </motion.div>
-        {project.focusAreas.length > 0 && (
-          <div className="ml-auto">
-            <FocusAreaBadges
-              focusAreas={project.focusAreas}
-              className="text-xs"
-            />
-          </div>
-        )}
       </div>
     </div>
   );
