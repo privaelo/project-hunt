@@ -108,15 +108,15 @@ export function Header() {
                     <DialogTrigger asChild>
                       <button
                         className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-3.5 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-600 transition-all"
-                        aria-label="Explore"
+                        aria-label="Find Tools"
                       >
                         <Sparkles className="h-4 w-4" />
-                        <span>Explore</span>
+                        <span>Find Tools</span>
                       </button>
                     </DialogTrigger>
                     <DialogContent className="p-0 border-0 bg-transparent shadow-none sm:max-w-3xl w-[90vw]">
                       <VisuallyHidden>
-                        <DialogTitle>Explore</DialogTitle>
+                        <DialogTitle>Find Tools</DialogTitle>
                       </VisuallyHidden>
                       <ChatInterface />
                     </DialogContent>
