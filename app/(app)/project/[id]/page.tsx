@@ -227,17 +227,17 @@ export default function ProjectPage({
                   <ReadinessBadge status={project.readinessStatus} />
                 </div>
               </div>
+              {projectMedia && projectMedia.length > 0 && (
+                <div className="mt-2">
+                  <ProjectMediaCarousel media={projectMedia} />
+                </div>
+              )}
+
               {project.summary && (
                 <div className="space-y-2">
                   <p className="whitespace-pre-wrap text-sm leading-5 text-zinc-600">
                     {project.summary}
                   </p>
-                </div>
-              )}
-
-              {projectMedia && projectMedia.length > 0 && (
-                <div className="mt-2">
-                  <ProjectMediaCarousel media={projectMedia} />
                 </div>
               )}
             </div>
@@ -272,7 +272,7 @@ export default function ProjectPage({
           </section>
 
           <aside className="w-full lg:w-72 xl:w-80">
-            <div className="rounded-2xl border border-zinc-200 bg-white/70 p-4 shadow-sm">
+            <div className="rounded-lg bg-zinc-100 p-4">
               <div className="space-y-6">
                 <div className="space-y-3">
                   <div>
@@ -342,7 +342,7 @@ export default function ProjectPage({
                 </div>
 
                 {(projectLink || (projectFile && projectFile.url)) && (
-                  <div className="space-y-3 border-t border-dashed border-zinc-200 pt-5">
+                  <div className="space-y-3 border-t border-zinc-300 pt-5">
                     <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
                       Open &amp; download
                     </p>
