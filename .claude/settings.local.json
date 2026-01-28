@@ -16,7 +16,8 @@
       "mcp__shadcn-ui__get_component_details",
       "mcp__ide__getDiagnostics",
       "mcp__shadcn-ui__get_component_examples",
-      "Bash(npx next build)"
+      "Bash(npx next build)",
+      "WebFetch(domain:ui.shadcn.com)"
     ]
   }
 }

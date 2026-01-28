@@ -1,120 +1,119 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { useMemo } from "react";
 import { Id } from "@/convex/_generated/dataModel";
-import { Button } from "@/components/ui/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxLabel,
+  ComboboxList,
+  ComboboxSeparator,
+} from "@/components/ui/combobox";
 
 type FocusArea = {
   _id: Id<"focusAreas">;
   name: string;
   description?: string;
-  group: string;
+  group?: string;
 };
 
 type FocusAreasGrouped = Record<string, FocusArea[]>;
 
+type FocusAreaOption = {
+  id: Id<"focusAreas"> | "personal";
+  label: string;
+  description?: string;
+  group: string;
+};
+
 interface FocusAreaPickerProps {
   focusAreasGrouped: FocusAreasGrouped | undefined;
-  selectedFocusArea: Id<"focusAreas"> | null;
-  onSelectionChange: (selected: Id<"focusAreas"> | null) => void;
+  selectedFocusArea: Id<"focusAreas"> | "personal" | null;
+  onSelectionChange: (selected: Id<"focusAreas"> | "personal" | null) => void;
+  currentUserName?: string;
 }
 
 export function FocusAreaPicker({
   focusAreasGrouped,
   selectedFocusArea,
   onSelectionChange,
+  currentUserName,
 }: FocusAreaPickerProps) {
-  const selectFocusArea = (id: Id<"focusAreas">) => {
-    if (selectedFocusArea === id) {
-      onSelectionChange(null);
-    } else {
-      onSelectionChange(id);
+  const allOptions = useMemo(() => {
+    const options: FocusAreaOption[] = [];
+
+    if (currentUserName) {
+      options.push({
+        id: "personal",
+        label: `u/${currentUserName}`,
+        description: "Your personal space",
+        group: "Personal",
+      });
     }
-  };
 
-  // Get selected focus area name from the grouped data
-  const getSelectedName = (): string | null => {
-    if (!focusAreasGrouped || !selectedFocusArea) return null;
-    const allAreas = Object.values(focusAreasGrouped).flat();
-    return allAreas.find((area) => area._id === selectedFocusArea)?.name ?? null;
-  };
+    if (focusAreasGrouped) {
+      for (const [group, areas] of Object.entries(focusAreasGrouped)) {
+        for (const fa of areas) {
+          options.push({
+            id: fa._id,
+            label: `g/${fa.name}`,
+            description: fa.description,
+            group,
+          });
+        }
+      }
+    }
 
-  if (!focusAreasGrouped) {
-    return (
-      <Button variant="outline" disabled className="w-full justify-between">
-        <span className="text-zinc-500">Loading focus areas...</span>
-        <ChevronDown className="h-4 w-4 opacity-50" />
-      </Button>
-    );
-  }
+    return options;
+  }, [focusAreasGrouped, currentUserName]);
 
-  const selectedName = getSelectedName();
+  const selectedOption = useMemo(
+    () => allOptions.find((opt) => opt.id === selectedFocusArea) ?? null,
+    [allOptions, selectedFocusArea]
+  );
+
+  const groupedOptions = useMemo(() => {
+    const groups: Record<string, FocusAreaOption[]> = {};
+    for (const opt of allOptions) {
+      if (!groups[opt.group]) groups[opt.group] = [];
+      groups[opt.group].push(opt);
+    }
+    return Object.entries(groups);
+  }, [allOptions]);
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          aria-label="Select focus area"
-          className={cn(
-            "flex w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm text-zinc-900 shadow-xs transition-[color,box-shadow]",
-            "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-zinc-900/40 focus-visible:border-zinc-900",
-            "disabled:cursor-not-allowed disabled:opacity-50"
-          )}
-        >
-          {!selectedName ? (
-            <span className="text-muted-foreground">Select focus area...</span>
-          ) : (
-            <span className="inline-flex items-center rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-700">
-              {selectedName}
-            </span>
-          )}
-          <ChevronDown className="h-4 w-4 shrink-0 text-zinc-400" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-[800px] max-h-[480px] overflow-y-auto p-0 border border-zinc-200 shadow-lg"
-        align="start"
-      >
-        {/* Domains grid with problem spaces */}
-        <div className="p-5 grid grid-cols-2 gap-x-8 gap-y-5">
-          {Object.entries(focusAreasGrouped).map(([group, areas]) => (
-            <div key={group}>
-              <div className="text-sm font-semibold text-zinc-800 mb-2">
-                {group}
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {areas.map((fa) => {
-                  const isSelected = selectedFocusArea === fa._id;
-                  return (
-                    <button
-                      key={fa._id}
-                      type="button"
-                      onClick={() => selectFocusArea(fa._id)}
-                      title={fa.description}
-                      className={cn(
-                        "px-2.5 py-1.5 rounded-md text-xs transition-all",
-                        "border",
-                        isSelected
-                          ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
-                          : "bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-100 hover:border-zinc-300"
-                      )}
-                    >
-                      {fa.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+    <Combobox
+      items={allOptions}
+      itemToStringValue={(option) => option.label}
+      value={selectedOption}
+      onValueChange={(option) => {
+        onSelectionChange(option?.id ?? null);
+      }}
+    >
+      <ComboboxInput
+        placeholder="Select a space..."
+        className="rounded-full bg-background h-11 max-w-xs"
+      />
+      <ComboboxContent>
+        <ComboboxEmpty>No spaces found.</ComboboxEmpty>
+        <ComboboxList>
+          {groupedOptions.map(([group, options], i) => (
+            <ComboboxGroup key={group}>
+              {i > 0 && <ComboboxSeparator />}
+              <ComboboxLabel>{group}</ComboboxLabel>
+              {options.map((option) => (
+                <ComboboxItem key={option.id} value={option}>
+                  {option.label}
+                </ComboboxItem>
+              ))}
+            </ComboboxGroup>
           ))}
-        </div>
-      </PopoverContent>
-    </Popover>
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
   );
 }

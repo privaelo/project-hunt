@@ -50,6 +50,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       }
     });
   const focusAreasGrouped = useQuery(api.focusAreas.listActiveGrouped);
+  const currentUser = useQuery(api.users.current);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -61,7 +62,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
   const [selectedZipFile, setSelectedZipFile] = useState<File | null>(null);
   const [deleteExistingZipFile, setDeleteExistingZipFile] = useState(false);
-  const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | null>(null);
+  const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>(null);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"in_progress" | "ready_to_use">("in_progress");
 
   const handleExistingMediaReorder = async (reorderedMedia: ExistingMediaItem[]) => {
@@ -124,7 +125,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
         name: trimmedName,
         summary: trimmedDescription || undefined,
         link: formData.link.trim() || undefined,
-        focusAreaId: selectedFocusArea ?? undefined,
+        focusAreaId: selectedFocusArea === "personal" ? undefined : selectedFocusArea ?? undefined,
         readinessStatus: selectedReadinessStatus,
       });
 
@@ -367,6 +368,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
                     focusAreasGrouped={focusAreasGrouped}
                     selectedFocusArea={selectedFocusArea}
                     onSelectionChange={setSelectedFocusArea}
+                    currentUserName={currentUser?.name}
                   />
                 </div>
               </div>
