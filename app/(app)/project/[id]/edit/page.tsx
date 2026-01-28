@@ -225,6 +225,33 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Focus Area Selector - Required field at top */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <label className="text-base font-semibold text-zinc-900">
+                Choose a space
+              </label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-xs">
+                    Focus areas help categorize your project and make it easier for teammates to discover relevant work.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="max-w-2xl">
+              <FocusAreaPicker
+                focusAreasGrouped={focusAreasGrouped}
+                selectedFocusArea={selectedFocusArea}
+                onSelectionChange={setSelectedFocusArea}
+                currentUserName={currentUser?.name}
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
             <section className="w-full space-y-4">
               <div className="space-y-2">
@@ -316,61 +343,35 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
                 />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="readinessStatus" className="text-sm font-medium text-zinc-900">
-                      How rough is it?
-                    </label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        <div className="space-y-2 text-xs">
-                          <p><strong>In Progress:</strong> Early/rough, but useful. Sharing to get eyes and ideas.</p>
-                          <p><strong>Ready to Use:</strong> Works reliably. Someone else could pick it up and use it now.</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <Select
-                    value={selectedReadinessStatus}
-                    onValueChange={(value: "in_progress" | "ready_to_use") => setSelectedReadinessStatus(value)}
-                  >
-                    <SelectTrigger id="readinessStatus" className="w-full">
-                      <SelectValue placeholder="Select readiness status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="in_progress">In progress</SelectItem>
-                      <SelectItem value="ready_to_use">Ready to use</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <label htmlFor="readinessStatus" className="text-sm font-medium text-zinc-900">
+                    How rough is it?
+                  </label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <div className="space-y-2 text-xs">
+                        <p><strong>In Progress:</strong> Early/rough, but useful. Sharing to get eyes and ideas.</p>
+                        <p><strong>Ready to Use:</strong> Works reliably. Someone else could pick it up and use it now.</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium text-zinc-900">
-                      Focus Areas <span className="text-xs text-zinc-500">(optional)</span>
-                    </label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        <p className="text-xs">
-                          Tags make it easier for the right people to discover this later.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <FocusAreaPicker
-                    focusAreasGrouped={focusAreasGrouped}
-                    selectedFocusArea={selectedFocusArea}
-                    onSelectionChange={setSelectedFocusArea}
-                    currentUserName={currentUser?.name}
-                  />
-                </div>
+                <Select
+                  value={selectedReadinessStatus}
+                  onValueChange={(value: "in_progress" | "ready_to_use") => setSelectedReadinessStatus(value)}
+                >
+                  <SelectTrigger id="readinessStatus" className="w-full">
+                    <SelectValue placeholder="Select readiness status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="in_progress">In progress</SelectItem>
+                    <SelectItem value="ready_to_use">Ready to use</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
             </section>
