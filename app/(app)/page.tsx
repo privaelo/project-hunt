@@ -2,7 +2,6 @@
 
 import { useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -11,17 +10,11 @@ import { motion, LayoutGroup } from "motion/react";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
-import { Info, MessageCircle, Play } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { ProjectMediaCarousel } from "@/components/ProjectMediaCarousel";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Facepile } from "@/components/Facepile";
 import { useCurrentUser } from "@/app/useCurrentUser";
 
@@ -196,7 +189,6 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col gap-8">
-            <FocusAreaSpotlight projects={results} userId={user?._id ?? null} />
             <NewestProjects />
           </div>
         </section>
@@ -421,152 +413,6 @@ function NewestProjectCard({ project }: { project: NewestProject }) {
           <span>{project.upvotes}</span>
         </span>
       </div>
-    </div>
-  );
-}
-
-function FocusAreaSpotlight({
-  projects,
-  userId,
-}: {
-  projects: Project[];
-  userId: Id<"users"> | null;
-}) {
-  const focusAreas = useQuery(
-    api.users.getUserFocusAreas,
-    userId ? { userId } : "skip"
-  ) as FocusArea[] | undefined;
-
-  if (!userId) {
-    return null;
-  }
-
-  if (!focusAreas || focusAreas.length === 0) {
-    return null;
-  }
-
-  const focusAreaIds = new Set(focusAreas.map((area) => area._id));
-  const spotlightProjects = projects
-    .filter((project) =>
-      project.focusArea && focusAreaIds.has(project.focusArea._id)
-    )
-    .slice(0, 4);
-
-  if (spotlightProjects.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="flex flex-col gap-4 bg-zinc-100 p-3 rounded-xl max-w-[320px]">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <h3 className="text-2xl font-semibold text-zinc-900">
-            For you
-          </h3>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                className="inline-flex h-6 w-6 items-center justify-center rounded-full text-zinc-500 transition hover:text-zinc-700"
-                aria-label="About space spotlight"
-              >
-                <Info className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
-              <p className="text-xs">
-                Projects matched to your selected spaces.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
-      <div className="flex flex-col gap-0">
-        {spotlightProjects.map((project, index) => {
-          return (
-            <React.Fragment key={project._id}>
-              {index > 0 && <Separator className="bg-zinc-200" />}
-              <SpotlightProjectCard
-                project={project}
-                focusArea={project.focusArea}
-              />
-            </React.Fragment>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function SpotlightProjectCard({
-  project,
-  focusArea,
-}: {
-  project: Project;
-  focusArea: FocusArea | null;
-}) {
-  const router = useRouter();
-  const hasMedia = project.previewMedia && project.previewMedia.length > 0;
-  const firstMedia = hasMedia ? project.previewMedia[0] : null;
-  const thumbnailUrl = firstMedia ? firstMedia.url : null;
-  const isVideo = firstMedia?.type === "video";
-
-  return (
-    <div
-      className="cursor-pointer flex gap-5 rounded-xl p-3 transition-colors hover:bg-zinc-100"
-      onClick={() => router.push(`/project/${project._id}`)}
-    >
-      <div className="flex flex-col flex-1 min-w-0">
-        {/* Title + Time */}
-        <div className="flex flex-col gap-1">
-          <div className="flex items-start gap-2">
-            <h4 className="text-base font-semibold text-zinc-900 line-clamp-2 leading-snug">
-              {project.name}
-            </h4>
-            <span className="text-zinc-300 mt-[3px] shrink-0 text-xs">•</span>
-            <span className="text-xs text-zinc-500 whitespace-nowrap mt-[3px] shrink-0">
-              {getRelativeTime(project._creationTime)}
-            </span>
-          </div>
-        </div>
-
-        {/* Footer: Space - aligned to bottom */}
-        {focusArea && (
-          <div className="mt-auto pt-3">
-            <Badge variant="secondary" className="text-[11px]">
-              {focusArea.name}
-            </Badge>
-          </div>
-        )}
-      </div>
-
-      {/* Thumbnail Column */}
-      {thumbnailUrl && (
-        <div className="flex-shrink-0 relative w-28 h-20 self-start mt-1 group overflow-hidden rounded-lg bg-zinc-100 border border-zinc-200/50">
-          {isVideo ? (
-            <video
-              src={thumbnailUrl}
-              className="h-full w-full object-cover"
-              muted
-              playsInline
-            />
-          ) : (
-            <Image
-              src={thumbnailUrl}
-              alt={project.name}
-              fill
-              className="object-cover"
-            />
-          )}
-          {isVideo && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
-              <div className="rounded-full bg-black/50 p-1.5 backdrop-blur-sm">
-                <Play className="h-3 w-3 fill-white text-white" />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
