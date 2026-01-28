@@ -9,6 +9,7 @@ import { CommentForm } from "./CommentForm";
 import { Id } from "@/convex/_generated/dataModel";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import Link from "next/link";
+import { Reply, Trash2 } from "lucide-react";
 
 interface Comment {
   _id: Id<"comments">;
@@ -64,7 +65,6 @@ export function CommentThread({
     return new Date(timestamp).toLocaleDateString();
   };
 
-
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this comment?")) return;
 
@@ -109,7 +109,10 @@ export function CommentThread({
             className="flex items-center gap-3"
           >
             <Avatar className="h-8 w-8 bg-zinc-100">
-              <AvatarImage src={comment.userAvatar} alt={comment.userName || "User"} />
+              <AvatarImage
+                src={comment.userAvatar}
+                alt={comment.userName || "User"}
+              />
               <AvatarFallback className="text-xs font-semibold text-zinc-600">
                 {(comment.userName || "U").slice(0, 2).toUpperCase()}
               </AvatarFallback>
@@ -123,9 +126,7 @@ export function CommentThread({
               >
                 {comment.userName || "Unknown User"}
               </Link>
-              <span>
-                {timeAgo(comment.createdAt)}
-              </span>
+              <span>{timeAgo(comment.createdAt)}</span>
             </div>
             <p className="mt-1 text-sm leading-5 text-zinc-600 whitespace-pre-wrap break-words">
               {comment.content}
@@ -145,9 +146,10 @@ export function CommentThread({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowReplyForm(!showReplyForm)}
-                  className="h-7 px-2 text-xs"
+                  className="h-7 px-2"
+                  title="Reply"
                 >
-                  Reply
+                  <Reply className="h-4 w-4" />
                 </Button>
               )}
               {isOwner && (
@@ -156,9 +158,10 @@ export function CommentThread({
                   size="sm"
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  title="Delete"
                 >
-                  {isDeleting ? "Deleting..." : "Delete"}
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               )}
             </div>

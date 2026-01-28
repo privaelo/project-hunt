@@ -20,8 +20,9 @@ export const listActiveGrouped = query({
 
     const grouped: Record<string, typeof focusAreas> = {};
     for (const fa of focusAreas) {
-      if (!grouped[fa.group]) grouped[fa.group] = [];
-      grouped[fa.group].push(fa);
+      const groupKey = fa.group ?? "Other";
+      if (!grouped[groupKey]) grouped[groupKey] = [];
+      grouped[groupKey].push(fa);
     }
     return grouped;
   },
@@ -30,7 +31,7 @@ export const listActiveGrouped = query({
 export const create = mutation({
   args: {
     name: v.string(),
-    group: v.string(),
+    group: v.optional(v.string()),
     description: v.optional(v.string()),
   },
   handler: async (ctx, args) => {

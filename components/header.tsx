@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@workos-inc/authkit-nextjs/components';
 import { signOut } from "@workos-inc/authkit-nextjs";
-import { Bell, LogOut, User, Sparkles } from "lucide-react";
+import { Bell, LogOut, User, Search } from "lucide-react";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { api } from "@/convex/_generated/api";
 import { ChatInterface } from "./ChatInterface";
@@ -86,52 +86,43 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
+    <header className="fixed inset-x-0 top-0 z-50 w-full border-b border-zinc-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <div className="flex h-16 items-center justify-between px-4 md:px-6">
         {/* Left: Garden Logo/Name */}
         <div className="flex items-center gap-4">
           <Link
             href="/"
-            className="text-xl font-semibold text-zinc-900 hover:text-zinc-700 transition-colors"
+            className="text-xl font-semibold text-emerald-700 hover:text-emerald-800 transition-colors"
+            style={{ fontFamily: 'var(--font-chonburi)' }}
           >
             Garden
           </Link>
         </div>
 
+        <Authenticated>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button
+                  className="inline-flex h-9 w-96 items-center justify-center gap-2 rounded-full border border-emerald-200 bg-zinc-50 px-3 text-sm font-normal text-zinc-500 shadow-sm hover:bg-zinc-100 hover:text-zinc-900 transition-all ring-2 ring-emerald-500/20"
+                  aria-label="Search tools"
+                >
+                  <Search className="h-4 w-4 text-emerald-600" />
+                  <span>Search for tools</span>
+                </button>
+              </DialogTrigger>
+              <DialogContent className="p-0 border-0 bg-transparent shadow-none sm:max-w-3xl w-[90vw]">
+                <VisuallyHidden>
+                  <DialogTitle>Find Tools</DialogTitle>
+                </VisuallyHidden>
+                <ChatInterface />
+              </DialogContent>
+            </Dialog>
+        </Authenticated>
+
         {/* Right: Navigation Menu & Auth Buttons */}
         <div className="flex items-center gap-3">
           <NavigationMenu className="hidden md:block">
             <NavigationMenuList>
-              <Authenticated>
-                <NavigationMenuItem>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <button
-                        className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-3.5 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-600 transition-all"
-                        aria-label="Find Tools"
-                      >
-                        <Sparkles className="h-4 w-4" />
-                        <span>Find Tools</span>
-                      </button>
-                    </DialogTrigger>
-                    <DialogContent className="p-0 border-0 bg-transparent shadow-none sm:max-w-3xl w-[90vw]">
-                      <VisuallyHidden>
-                        <DialogTitle>Find Tools</DialogTitle>
-                      </VisuallyHidden>
-                      <ChatInterface />
-                    </DialogContent>
-                  </Dialog>
-                </NavigationMenuItem>
-              </Authenticated>
-
-              <NavigationMenuItem>
-                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                  <Link href="/about" prefetch={false}>
-                    About
-                  </Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-
               <Authenticated>
                 <NavigationMenuItem>
                   <Popover onOpenChange={handleNotificationsOpen}>
@@ -196,16 +187,6 @@ export function Header() {
                       )}
                     </PopoverContent>
                   </Popover>
-                </NavigationMenuItem>
-              </Authenticated>
-
-              <Authenticated>
-                <NavigationMenuItem>
-                  <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                    <Link href="/submit" prefetch={false}>
-                      Share
-                    </Link>
-                  </NavigationMenuLink>
                 </NavigationMenuItem>
               </Authenticated>
 

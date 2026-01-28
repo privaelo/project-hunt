@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FocusAreaBadges } from "@/components/FocusAreaBadges";
+import { SpaceBadges } from "@/components/SpaceBadges";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
@@ -200,8 +200,8 @@ export default function ProfilePage({
                   {profile.name}
                 </h1>
                 {profile.focusAreas.length > 0 && (
-                  <FocusAreaBadges
-                    focusAreas={profile.focusAreas}
+                  <SpaceBadges
+                    spaces={profile.focusAreas}
                   />
                 )}
               </div>

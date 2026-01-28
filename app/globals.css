@@ -7,7 +7,6 @@
 /* Provides additional styles specific to WorkOS Widgets */
 @import '@workos-inc/widgets/styles.css';
 
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

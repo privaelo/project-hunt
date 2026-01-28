@@ -126,37 +126,16 @@ export const getProfile = query({
 export const completeOnboarding = mutation({
   args: {
     teamId: v.optional(v.id("teams")),
-    focusAreaIds: v.array(v.id("focusAreas")),
     userIntent: v.optional(v.union(v.literal("looking"), v.literal("sharing"), v.literal("both"))),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    // Update user with team and mark onboarding as completed
     await ctx.db.patch(user._id, {
       onboardingCompleted: true,
       teamId: args.teamId,
       userIntent: args.userIntent,
     });
-
-    // Clear existing focus area relationships before adding new ones
-    const existingFocusAreas = await ctx.db
-      .query("userFocusAreas")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    await Promise.all(existingFocusAreas.map((ufa) => ctx.db.delete(ufa._id)));
-
-    // Create userFocusArea relationships in junction table
-    const createdAt = Date.now();
-    await Promise.all(
-      args.focusAreaIds.map((focusAreaId) =>
-        ctx.db.insert("userFocusAreas", {
-          userId: user._id,
-          focusAreaId,
-          createdAt,
-        })
-      )
-    );
 
     return { success: true };
   },

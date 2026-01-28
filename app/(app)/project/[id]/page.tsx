@@ -168,38 +168,37 @@ export default function ProjectPage({
           <section className="flex-1 space-y-4">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-zinc-500 sm:flex-nowrap">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Link
-                    href={`/profile/${project.userId}`}
-                    className="flex items-center gap-2 whitespace-nowrap"
-                  >
-                    <Avatar className="h-8 w-8 bg-zinc-100 text-xs font-semibold text-zinc-600">
-                      <AvatarImage
-                        src={project.creatorAvatar}
-                        alt={project.creatorName || "User"}
-                      />
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8 bg-zinc-100 text-xs font-semibold text-zinc-600">
+                    {project.focusArea ? (
                       <AvatarFallback>
-                        {(project.creatorName || "U").slice(0, 2).toUpperCase()}
+                        {project.focusArea.name.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
-                    </Avatar>
-                    <span>
-                      By{" "}
-                      <span className="font-medium text-zinc-900 hover:underline">
-                        {project.creatorName || "Unknown User"}
+                    ) : (
+                      <>
+                        <AvatarImage
+                          src={project.creatorAvatar}
+                          alt={project.creatorName || "User"}
+                        />
+                        <AvatarFallback>
+                          {(project.creatorName || "U").slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </>
+                    )}
+                  </Avatar>
+                  <div className="flex flex-col">
+                    {project.focusArea && (
+                      <span className="whitespace-nowrap text-xs font-semibold text-zinc-900">
+                        g/{project.focusArea.name}
                       </span>
-                    </span>
-                  </Link>
-                  {project.team && (
-                    <>
-                      <span className="text-zinc-300">•</span>
-                      <span className="whitespace-nowrap">
-                        Team{" "}
-                        <span className="font-medium text-zinc-900">
-                          {project.team}
-                        </span>
-                      </span>
-                    </>
-                  )}
+                    )}
+                    <Link
+                      href={`/profile/${project.userId}`}
+                      className="whitespace-nowrap text-xs text-zinc-500 hover:underline"
+                    >
+                      u/{project.creatorName || "Unknown User"}
+                    </Link>
+                  </div>
                 </div>
                 {isOwner && (
                   <div className="flex items-center gap-1 text-xs text-zinc-400">

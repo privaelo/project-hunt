@@ -13,7 +13,9 @@ export default defineSchema({
     userId: v.id("users"),
     allFields: v.optional(v.string()),
     link: v.optional(v.string()),
-    focusAreaIds: v.array(v.id("focusAreas")),
+    focusAreaId: v.optional(v.id("focusAreas")),
+    // TODO: Remove after running migrateClearFocusAreasAction
+    focusAreaIds: v.optional(v.array(v.id("focusAreas"))),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
     pinned: v.optional(v.boolean()),
     engagementScore: v.optional(v.number()),
@@ -136,7 +138,7 @@ export default defineSchema({
   }),
   focusAreas: defineTable({
     name: v.string(),
-    group: v.string(),
+    group: v.optional(v.string()),
     description: v.optional(v.string()),
     isActive: v.boolean(),
     createdAt: v.number(),

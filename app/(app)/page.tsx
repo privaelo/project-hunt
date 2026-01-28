@@ -2,7 +2,6 @@
 
 import { useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -11,25 +10,18 @@ import { motion, LayoutGroup } from "motion/react";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
-import { Eye, Info, MessageCircle, Play } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { ProjectMediaCarousel } from "@/components/ProjectMediaCarousel";
-import { FocusAreaBadges } from "@/components/FocusAreaBadges";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Facepile } from "@/components/Facepile";
 import { useCurrentUser } from "@/app/useCurrentUser";
 
 type FocusArea = {
   _id: Id<"focusAreas">;
   name: string;
-  group: string;
+  group: string | undefined;
 };
 
 type Project = {
@@ -45,7 +37,7 @@ type Project = {
   userId: Id<"users">;
   creatorName: string;
   creatorAvatar: string;
-  focusAreas: FocusArea[];
+  focusArea: FocusArea | null;
   readinessStatus?: "in_progress" | "ready_to_use";
   previewMedia: Array<{
     _id: string;
@@ -150,11 +142,9 @@ export default function Home() {
           <div className="space-y-2">
             <div>
               <h2 className="text-3xl font-semibold tracking-tight flex items-center gap-3">
-                What builders are making
+                What people are making
               </h2>
-              <p className="mt-2 text-lg text-zinc-600">
-                See what&apos;s growing, or share your own.
-              </p>
+
             </div>
             <ShareProjectCallout />
             <LayoutGroup>
@@ -199,7 +189,6 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col gap-8">
-            <FocusAreaSpotlight projects={results} userId={user?._id ?? null} />
             <NewestProjects />
           </div>
         </section>
@@ -278,35 +267,23 @@ function ProjectRow({
 
   return (
     <div
-      className="flex flex-col gap-3 pb-4 pt-4 cursor-pointer hover:bg-zinc-100 rounded-lg transition-colors px-4 -mx-4"
+      className="flex flex-col gap-2 pb-3 pt-3 cursor-pointer hover:bg-zinc-100 rounded-lg transition-colors px-4 -mx-4"
       onClick={handleProjectClick}
     >
-      {/* Header: Creator info, team, facepile */}
-      <div className="flex items-center justify-between gap-2 text-[13px] text-zinc-500">
+      {/* Header: Focus area, time, views, facepile */}
+      <div className="flex items-center justify-between gap-2 text-xs text-zinc-500">
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/profile/${project.userId}`}
-            onClick={(event) => event.stopPropagation()}
-            className="flex items-center gap-2 whitespace-nowrap"
+            className="font-medium text-zinc-600 transition-colors hover:text-green-600"
+            onClick={(e) => e.stopPropagation()}
           >
-            <Avatar className="h-6 w-6 bg-zinc-100 text-xs font-semibold text-zinc-600">
-              <AvatarImage src={project.creatorAvatar} alt={project.creatorName || "User"} />
-              <AvatarFallback>{(project.creatorName || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <span className="font-medium text-zinc-700 hover:underline">
-              {project.creatorName || "Unknown User"}
-            </span>
+            {project.focusArea
+              ? `g/${project.focusArea.name}`
+              : `u/${project.creatorName}`}
           </Link>
-          {project.team && (
-            <>
-              <span className="text-zinc-300">•</span>
-              <span className="whitespace-nowrap text-zinc-500">{project.team}</span>
-            </>
-          )}
           <span className="text-zinc-300">•</span>
-          <span className="whitespace-nowrap text-zinc-500">
-            {getRelativeTime(project._creationTime)}
-          </span>
+          <span>{getRelativeTime(project._creationTime)}</span>
         </div>
         <Facepile
           adopters={project.adopters}
@@ -333,7 +310,7 @@ function ProjectRow({
           <ProjectMediaCarousel media={project.previewMedia} />
         </div>
       ) : project.summary ? (
-        <p className="text-sm text-zinc-600 line-clamp-2 break-words">
+        <p className="text-sm leading-5 text-zinc-600 line-clamp-2 break-words">
           {project.summary}
         </p>
       ) : null}
@@ -440,160 +417,13 @@ function NewestProjectCard({ project }: { project: NewestProject }) {
   );
 }
 
-function FocusAreaSpotlight({
-  projects,
-  userId,
-}: {
-  projects: Project[];
-  userId: Id<"users"> | null;
-}) {
-  const focusAreas = useQuery(
-    api.users.getUserFocusAreas,
-    userId ? { userId } : "skip"
-  ) as FocusArea[] | undefined;
-
-  if (!userId) {
-    return null;
-  }
-
-  if (!focusAreas || focusAreas.length === 0) {
-    return null;
-  }
-
-  const focusAreaIds = new Set(focusAreas.map((area) => area._id));
-  const spotlightProjects = projects
-    .filter((project) =>
-      project.focusAreas.some((area) => focusAreaIds.has(area._id))
-    )
-    .slice(0, 4);
-
-  if (spotlightProjects.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="flex flex-col gap-4 bg-zinc-100 p-4 rounded-xl">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <h3 className="text-2xl font-semibold text-zinc-900">
-            For you
-          </h3>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                className="inline-flex h-6 w-6 items-center justify-center rounded-full text-zinc-500 transition hover:text-zinc-700"
-                aria-label="About focus area spotlight"
-              >
-                <Info className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
-              <p className="text-xs">
-                Projects matched to your selected focus areas.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
-      <div className="flex flex-col gap-0">
-        {spotlightProjects.map((project, index) => {
-          const matchingFocusAreas = project.focusAreas.filter((area) =>
-            focusAreaIds.has(area._id)
-          );
-          return (
-            <React.Fragment key={project._id}>
-              {index > 0 && <Separator className="bg-zinc-200" />}
-              <SpotlightProjectCard
-                project={project}
-                focusAreas={matchingFocusAreas}
-              />
-            </React.Fragment>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function SpotlightProjectCard({
-  project,
-  focusAreas,
-}: {
-  project: Project;
-  focusAreas: FocusArea[];
-}) {
-  const router = useRouter();
-  const hasMedia = project.previewMedia && project.previewMedia.length > 0;
-  const firstMedia = hasMedia ? project.previewMedia[0] : null;
-  const thumbnailUrl = firstMedia ? firstMedia.url : null;
-  const isVideo = firstMedia?.type === "video";
-
-  return (
-    <div
-      className="cursor-pointer flex gap-5 rounded-xl p-4 transition-colors hover:bg-zinc-100"
-      onClick={() => router.push(`/project/${project._id}`)}
-    >
-      <div className="flex flex-col flex-1 min-w-0">
-        {/* Title + Time */}
-        <div className="flex flex-col gap-1">
-          <div className="flex items-start gap-2">
-            <h4 className="text-base font-semibold text-zinc-900 line-clamp-2 leading-snug">
-              {project.name}
-            </h4>
-            <span className="text-zinc-300 mt-[3px] shrink-0 text-xs">•</span>
-            <span className="text-xs text-zinc-500 whitespace-nowrap mt-[3px] shrink-0">
-              {getRelativeTime(project._creationTime)}
-            </span>
-          </div>
-        </div>
-
-        {/* Footer: Focus Areas - aligned to bottom */}
-        {focusAreas.length > 0 && (
-          <div className="overflow-x-auto overflow-y-hidden scrollbar-hide -mx-1 px-1 mt-auto pt-3">
-            <FocusAreaBadges focusAreas={focusAreas} className="text-[11px]" />
-          </div>
-        )}
-      </div>
-
-      {/* Thumbnail Column */}
-      {thumbnailUrl && (
-        <div className="flex-shrink-0 relative w-28 h-20 self-start mt-1 group overflow-hidden rounded-lg bg-zinc-100 border border-zinc-200/50">
-          {isVideo ? (
-            <video
-              src={thumbnailUrl}
-              className="h-full w-full object-cover"
-              muted
-              playsInline
-            />
-          ) : (
-            <Image
-              src={thumbnailUrl}
-              alt={project.name}
-              fill
-              className="object-cover"
-            />
-          )}
-          {isVideo && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
-              <div className="rounded-full bg-black/50 p-1.5 backdrop-blur-sm">
-                <Play className="h-3 w-3 fill-white text-white" />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function NewestProjects() {
   const newestProjects = useQuery(api.projects.getNewestProjects, { limit: 3 });
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 max-w-[320px]">
       <div className="flex items-center gap-2 px-3">
-        <h3 className="text-2xl font-semibold text-zinc-900">Recently shared</h3>
+        <h3 className="text-2xl font-semibold text-zinc-900">Newest Tools</h3>
       </div>
 
       {!newestProjects ? (

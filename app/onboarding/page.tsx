@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useConvexAuth } from 'convex/react';
-import { Id } from '@/convex/_generated/dataModel';
-import { FocusAreaPicker } from '@/components/FocusAreaPicker';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -14,11 +12,9 @@ export default function OnboardingPage() {
   const router = useRouter();
   const { isLoading: authLoading } = useConvexAuth();
   const user = useQuery(api.users.currentWithFocusAreas);
-  const focusAreasGrouped = useQuery(api.focusAreas.listActiveGrouped);
   const completeOnboarding = useMutation(api.users.completeOnboarding);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const initializedRef = useRef(false);
-  const [focusAreaIds, setFocusAreaIds] = useState<Id<'focusAreas'>[]>([]);
   const [userIntent, setUserIntent] = useState<'looking' | 'sharing' | 'both' | null>(null);
 
   // Update state when user data loads (only once)
@@ -26,9 +22,6 @@ export default function OnboardingPage() {
     if (user && !initializedRef.current) {
       initializedRef.current = true;
       startTransition(() => {
-        if (user.focusAreaIds) {
-          setFocusAreaIds(user.focusAreaIds);
-        }
         if (user.userIntent) {
           setUserIntent(user.userIntent);
         }
@@ -42,7 +35,7 @@ export default function OnboardingPage() {
     }
   }, [user, router]);
 
-  const canProceed = focusAreaIds.length > 0 && userIntent !== null;
+  const canProceed = userIntent !== null;
 
   const handleComplete = async () => {
     if (!canProceed) return;
@@ -50,7 +43,6 @@ export default function OnboardingPage() {
     setIsSubmitting(true);
     try {
       await completeOnboarding({
-        focusAreaIds,
         userIntent: userIntent || undefined,
       });
       router.push('/');
@@ -107,20 +99,9 @@ export default function OnboardingPage() {
             </div>
           </div>
 
-          {/* Focus Areas Section */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium text-zinc-900">Select your focus areas</h3>
-            <FocusAreaPicker
-              focusAreasGrouped={focusAreasGrouped}
-              selectedFocusAreas={focusAreaIds}
-              onSelectionChange={setFocusAreaIds}
-            />
-          </div>
-
           {!canProceed && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              {!userIntent && 'Please select what brings you to Garden. '}
-              {userIntent && focusAreaIds.length === 0 && 'Select at least one focus area to continue.'}
+              Please select what brings you to Garden.
             </div>
           )}
         </CardContent>

@@ -42,7 +42,7 @@ async function enrichProjects(
 ) {
   // Preload all focus areas referenced by these projects for quick lookup
   const focusAreaIds = Array.from(
-    new Set(projects.flatMap((project) => project.focusAreaIds))
+    new Set(projects.map((project) => project.focusAreaId).filter((id): id is Id<"focusAreas"> => id !== undefined))
   );
   const focusAreaDocs = await Promise.all(
     focusAreaIds.map((id) => ctx.db.get(id))
@@ -89,14 +89,12 @@ async function enrichProjects(
         }))
       );
 
-      const focusAreas = project.focusAreaIds
-        .map((id) => focusAreaMap.get(id))
-        .filter((fa): fa is NonNullable<typeof fa> => fa !== undefined)
-        .map((fa) => ({
-          _id: fa._id,
-          name: fa.name,
-          group: fa.group,
-        }));
+      const focusAreaDoc = project.focusAreaId ? focusAreaMap.get(project.focusAreaId) : null;
+      const focusArea = focusAreaDoc ? {
+        _id: focusAreaDoc._id,
+        name: focusAreaDoc.name,
+        group: focusAreaDoc.group,
+      } : null;
 
       // Get top 4 adopters with user info for facepile
       const adoptersWithInfo = await Promise.all(
@@ -119,7 +117,7 @@ async function enrichProjects(
         hasUpvoted: userId ? upvotes.some((u) => u.userId === userId) : false,
         creatorName: creator?.name ?? "Unknown User",
         creatorAvatar: creator?.avatarUrlId ?? "",
-        focusAreas,
+        focusArea,
         previewMedia,
         adoptionCount: adoptions.length,
         adopters: adoptersWithInfo,
@@ -408,7 +406,7 @@ export const create = action({
     name: v.string(),
     summary: v.optional(v.string()),
     link: v.optional(v.string()),
-    focusAreaIds: v.array(v.id("focusAreas")),
+    focusAreaId: v.optional(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
   },
   handler: async (ctx, args): Promise<{
@@ -434,7 +432,7 @@ export const create = action({
         name: args.name,
         summary: args.summary,
         link: args.link,
-        focusAreaIds: args.focusAreaIds,
+        focusAreaId: args.focusAreaId,
         readinessStatus: args.readinessStatus,
         status: "pending" as const,
         userId: user._id,
@@ -489,7 +487,7 @@ export const createProject = internalMutation({
     status: v.union(v.literal("pending"), v.literal("active")),
     userId: v.id("users"),
     link: v.optional(v.string()),
-    focusAreaIds: v.array(v.id("focusAreas")),
+    focusAreaId: v.optional(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
     pinned: v.optional(v.boolean()),
   },
@@ -510,7 +508,7 @@ export const createProject = internalMutation({
       status: args.status,
       userId: args.userId,
       link: args.link,
-      focusAreaIds: args.focusAreaIds,
+      focusAreaId: args.focusAreaId,
       readinessStatus: args.readinessStatus,
       pinned: args.pinned ?? false,
     });
@@ -579,7 +577,7 @@ export const populateProjectDetails = internalQuery({
         _creationTime: v.number(),
         allFields: v.optional(v.string()),
         link: v.optional(v.string()),
-        focusAreaIds: v.array(v.id("focusAreas")),
+        focusAreaId: v.optional(v.id("focusAreas")),
         readinessStatus: v.optional(v.union(v.literal("in_progress"), v.literal("ready_to_use"))),
         pinned: v.optional(v.boolean()),
         engagementScore: v.optional(v.number()),
@@ -661,7 +659,7 @@ export const updateProjectFields = internalMutation({
     name: v.string(),
     summary: v.optional(v.string()),
     link: v.optional(v.string()),
-    focusAreaIds: v.array(v.id("focusAreas")),
+    focusAreaId: v.optional(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
   },
   handler: async (ctx, args) => {
@@ -669,7 +667,7 @@ export const updateProjectFields = internalMutation({
       name: args.name,
       summary: args.summary,
       link: args.link,
-      focusAreaIds: args.focusAreaIds,
+      focusAreaId: args.focusAreaId,
       readinessStatus: args.readinessStatus,
     });
   },
@@ -681,7 +679,7 @@ export const updateProject = action({
     name: v.string(),
     summary: v.optional(v.string()),
     link: v.optional(v.string()),
-    focusAreaIds: v.array(v.id("focusAreas")),
+    focusAreaId: v.optional(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
   },
   handler: async (ctx, args) => {
@@ -707,7 +705,7 @@ export const updateProject = action({
       name: args.name,
       summary: args.summary,
       link: args.link,
-      focusAreaIds: args.focusAreaIds,
+      focusAreaId: args.focusAreaId,
       readinessStatus: args.readinessStatus,
     });
 
@@ -838,7 +836,7 @@ export const list = query({
 
     // Preload all focus areas referenced by these projects for quick lookup
     const focusAreaIds = Array.from(
-      new Set(projects.flatMap((project) => project.focusAreaIds))
+      new Set(projects.map((project) => project.focusAreaId).filter((id): id is Id<"focusAreas"> => id !== undefined))
     );
     const focusAreaDocs = await Promise.all(
       focusAreaIds.map((id) => ctx.db.get(id))
@@ -901,15 +899,13 @@ export const list = query({
           }))
         );
 
-        const focusAreas = project.focusAreaIds
-          .map((id) => focusAreaMap.get(id))
-          .filter((fa): fa is NonNullable<typeof fa> => fa !== undefined)
-          .map((fa) => ({
-            _id: fa._id,
-            name: fa.name,
-            group: fa.group,
-          }));
-        
+        const focusAreaDoc = project.focusAreaId ? focusAreaMap.get(project.focusAreaId) : null;
+        const focusArea = focusAreaDoc ? {
+          _id: focusAreaDoc._id,
+          name: focusAreaDoc.name,
+          group: focusAreaDoc.group,
+        } : null;
+
         return {
           ...project,
           team: teamName,
@@ -918,7 +914,7 @@ export const list = query({
           hasUpvoted,
           creatorName: creator?.name ?? "Unknown User",
           creatorAvatar: creator?.avatarUrlId ?? "",
-          focusAreas,
+          focusArea,
           previewMedia,
         };
       })
@@ -1242,16 +1238,12 @@ export const getById = query({
       teamName = team?.name ?? "";
     }
 
-    const focusAreaDocs = await Promise.all(
-      project.focusAreaIds.map((id) => ctx.db.get(id))
-    );
-    const focusAreas = focusAreaDocs
-      .filter((fa): fa is NonNullable<typeof fa> => fa !== null)
-      .map((fa) => ({
-        _id: fa._id,
-        name: fa.name,
-        group: fa.group,
-      }));
+    const focusAreaDoc = project.focusAreaId ? await ctx.db.get(project.focusAreaId) : null;
+    const focusArea = focusAreaDoc ? {
+      _id: focusAreaDoc._id,
+      name: focusAreaDoc.name,
+      group: focusAreaDoc.group,
+    } : null;
 
     // Get top 6 adopters with user info
     const adoptersWithInfo = await Promise.all(
@@ -1273,7 +1265,7 @@ export const getById = query({
       hasUpvoted,
       creatorName: creator?.name ?? "Unknown User",
       creatorAvatar: creator?.avatarUrlId ?? "",
-      focusAreas,
+      focusArea,
       adoptionCount: adoptions.length,
       adopters: adoptersWithInfo,
       hasAdopted,
@@ -1351,10 +1343,10 @@ export const searchProjects = action({
     ]);
 
     // Extract entryIds from both search results
-    const entryIds = entries.map((e) => e.entryId);
+    const entryIds = entries.map((e: { entryId: string }) => e.entryId);
     const fullTextEntryIds = fullTextSearchProjects
-      .map((p) => p.entryId)
-      .filter((id): id is string => id !== undefined);
+      .map((p: { entryId?: string }) => p.entryId)
+      .filter((id: string | undefined): id is string => id !== undefined);
 
     // hybrid rank the results
     const hybridRankedEntryIds = hybridRank(
@@ -1376,7 +1368,8 @@ export const searchProjects = action({
     );
 
     // Build a map for quick lookup and maintain hybrid rank order
-    const projectMap = new Map(allProjects.map((p) => [p.entryId!, p]));
+    type ProjectWithEntryId = (typeof allProjects)[number];
+    const projectMap = new Map(allProjects.map((p: ProjectWithEntryId) => [p.entryId!, p]));
     const projects = hybridRankedEntryIds
       .map((entryId) => projectMap.get(entryId))
       .filter((p): p is NonNullable<typeof p> => p !== undefined);
@@ -1758,5 +1751,46 @@ export const getProjectsByEntryIdsPublic = query({
         summary: p.summary,
         previewMedia: p.previewMedia,
       }));
+  },
+});
+
+// Migration: Remove all focus areas from projects (clears old focusAreaIds field)
+// Run via: npx convex run projects:migrateClearFocusAreasAction
+export const migrateClearFocusAreasAction = action({
+  args: {},
+  handler: async (ctx): Promise<{ updated: number }> => {
+    return await ctx.runMutation(internal.projects.migrateClearFocusAreas, {});
+  },
+});
+
+export const migrateClearFocusAreas = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const projects = await ctx.db.query("projects").collect();
+    let updated = 0;
+
+    for (const project of projects) {
+      // Use replace to completely replace the document, removing old focusAreaIds field
+      await ctx.db.replace(project._id, {
+        name: project.name,
+        summary: project.summary,
+        teamId: project.teamId,
+        upvotes: project.upvotes,
+        viewCount: project.viewCount,
+        entryId: project.entryId,
+        status: project.status,
+        userId: project.userId,
+        allFields: project.allFields,
+        link: project.link,
+        focusAreaId: undefined, // Clear focus area
+        readinessStatus: project.readinessStatus,
+        pinned: project.pinned,
+        engagementScore: project.engagementScore,
+        hotScore: project.hotScore,
+      });
+      updated++;
+    }
+
+    return { updated };
   },
 });

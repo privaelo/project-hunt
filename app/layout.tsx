@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Chonburi } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { Header } from "@/components/header";
@@ -12,6 +13,12 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+const chonburi = Chonburi({
+  variable: "--font-chonburi",
+  weight: "400",
   subsets: ["latin"],
 });
 
@@ -29,12 +36,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-50 text-zinc-900`}
+        className={`${geistSans.variable} ${geistMono.variable} ${chonburi.variable} antialiased bg-zinc-50 text-zinc-900`}
       >
           <ConvexClientProvider>
             <WorkOsWidgets>
               <Header />
-              {children}
+              <div className="pt-16">{children}</div>
             </WorkOsWidgets>
           </ConvexClientProvider>
       </body>

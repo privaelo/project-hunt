@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Info } from "lucide-react";
 import { SimilarProjectsPreview } from "@/components/SimilarProjectsPreview";
-import { FocusAreaPicker } from "@/components/FocusAreaPicker";
+import { SpacePicker } from "@/components/SpacePicker";
 import { MediaUploadField, type NewFileItem } from "@/components/MediaUploadField";
 import { ZipUploadField } from "@/components/ZipUploadField";
 import {
@@ -44,7 +44,8 @@ export default function SubmitProject() {
   const generateUploadUrl = useMutation(api.projects.generateUploadUrl);
   const addMediaToProject = useMutation(api.projects.addMediaToProject);
   const addFileToProject = useMutation(api.projects.addFileToProject);
-  const focusAreasGrouped = useQuery(api.focusAreas.listActiveGrouped);
+  const focusAreas = useQuery(api.focusAreas.listActive);
+  const currentUser = useQuery(api.users.current);
   const [formData, setFormData] = useState({
     summary: "",
     workingTitle: "",
@@ -53,7 +54,7 @@ export default function SubmitProject() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
   const [selectedZipFile, setSelectedZipFile] = useState<File | null>(null);
-  const [selectedFocusAreas, setSelectedFocusAreas] = useState<Id<"focusAreas">[]>([]);
+  const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>(null);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"in_progress" | "ready_to_use">("in_progress");
 
   const deriveName = () => {
@@ -77,6 +78,12 @@ export default function SubmitProject() {
       return;
     }
 
+    if (selectedFocusArea === null) {
+      alert("Please choose a space for your project.");
+      setIsSubmitting(false);
+      return;
+    }
+
     const summary = trimmedSummary || undefined;
     const name = deriveName();
 
@@ -88,7 +95,7 @@ export default function SubmitProject() {
         name,
         summary,
         link: formData.link.trim() || undefined,
-        focusAreaIds: selectedFocusAreas,
+        focusAreaId: selectedFocusArea === "personal" ? undefined : selectedFocusArea ?? undefined,
         readinessStatus: selectedReadinessStatus,
       });
       createdProjectId = result.projectId;
@@ -195,6 +202,33 @@ export default function SubmitProject() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Space Selector - Required field at top */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <label className="text-base font-semibold text-zinc-900">
+                Choose a space
+              </label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-xs">
+                    Spaces help categorize your project and make it easier for teammates to discover relevant work.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="max-w-2xl">
+              <SpacePicker
+                spaces={focusAreas}
+                selectedSpace={selectedFocusArea}
+                onSelectionChange={setSelectedFocusArea}
+                currentUserName={currentUser?.name}
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
             <section className="w-full space-y-4">
             <div className="space-y-2">
@@ -270,60 +304,35 @@ export default function SubmitProject() {
                 />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="readinessStatus" className="text-sm font-medium text-zinc-900">
-                      How rough is it?
-                    </label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        <div className="space-y-2 text-xs">
-                          <p><strong>In Progress:</strong> Early/rough, but useful. Sharing to get eyes and ideas.</p>
-                          <p><strong>Ready to Use:</strong> Works reliably. Someone else could pick it up and use it now.</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <Select
-                    value={selectedReadinessStatus}
-                    onValueChange={(value: "in_progress" | "ready_to_use") => setSelectedReadinessStatus(value)}
-                  >
-                    <SelectTrigger id="readinessStatus" className="w-full">
-                      <SelectValue placeholder="Select readiness status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="in_progress">In progress</SelectItem>
-                      <SelectItem value="ready_to_use">Ready to use</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <label htmlFor="readinessStatus" className="text-sm font-medium text-zinc-900">
+                    How rough is it?
+                  </label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <div className="space-y-2 text-xs">
+                        <p><strong>In Progress:</strong> Early/rough, but useful. Sharing to get eyes and ideas.</p>
+                        <p><strong>Ready to Use:</strong> Works reliably. Someone else could pick it up and use it now.</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium text-zinc-900">
-                      Focus Areas <span className="text-xs text-zinc-500">(optional)</span>
-                    </label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        <p className="text-xs">
-                          Tags make it easier for the right people to discover this later.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <FocusAreaPicker
-                    focusAreasGrouped={focusAreasGrouped}
-                    selectedFocusAreas={selectedFocusAreas}
-                    onSelectionChange={setSelectedFocusAreas}
-                  />
-                </div>
+                <Select
+                  value={selectedReadinessStatus}
+                  onValueChange={(value: "in_progress" | "ready_to_use") => setSelectedReadinessStatus(value)}
+                >
+                  <SelectTrigger id="readinessStatus" className="w-full">
+                    <SelectValue placeholder="Select readiness status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="in_progress">In progress</SelectItem>
+                    <SelectItem value="ready_to_use">Ready to use</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="border-t border-zinc-200 pt-4">
