@@ -139,6 +139,7 @@ export default defineSchema({
     name: v.string(),
     group: v.optional(v.string()),
     description: v.optional(v.string()),
+    ownerId: v.optional(v.id("users")),
     isActive: v.boolean(),
     createdAt: v.number(),
   })
