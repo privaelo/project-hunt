@@ -14,8 +14,6 @@ export default defineSchema({
     allFields: v.optional(v.string()),
     link: v.optional(v.string()),
     focusAreaId: v.optional(v.id("focusAreas")),
-    // TODO: Remove after running migrateClearFocusAreasAction
-    focusAreaIds: v.optional(v.array(v.id("focusAreas"))),
     readinessStatus: v.union(v.literal("in_progress"), v.literal("ready_to_use")),
     pinned: v.optional(v.boolean()),
     engagementScore: v.optional(v.number()),

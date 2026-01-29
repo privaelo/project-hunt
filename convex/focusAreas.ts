@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { getCurrentUser } from "./users";
 
 export const listActive = query({
   handler: async (ctx) => {
@@ -35,13 +36,27 @@ export const create = mutation({
     description: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("focusAreas", {
+    const user = await getCurrentUser(ctx);
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    const focusAreaId = await ctx.db.insert("focusAreas", {
       name: args.name,
       group: args.group,
       description: args.description,
       isActive: true,
       createdAt: Date.now(),
     });
+
+    // Link the focus area with the user
+    await ctx.db.insert("userFocusAreas", {
+      userId: user._id,
+      focusAreaId,
+      createdAt: Date.now(),
+    });
+
+    return focusAreaId;
   },
 });
 
