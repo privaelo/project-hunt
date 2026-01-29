@@ -188,9 +188,12 @@ export default function ProjectPage({
                   </Avatar>
                   <div className="flex flex-col">
                     {project.focusArea && (
-                      <span className="whitespace-nowrap text-xs font-semibold text-zinc-900">
+                      <Link
+                        href={`/space/${project.focusArea._id}`}
+                        className="whitespace-nowrap text-xs font-semibold text-zinc-900 hover:underline"
+                      >
                         g/{project.focusArea.name}
-                      </span>
+                      </Link>
                     )}
                     <Link
                       href={`/profile/${project.userId}`}

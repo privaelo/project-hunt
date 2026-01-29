@@ -43,9 +43,11 @@ function SidebarSpaces() {
           ) : focusAreas && focusAreas.length > 0 ? (
             focusAreas.map((area) => (
               <SidebarMenuItem key={area._id}>
-                <SidebarMenuButton asChild={false}>
-                  <span className="text-zinc-500 font-mono text-xs">g/</span>
-                  <span>{area.name}</span>
+                <SidebarMenuButton asChild>
+                  <Link href={`/space/${area._id}`}>
+                    <span className="text-zinc-500 font-mono text-xs">g/</span>
+                    <span>{area.name}</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))

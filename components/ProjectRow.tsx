@@ -104,15 +104,23 @@ export function ProjectRow({
       {/* Header: Focus area, time, views, facepile */}
       <div className="flex items-center justify-between gap-2 text-xs text-zinc-500">
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/profile/${project.userId}`}
-            className="font-medium text-zinc-600 transition-colors hover:text-green-600"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {project.focusArea
-              ? `g/${project.focusArea.name}`
-              : `u/${project.creatorName}`}
-          </Link>
+          {project.focusArea ? (
+            <Link
+              href={`/space/${project.focusArea._id}`}
+              className="font-medium text-zinc-600 transition-colors hover:text-green-600"
+              onClick={(e) => e.stopPropagation()}
+            >
+              g/{project.focusArea.name}
+            </Link>
+          ) : (
+            <Link
+              href={`/profile/${project.userId}`}
+              className="font-medium text-zinc-600 transition-colors hover:text-green-600"
+              onClick={(e) => e.stopPropagation()}
+            >
+              u/{project.creatorName}
+            </Link>
+          )}
           <span className="text-zinc-300">•</span>
           <span>{getRelativeTime(project._creationTime)}</span>
         </div>

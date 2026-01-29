@@ -979,6 +979,33 @@ export const listPaginated = query({
   },
 });
 
+// Paginated query for space pages — filters by focusAreaId using compound index
+export const listPaginatedBySpace = query({
+  args: {
+    paginationOpts: paginationOptsValidator,
+    focusAreaId: v.id("focusAreas"),
+  },
+  handler: async (ctx, args) => {
+    const currentUser = await getCurrentUser(ctx);
+    const userId = currentUser?._id;
+
+    const paginatedResult = await ctx.db
+      .query("projects")
+      .withIndex("by_status_focusArea_hotScore", (q) =>
+        q.eq("status", "active").eq("focusAreaId", args.focusAreaId)
+      )
+      .order("desc")
+      .paginate(args.paginationOpts);
+
+    const enrichedProjects = await enrichProjects(ctx, paginatedResult.page, userId);
+
+    return {
+      ...paginatedResult,
+      page: enrichedProjects,
+    };
+  },
+});
+
 export const getUserProjects = query({
   args: {},
   handler: async (ctx) => {

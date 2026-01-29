@@ -25,7 +25,8 @@ export default defineSchema({
     .index("by_userId", ["userId"])
     .index("by_teamId", ["teamId"])
     .index("by_status_engagement", ["status", "engagementScore"])
-    .index("by_status_hotScore", ["status", "hotScore"]),
+    .index("by_status_hotScore", ["status", "hotScore"])
+    .index("by_status_focusArea_hotScore", ["status", "focusAreaId", "hotScore"]),
   mediaFiles: defineTable({
     projectId: v.id("projects"),
     storageId: v.id("_storage"),
