@@ -17,6 +17,7 @@ import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Facepile } from "@/components/Facepile";
 import Link from "next/link";
 import { Eye, Link2, Pencil } from "lucide-react";
+import { SpaceIcon } from "@/components/SpaceIcon";
 
 const VIEWER_ID_STORAGE_KEY = "ph_viewer_id";
 
@@ -169,23 +170,19 @@ export default function ProjectPage({
             <div className="space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-zinc-500 sm:flex-nowrap">
                 <div className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8 bg-zinc-100 text-xs font-semibold text-zinc-600">
-                    {project.focusArea ? (
+                  {project.focusArea ? (
+                    <SpaceIcon icon={project.focusArea.icon} name={project.focusArea.name} size="md" />
+                  ) : (
+                    <Avatar className="h-8 w-8 bg-zinc-100 text-xs font-semibold text-zinc-600">
+                      <AvatarImage
+                        src={project.creatorAvatar}
+                        alt={project.creatorName || "User"}
+                      />
                       <AvatarFallback>
-                        {project.focusArea.name.slice(0, 2).toUpperCase()}
+                        {(project.creatorName || "U").slice(0, 2).toUpperCase()}
                       </AvatarFallback>
-                    ) : (
-                      <>
-                        <AvatarImage
-                          src={project.creatorAvatar}
-                          alt={project.creatorName || "User"}
-                        />
-                        <AvatarFallback>
-                          {(project.creatorName || "U").slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </>
-                    )}
-                  </Avatar>
+                    </Avatar>
+                  )}
                   <div className="flex flex-col">
                     {project.focusArea && (
                       <Link

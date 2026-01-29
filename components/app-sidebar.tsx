@@ -5,6 +5,7 @@ import { Authenticated, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { CreateFocusAreaDialog } from "./CreateFocusAreaDialog";
+import { SpaceIcon } from "./SpaceIcon";
 import { Plus, PlusCircle, Info } from "lucide-react";
 import {
   Sidebar,
@@ -45,8 +46,10 @@ function SidebarSpaces() {
               <SidebarMenuItem key={area._id}>
                 <SidebarMenuButton asChild>
                   <Link href={`/space/${area._id}`}>
-                    <span className="text-zinc-500 font-mono text-xs">g/</span>
-                    <span>{area.name}</span>
+                    <SpaceIcon icon={area.icon} name={area.name} size="sm" />
+                    <span className="text-zinc-500 font-mono text-xs">
+                      g/{area.name}
+                    </span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

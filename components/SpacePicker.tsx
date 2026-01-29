@@ -10,17 +10,21 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/components/ui/combobox";
+import { SpaceIcon } from "@/components/SpaceIcon";
 
 type Space = {
   _id: Id<"focusAreas">;
   name: string;
   description?: string;
+  icon?: string;
 };
 
 type SpaceOption = {
   id: Id<"focusAreas"> | "personal";
   label: string;
   description?: string;
+  icon?: string;
+  name: string;
 };
 
 interface SpacePickerProps {
@@ -43,6 +47,7 @@ export function SpacePicker({
       options.push({
         id: "personal",
         label: `u/${currentUserName}`,
+        name: currentUserName,
         description: "Your personal space",
       });
     }
@@ -52,7 +57,9 @@ export function SpacePicker({
         options.push({
           id: space._id,
           label: `g/${space.name}`,
+          name: space.name,
           description: space.description,
+          icon: space.icon,
         });
       }
     }
@@ -83,7 +90,12 @@ export function SpacePicker({
         <ComboboxList>
           {allOptions.map((option) => (
             <ComboboxItem key={option.id} value={option}>
-              {option.label}
+              <div className="flex items-center gap-2">
+                {option.id !== "personal" && (
+                  <SpaceIcon icon={option.icon} name={option.name} size="sm" />
+                )}
+                <span>{option.label}</span>
+              </div>
             </ComboboxItem>
           ))}
         </ComboboxList>

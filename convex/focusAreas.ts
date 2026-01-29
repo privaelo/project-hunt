@@ -41,6 +41,7 @@ export const create = mutation({
     name: v.string(),
     group: v.optional(v.string()),
     description: v.optional(v.string()),
+    icon: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
@@ -52,6 +53,7 @@ export const create = mutation({
       name: args.name,
       group: args.group,
       description: args.description,
+      icon: args.icon,
       ownerId: user._id,
       isActive: true,
       createdAt: Date.now(),
@@ -74,6 +76,7 @@ export const update = mutation({
     name: v.optional(v.string()),
     group: v.optional(v.string()),
     description: v.optional(v.string()),
+    icon: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;

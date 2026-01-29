@@ -50,6 +50,7 @@
     "convex": "^1.28.0",
     "convex-helpers": "^0.1.104",
     "embla-carousel-react": "^8.6.0",
+    "emoji-picker-react": "^4.17.3",
     "lucide-react": "^0.548.0",
     "motion": "^12.23.24",
     "next": "16.0.10",

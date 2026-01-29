@@ -11,11 +11,13 @@ import { Button } from "@/components/ui/button";
 import { ProjectMediaCarousel } from "@/components/ProjectMediaCarousel";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Facepile } from "@/components/Facepile";
+import { SpaceIcon } from "@/components/SpaceIcon";
 
 export type FocusArea = {
   _id: Id<"focusAreas">;
   name: string;
   group: string | undefined;
+  icon: string | undefined;
 };
 
 export type ProjectRowData = {
@@ -107,9 +109,10 @@ export function ProjectRow({
           {project.focusArea ? (
             <Link
               href={`/space/${project.focusArea._id}`}
-              className="font-medium text-zinc-600 transition-colors hover:text-green-600"
+              className="flex items-center gap-1 font-medium text-zinc-600 transition-colors hover:text-green-600"
               onClick={(e) => e.stopPropagation()}
             >
+              <SpaceIcon icon={project.focusArea.icon} name={project.focusArea.name} size="sm" />
               g/{project.focusArea.name}
             </Link>
           ) : (

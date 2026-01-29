@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { ProjectRow, type ProjectRowData } from "@/components/ProjectRow";
+import { SpaceIcon } from "@/components/SpaceIcon";
 
 export default function SpacePage({
   params,
@@ -82,9 +83,12 @@ export default function SpacePage({
     <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6 pb-16 pt-10">
         <div className="space-y-2">
-          <h2 className="text-3xl font-semibold tracking-tight">
-            {focusArea?.name ?? "Loading..."}
-          </h2>
+          <div className="flex items-center gap-3">
+            {focusArea && <SpaceIcon icon={focusArea.icon} name={focusArea.name} size="md" />}
+            <h2 className="text-3xl font-semibold tracking-tight">
+              {focusArea?.name ?? "Loading..."}
+            </h2>
+          </div>
           {focusArea?.description && (
             <p className="text-sm text-zinc-500">{focusArea.description}</p>
           )}
