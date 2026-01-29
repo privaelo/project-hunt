@@ -94,6 +94,7 @@ async function enrichProjects(
         _id: focusAreaDoc._id,
         name: focusAreaDoc.name,
         group: focusAreaDoc.group,
+        icon: focusAreaDoc.icon,
       } : null;
 
       // Get top 4 adopters with user info for facepile
@@ -904,6 +905,7 @@ export const list = query({
           _id: focusAreaDoc._id,
           name: focusAreaDoc.name,
           group: focusAreaDoc.group,
+          icon: focusAreaDoc.icon,
         } : null;
 
         return {
@@ -1270,6 +1272,7 @@ export const getById = query({
       _id: focusAreaDoc._id,
       name: focusAreaDoc.name,
       group: focusAreaDoc.group,
+      icon: focusAreaDoc.icon,
     } : null;
 
     // Get top 6 adopters with user info

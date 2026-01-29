@@ -1,11 +1,13 @@
 import type { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { SpaceIcon } from "@/components/SpaceIcon";
 
 type Space = {
   _id: Id<"focusAreas">;
   name: string;
   group: string;
+  icon?: string;
 };
 
 export function SpaceBadges({
@@ -25,7 +27,8 @@ export function SpaceBadges({
       aria-label="Project spaces"
     >
       {spaces.map((space) => (
-        <Badge key={space._id} variant="secondary">
+        <Badge key={space._id} variant="secondary" className="flex items-center gap-1">
+          <SpaceIcon icon={space.icon} name={space.name} size="sm" />
           {space.name}
         </Badge>
       ))}

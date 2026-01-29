@@ -1,5 +1,6 @@
 import { query, QueryCtx, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 
 export const current = query({
   args: {},
@@ -46,23 +47,25 @@ export async function getCurrentUser(ctx: QueryCtx) {
     .unique();
 }
 
+// Shared helper: fetch focus areas for a user (used by getUserFocusAreas query and getProfile)
+export async function fetchUserFocusAreas(ctx: QueryCtx, userId: Id<"users">) {
+  const links = await ctx.db
+    .query("userFocusAreas")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .collect();
+
+  const focusAreas = await Promise.all(
+    links.map((link) => ctx.db.get(link.focusAreaId))
+  );
+
+  return focusAreas.filter((fa) => fa !== null);
+}
+
 // Get focus areas for a specific user
 export const getUserFocusAreas = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    const userFocusAreas = await ctx.db
-      .query("userFocusAreas")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .collect();
-
-    // Fetch the actual focus area details
-    const focusAreas = await Promise.all(
-      userFocusAreas.map(async (ufa) => {
-        return await ctx.db.get(ufa.focusAreaId);
-      })
-    );
-
-    return focusAreas.filter((fa) => fa !== null);
+    return await fetchUserFocusAreas(ctx, args.userId);
   },
 });
 
@@ -79,12 +82,9 @@ export const getProfile = query({
       return null;
     }
 
-    const [team, focusAreaLinks, projects, adoptions] = await Promise.all([
+    const [team, focusAreas, projects, adoptions] = await Promise.all([
       user.teamId ? ctx.db.get(user.teamId) : Promise.resolve(null),
-      ctx.db
-        .query("userFocusAreas")
-        .withIndex("by_user", (q) => q.eq("userId", user._id))
-        .collect(),
+      fetchUserFocusAreas(ctx, user._id),
       ctx.db
         .query("projects")
         .withIndex("by_userId", (q) => q.eq("userId", user._id))
@@ -95,20 +95,6 @@ export const getProfile = query({
         .collect(),
     ]);
 
-    const focusAreas = await Promise.all(
-      focusAreaLinks.map(async (link) => {
-        const focusArea = await ctx.db.get(link.focusAreaId);
-        if (!focusArea) {
-          return null;
-        }
-        return {
-          _id: focusArea._id,
-          name: focusArea.name,
-          group: focusArea.group,
-        };
-      })
-    );
-
     return {
       _id: user._id,
       name: user.name,
@@ -116,7 +102,12 @@ export const getProfile = query({
       email: user.email ?? null,
       team: team?.name ?? "",
       userIntent: user.userIntent ?? null,
-      focusAreas: focusAreas.filter((fa): fa is NonNullable<typeof fa> => fa !== null),
+      focusAreas: focusAreas.map((fa) => ({
+        _id: fa._id,
+        name: fa.name,
+        group: fa.group,
+        icon: fa.icon,
+      })),
       projectCount: projects.length,
       adoptionCount: adoptions.length,
     };
