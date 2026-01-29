@@ -47,7 +47,9 @@ function SidebarSpaces() {
                 <SidebarMenuButton asChild>
                   <Link href={`/space/${area._id}`}>
                     <SpaceIcon icon={area.icon} name={area.name} size="sm" />
-                    <span className="text-zinc-500 font-mono text-xs">g/</span>
+                    <span className="text-zinc-500 font-mono text-xs">
+                      g/{area.name}
+                    </span>
                     <span>{area.name}</span>
                   </Link>
                 </SidebarMenuButton>

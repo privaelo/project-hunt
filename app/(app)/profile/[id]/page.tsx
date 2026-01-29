@@ -11,7 +11,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { SpaceBadges } from "@/components/SpaceBadges";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
@@ -199,11 +198,6 @@ export default function ProfilePage({
                 <h1 className="text-3xl font-semibold text-zinc-900">
                   {profile.name}
                 </h1>
-                {profile.focusAreas.length > 0 && (
-                  <SpaceBadges
-                    spaces={profile.focusAreas}
-                  />
-                )}
               </div>
               <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-zinc-600 md:justify-start">
                 {intentLabel && (

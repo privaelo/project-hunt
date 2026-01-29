@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface SpaceIconProps {
   icon?: string;
@@ -8,42 +9,21 @@ interface SpaceIconProps {
 }
 
 const sizeClasses = {
-  sm: "h-5 w-5 text-sm",
-  md: "h-8 w-8 text-lg",
+  sm: "h-5 w-5",
+  md: "h-8 w-8",
 } as const;
 
-const fallbackSizeClasses = {
-  sm: "h-5 w-5 text-[10px]",
-  md: "h-8 w-8 text-xs",
+const fallbackTextClasses = {
+  sm: "text-[10px]",
+  md: "text-xs",
 } as const;
 
 export function SpaceIcon({ icon, name, size = "sm", className }: SpaceIconProps) {
-  if (icon) {
-    return (
-      <span
-        role="img"
-        aria-label={`${name} icon`}
-        className={cn(
-          "flex shrink-0 items-center justify-center",
-          sizeClasses[size],
-          className
-        )}
-      >
-        {icon}
-      </span>
-    );
-  }
-
   return (
-    <span
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded bg-zinc-200 font-semibold text-zinc-600",
-        fallbackSizeClasses[size],
-        className
-      )}
-      aria-label={`${name} icon`}
-    >
-      {name.slice(0, 2).toUpperCase()}
-    </span>
+    <Avatar className={cn("rounded", sizeClasses[size], className)}>
+      <AvatarFallback className={cn("bg-zinc-200 text-zinc-600 font-semibold", fallbackTextClasses[size])}>
+        {icon || name.slice(0, 2).toUpperCase()}
+      </AvatarFallback>
+    </Avatar>
   );
 }
