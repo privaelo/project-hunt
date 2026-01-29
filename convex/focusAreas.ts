@@ -45,6 +45,7 @@ export const create = mutation({
       name: args.name,
       group: args.group,
       description: args.description,
+      ownerId: user._id,
       isActive: true,
       createdAt: Date.now(),
     });
