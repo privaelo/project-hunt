@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
@@ -21,7 +21,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { SmilePlus } from "lucide-react";
-import { SpaceIcon } from "@/components/SpaceIcon";
 
 function EmojiPickerPopover({
   selectedEmoji,
@@ -31,23 +30,48 @@ function EmojiPickerPopover({
   onSelect: (emoji: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const pickerRef = useRef<HTMLDivElement>(null);
-  const [Picker, setPicker] = useState<React.ComponentType<Record<string, unknown>> | null>(null);
-  const [pickerData, setPickerData] = useState<unknown>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const pickerMountedRef = useRef(false);
+
+  const handleEmojiSelect = useCallback(
+    (emoji: { native: string }) => {
+      onSelect(emoji.native);
+      setOpen(false);
+    },
+    [onSelect]
+  );
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !containerRef.current || pickerMountedRef.current) return;
     let cancelled = false;
+
     Promise.all([
-      import("@emoji-mart/react"),
+      import("emoji-mart"),
       import("@emoji-mart/data"),
-    ]).then(([pickerModule, dataModule]) => {
-      if (!cancelled) {
-        setPicker(() => pickerModule.default);
-        setPickerData(dataModule.default);
-      }
+    ]).then(([{ Picker }, dataModule]) => {
+      if (cancelled || !containerRef.current) return;
+      pickerMountedRef.current = true;
+      new Picker({
+        data: dataModule.default,
+        onEmojiSelect: handleEmojiSelect,
+        theme: "light",
+        previewPosition: "none",
+        skinTonePosition: "none",
+        parent: containerRef.current,
+      });
     });
+
     return () => { cancelled = true; };
+  }, [open, handleEmojiSelect]);
+
+  // Reset mount tracking when popover closes so it re-creates on next open
+  useEffect(() => {
+    if (!open) {
+      pickerMountedRef.current = false;
+      if (containerRef.current) {
+        containerRef.current.innerHTML = "";
+      }
+    }
   }, [open]);
 
   return (
@@ -70,19 +94,8 @@ function EmojiPickerPopover({
         side="right"
         align="start"
       >
-        <div ref={pickerRef}>
-          {Picker && pickerData ? (
-            <Picker
-              data={pickerData}
-              onEmojiSelect={(emoji: { native: string }) => {
-                onSelect(emoji.native);
-                setOpen(false);
-              }}
-              theme="light"
-              previewPosition="none"
-              skinTonePosition="none"
-            />
-          ) : (
+        <div ref={containerRef}>
+          {!pickerMountedRef.current && (
             <div className="flex items-center justify-center p-8 text-sm text-zinc-400">
               Loading...
             </div>
