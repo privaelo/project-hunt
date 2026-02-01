@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { getCurrentUser } from "./users";
+import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 
 export const getById = query({
   args: { id: v.id("focusAreas") },
@@ -99,5 +99,44 @@ export const reactivate = mutation({
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { isActive: true });
+  },
+});
+
+export const isFollowingSpace = query({
+  args: { focusAreaId: v.id("focusAreas") },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return false;
+    const existing = await ctx.db
+      .query("userFocusAreas")
+      .withIndex("by_user_and_focus", (q) =>
+        q.eq("userId", user._id).eq("focusAreaId", args.focusAreaId)
+      )
+      .unique();
+    return !!existing;
+  },
+});
+
+export const toggleFollowSpace = mutation({
+  args: { focusAreaId: v.id("focusAreas") },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    const existing = await ctx.db
+      .query("userFocusAreas")
+      .withIndex("by_user_and_focus", (q) =>
+        q.eq("userId", user._id).eq("focusAreaId", args.focusAreaId)
+      )
+      .unique();
+    if (existing) {
+      await ctx.db.delete(existing._id);
+      return { following: false };
+    } else {
+      await ctx.db.insert("userFocusAreas", {
+        userId: user._id,
+        focusAreaId: args.focusAreaId,
+        createdAt: Date.now(),
+      });
+      return { following: true };
+    }
   },
 });

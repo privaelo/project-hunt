@@ -9,6 +9,7 @@ import React from "react";
 import Link from "next/link";
 
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { ProjectRow, type ProjectRowData } from "@/components/ProjectRow";
 import { SpaceIcon } from "@/components/SpaceIcon";
@@ -28,6 +29,8 @@ export default function SpacePage({
     { initialNumItems: 15 }
   );
   const { isAuthenticated, user } = useCurrentUser();
+  const isFollowing = useQuery(api.focusAreas.isFollowingSpace, { focusAreaId });
+  const toggleFollowSpace = useMutation(api.focusAreas.toggleFollowSpace);
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
   const toggleAdoption = useMutation(api.projects.toggleAdoption);
 
@@ -63,6 +66,14 @@ export default function SpacePage({
     return () => observer.disconnect();
   }, [canLoadMore, loadMoreCallback]);
 
+  const handleFollowSpace = async () => {
+    try {
+      await toggleFollowSpace({ focusAreaId });
+    } catch (error) {
+      console.error("Failed to toggle follow:", error);
+    }
+  };
+
   const handleUpvote = async (projectId: Id<"projects">) => {
     try {
       await toggleUpvote({ projectId });
@@ -83,11 +94,28 @@ export default function SpacePage({
     <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6 pb-16 pt-10">
         <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            {focusArea && <SpaceIcon icon={focusArea.icon} name={focusArea.name} size="md" />}
-            <h2 className="text-3xl font-semibold tracking-tight">
-              {focusArea?.name ?? "Loading..."}
-            </h2>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              {focusArea && <SpaceIcon icon={focusArea.icon} name={focusArea.name} size="md" />}
+              <h2 className="text-3xl font-semibold tracking-tight">
+                {focusArea?.name ?? "Loading..."}
+              </h2>
+            </div>
+            {isAuthenticated ? (
+              <Button
+                variant={isFollowing ? "default" : "outline"}
+                size="sm"
+                onClick={handleFollowSpace}
+              >
+                {isFollowing ? "Joined" : "Join"}
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/sign-in" prefetch={false}>
+                  Join
+                </Link>
+              </Button>
+            )}
           </div>
           {focusArea?.description && (
             <p className="text-sm text-zinc-500">{focusArea.description}</p>

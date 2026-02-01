@@ -84,6 +84,11 @@ export default function ProjectPage({
   const projectMedia = useQuery(api.projects.getProjectMedia, { projectId });
   const projectFile = useQuery(api.projects.getProjectFile, { projectId });
   const comments = useQuery(api.comments.getComments, { projectId });
+  const isFollowingSpace = useQuery(
+    api.focusAreas.isFollowingSpace,
+    project?.focusArea ? { focusAreaId: project.focusArea._id } : "skip"
+  );
+  const toggleFollowSpace = useMutation(api.focusAreas.toggleFollowSpace);
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
   const toggleAdoption = useMutation(api.projects.toggleAdoption);
   const trackView = useMutation(api.projects.trackView);
@@ -112,6 +117,15 @@ export default function ProjectPage({
     trackedProjectId.current = projectId;
     void trackView({ projectId, viewerId });
   }, [project, projectId, trackView]);
+
+  const handleFollowSpace = async () => {
+    if (!project?.focusArea) return;
+    try {
+      await toggleFollowSpace({ focusAreaId: project.focusArea._id });
+    } catch (error) {
+      console.error("Failed to toggle follow:", error);
+    }
+  };
 
   const handleUpvote = async () => {
     try {
@@ -339,6 +353,39 @@ export default function ProjectPage({
                     </div>
                   </div>
                 </div>
+
+                {project.focusArea && (
+                  <div className="space-y-3 border-t border-zinc-300 pt-5">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                      Space
+                    </p>
+                    <div className="flex items-center justify-between gap-2">
+                      <Link
+                        href={`/space/${project.focusArea._id}`}
+                        className="flex items-center gap-2 text-sm font-medium text-zinc-700 hover:text-zinc-900"
+                      >
+                        <SpaceIcon icon={project.focusArea.icon} name={project.focusArea.name} size="sm" />
+                        g/{project.focusArea.name}
+                      </Link>
+                      {isAuthenticated ? (
+                        <Button
+                          variant={isFollowingSpace ? "default" : "outline"}
+                          size="sm"
+                          onClick={handleFollowSpace}
+                          className="h-7 text-xs"
+                        >
+                          {isFollowingSpace ? "Joined" : "Join"}
+                        </Button>
+                      ) : (
+                        <Button variant="outline" size="sm" className="h-7 text-xs" asChild>
+                          <Link href="/sign-in" prefetch={false}>
+                            Join
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {(projectLink || (projectFile && projectFile.url)) && (
                   <div className="space-y-3 border-t border-zinc-300 pt-5">

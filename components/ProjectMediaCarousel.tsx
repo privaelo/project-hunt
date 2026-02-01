@@ -93,6 +93,7 @@ export function ProjectMediaCarousel({ media }: ProjectMediaCarouselProps) {
                   media={item}
                   onExpand={handleExpand}
                   isSingleItem={media.length === 1}
+                  isExpanded={isExpanded}
                 />
               </CarouselItem>
             ))}
@@ -184,13 +185,22 @@ function MediaSlide({
   media,
   onExpand,
   isSingleItem,
+  isExpanded,
 }: {
   media: MediaItem;
   onExpand: () => void;
   isSingleItem: boolean;
+  isExpanded: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // Pause video when the expanded lightbox opens
+  useEffect(() => {
+    if (isExpanded && videoRef.current && !videoRef.current.paused) {
+      videoRef.current.pause();
+    }
+  }, [isExpanded]);
 
   if (!media.url) return null;
   const isVideo = media.type === "video";
