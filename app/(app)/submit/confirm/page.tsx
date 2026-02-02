@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Link from "next/link";
+import { stripHtml } from "@/lib/utils";
 
 type Project = {
   _id: Id<"projects">;
@@ -149,7 +150,7 @@ function ConfirmSubmissionContent() {
                   </h3>
                   {project.summary && (
                     <p className="mt-2 text-sm text-zinc-600">
-                      {project.summary}
+                      {stripHtml(project.summary)}
                     </p>
                   )}
                 </div>
@@ -287,7 +288,7 @@ function SimilarProjectCard({ project }: { project: Project }) {
           </h4>
           {project.summary && (
             <p className="mt-1 text-sm text-zinc-600">
-              {project.summary}
+              {stripHtml(project.summary)}
             </p>
           )}
         </div>

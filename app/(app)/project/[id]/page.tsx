@@ -247,11 +247,10 @@ export default function ProjectPage({
               )}
 
               {project.summary && (
-                <div className="space-y-2">
-                  <p className="whitespace-pre-wrap text-sm leading-5 text-zinc-600">
-                    {project.summary}
-                  </p>
-                </div>
+                <div
+                  className="rich-text-content"
+                  dangerouslySetInnerHTML={{ __html: project.summary }}
+                />
               )}
             </div>
 

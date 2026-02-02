@@ -12,6 +12,7 @@ import { ProjectMediaCarousel } from "@/components/ProjectMediaCarousel";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Facepile } from "@/components/Facepile";
 import { SpaceIcon } from "@/components/SpaceIcon";
+import { stripHtml } from "@/lib/utils";
 
 export type FocusArea = {
   _id: Id<"focusAreas">;
@@ -153,7 +154,7 @@ export function ProjectRow({
         </div>
       ) : project.summary ? (
         <p className="text-sm leading-5 text-zinc-600 line-clamp-2 break-words">
-          {project.summary}
+          {stripHtml(project.summary)}
         </p>
       ) : null}
 

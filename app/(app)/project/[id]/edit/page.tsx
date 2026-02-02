@@ -6,7 +6,8 @@ import { useAction, useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/RichTextEditor";
+import { isRichTextEmpty } from "@/lib/utils";
 import { Id } from "@/convex/_generated/dataModel";
 import { Info } from "lucide-react";
 import { SpacePicker } from "@/components/SpacePicker";
@@ -110,7 +111,6 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
     setIsSubmitting(true);
 
     const trimmedName = formData.name.trim();
-    const trimmedDescription = formData.description.trim();
 
     if (!trimmedName) {
       alert("Please add a title.");
@@ -123,7 +123,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       await updateProject({
         projectId,
         name: trimmedName,
-        summary: trimmedDescription || undefined,
+        summary: isRichTextEmpty(formData.description) ? undefined : formData.description,
         link: formData.link.trim() || undefined,
         focusAreaId: selectedFocusArea === "personal" ? undefined : selectedFocusArea ?? undefined,
         readinessStatus: selectedReadinessStatus,
@@ -283,12 +283,11 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <Textarea
-                  id="description"
+                <RichTextEditor
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, description: value })}
                   placeholder="A copy-and-paste prompt I use with AI to turn a few bullet points into a clear, polite email response. It asks for the right details, includes next steps, and keeps the tone consistent."
-                  className="min-h-28"
+                  disabled={isSubmitting}
                 />
               </div>
 

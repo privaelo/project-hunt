@@ -7,7 +7,8 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/RichTextEditor";
+import { isRichTextEmpty, stripHtml } from "@/lib/utils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Select,
@@ -60,7 +61,7 @@ export default function SubmitProject() {
   const deriveName = () => {
     const title = formData.workingTitle.trim();
     if (title) return title;
-    const summary = formData.summary.trim();
+    const summary = stripHtml(formData.summary);
     if (summary) return summary.length > 60 ? `${summary.slice(0, 60)}...` : summary;
     return "Shared solution";
   };
@@ -70,7 +71,7 @@ export default function SubmitProject() {
     setIsSubmitting(true);
 
     const trimmedTitle = formData.workingTitle.trim();
-    const trimmedSummary = formData.summary.trim();
+    const summary = isRichTextEmpty(formData.summary) ? undefined : formData.summary;
 
     if (!trimmedTitle) {
       alert("Please add a title.");
@@ -83,8 +84,6 @@ export default function SubmitProject() {
       setIsSubmitting(false);
       return;
     }
-
-    const summary = trimmedSummary || undefined;
     const name = deriveName();
 
     let createdProjectId: Id<"projects"> | null = null;
@@ -178,7 +177,7 @@ export default function SubmitProject() {
     }
   };
 
-  const summaryForPreview = formData.summary.trim();
+  const summaryForPreview = isRichTextEmpty(formData.summary) ? "" : formData.summary;
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -260,12 +259,11 @@ export default function SubmitProject() {
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <Textarea
-                id="summary"
+              <RichTextEditor
                 value={formData.summary}
-                onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-                 placeholder="A copy-and-paste prompt I use with AI to turn a few bullet points into a clear, polite email response. It asks for the right details, includes next steps, and keeps the tone consistent."
-                className="min-h-28"
+                onChange={(value) => setFormData({ ...formData, summary: value })}
+                placeholder="A copy-and-paste prompt I use with AI to turn a few bullet points into a clear, polite email response. It asks for the right details, includes next steps, and keeps the tone consistent."
+                disabled={isSubmitting}
               />
             </div>
 

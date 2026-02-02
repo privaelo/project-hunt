@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import type { Id } from "@/convex/_generated/dataModel";
+import { stripHtml } from "@/lib/utils";
 
 interface SimilarProject {
   _id: Id<"projects">;
@@ -113,7 +114,7 @@ export function SimilarProjectsPreview({
                     </div>
                     {project.summary && (
                       <p className="text-sm text-zinc-500 line-clamp-2">
-                        {project.summary}
+                        {stripHtml(project.summary)}
                       </p>
                     )}
                     <div className="flex items-center gap-3 text-xs text-zinc-500">

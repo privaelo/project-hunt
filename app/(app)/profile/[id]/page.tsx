@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Eye, MessageSquare, Pencil, Target, Users } from "lucide-react";
+import { stripHtml } from "@/lib/utils";
 
 const intentLabels: Record<string, string> = {
   looking: "Looking for tools",
@@ -337,7 +338,7 @@ function ProjectCard({
                 </div>
                 {project.summary && (
                   <p className="text-sm text-zinc-600">
-                    {project.summary}
+                    {stripHtml(project.summary)}
                   </p>
                 )}
               </div>
@@ -383,7 +384,7 @@ function AdoptedCard({ project }: { project: AdoptedProject }) {
                 </div>
                 {project.summary && (
                   <p className="text-sm text-zinc-600">
-                    {project.summary}
+                    {stripHtml(project.summary)}
                   </p>
                 )}
               </div>

@@ -13,6 +13,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { stripHtml } from "@/lib/utils";
 
 interface ProjectCardsDisplayProps {
   projectIds: string[];
@@ -119,7 +120,7 @@ export function ProjectCardsDisplay({
                       </CardTitle>
                       {project.summary && (
                         <CardDescription className="text-xs line-clamp-2">
-                          {project.summary}
+                          {stripHtml(project.summary)}
                         </CardDescription>
                       )}
                     </CardHeader>
