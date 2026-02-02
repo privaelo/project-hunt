@@ -13,6 +13,7 @@ import { CommentForm } from "@/components/CommentForm";
 import { CommentThread } from "@/components/CommentThread";
 import { ProjectMediaCarousel } from "@/components/ProjectMediaCarousel";
 import { ProjectFileDownload } from "@/components/ProjectFileDownload";
+import { RichTextContent } from "@/components/RichTextContent";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Facepile } from "@/components/Facepile";
 import Link from "next/link";
@@ -247,10 +248,7 @@ export default function ProjectPage({
               )}
 
               {project.summary && (
-                <div
-                  className="rich-text-content"
-                  dangerouslySetInnerHTML={{ __html: project.summary }}
-                />
+                <RichTextContent html={project.summary} />
               )}
             </div>
 
