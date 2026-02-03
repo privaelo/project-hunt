@@ -181,7 +181,7 @@ export default function ProjectPage({
     <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="space-y-8 lg:flex lg:items-start lg:gap-10 lg:space-y-0">
-          <section className="flex-1 space-y-4">
+          <section className="flex-1 min-w-0 space-y-4">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-zinc-500 sm:flex-nowrap">
                 <div className="flex items-center gap-2">
