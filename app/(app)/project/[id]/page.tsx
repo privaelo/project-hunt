@@ -248,9 +248,7 @@ export default function ProjectPage({
               )}
 
               {project.summary && (
-                <div className="w-full overflow-hidden">
-                  <RichTextContent html={project.summary} />
-                </div>
+                <RichTextContent html={project.summary} />
               )}
             </div>
 
