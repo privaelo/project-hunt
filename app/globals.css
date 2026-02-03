@@ -169,10 +169,8 @@ body {
   color: #52525b;
   overflow-wrap: break-word;
   word-wrap: break-word;
-  word-break: break-word;
   max-width: 100%;
   min-width: 0;
-  overflow: hidden;
 }
 
 .rich-text-content h1 {
