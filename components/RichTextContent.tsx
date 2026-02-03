@@ -8,7 +8,11 @@ interface RichTextContentProps {
 }
 
 export function RichTextContent({ html, className = "" }: RichTextContentProps) {
-  const clean = DOMPurify.sanitize(html, {
+  // Replace non-breaking spaces with regular spaces to allow proper text wrapping
+  // Quill sometimes outputs &nbsp; between words (especially on paste), which prevents line breaks
+  const normalizedHtml = html.replace(/&nbsp;/g, " ");
+
+  const clean = DOMPurify.sanitize(normalizedHtml, {
     ALLOWED_TAGS: [
       "p", "br", "strong", "em", "u", "s",
       "h1", "h2", "h3",

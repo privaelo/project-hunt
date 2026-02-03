@@ -167,10 +167,18 @@ body {
   font-size: 0.875rem;
   line-height: 1.25rem;
   color: #52525b;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
   word-wrap: break-word;
+  width: 100%;
   max-width: 100%;
   min-width: 0;
+  white-space: normal;
+}
+
+.rich-text-content * {
+  white-space: normal;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .rich-text-content h1 {
@@ -241,6 +249,7 @@ body {
   overflow-x: auto;
   font-family: var(--font-geist-mono), monospace;
   font-size: 0.8125rem;
+  white-space: pre-wrap;
 }
 
 .rich-text-content code {
