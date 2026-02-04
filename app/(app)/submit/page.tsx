@@ -16,6 +16,7 @@ import { SimilarProjectsPreview } from "@/components/SimilarProjectsPreview";
 import { SpacePicker } from "@/components/SpacePicker";
 import { MediaUploadField, type NewFileItem } from "@/components/MediaUploadField";
 import { ZipUploadField } from "@/components/ZipUploadField";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
@@ -197,158 +198,166 @@ export default function SubmitProject() {
           </Accordion>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Space Selector - Required field at top */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <label className="text-base font-semibold text-zinc-900">
-                Choose a space
-              </label>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p className="text-xs">
-                    Spaces help categorize your project and make it easier for teammates to discover relevant work.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <div className="max-w-2xl">
-              <SpacePicker
-                spaces={focusAreas}
-                selectedSpace={selectedFocusArea}
-                onSelectionChange={setSelectedFocusArea}
-                currentUserName={currentUser?.name}
-              />
-            </div>
-          </div>
-
+        <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-            <section className="w-full space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="workingTitle" className="text-sm font-medium text-zinc-900">
-                Title
-              </label>
-              <Input
-                id="workingTitle"
-                value={formData.workingTitle}
-                onChange={(e) => setFormData({ ...formData, workingTitle: e.target.value })}
-                 placeholder="AI Prompt Template: Clear Email Reply"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <label htmlFor="summary" className="text-sm font-medium text-zinc-900">
-                  What did you build and why? <span className="text-xs text-zinc-500">(optional)</span>
-                </label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p className="text-xs">
-                      A good description makes your project easier to find when teammates search for solutions. This helps the right people discover your work.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <RichTextEditor
-                value={formData.summary}
-                onChange={(value) => setFormData({ ...formData, summary: value })}
-                placeholder="A copy-and-paste prompt I use with AI to turn a few bullet points into a clear, polite email response. It asks for the right details, includes next steps, and keeps the tone consistent."
-                disabled={isSubmitting}
-              />
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-2">
-              <MediaUploadField
-                newFiles={selectedFiles}
-                onNewFilesChange={setSelectedFiles}
-                disabled={isSubmitting}
-              />
-
-              <ZipUploadField
-                selectedFile={selectedZipFile}
-                onFileChange={setSelectedZipFile}
-                disabled={isSubmitting}
-              />
-            </div>
-
-            <div className="flex items-center pt-4">
-              <Button type="submit" className="whitespace-nowrap" disabled={isSubmitting}>
-                {isSubmitting ? "Sharing..." : "Share this"}
-              </Button>
-            </div>
-            </section>
-
-            <section className="w-full lg:sticky lg:top-10 lg:self-start space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="link" className="text-sm font-medium text-zinc-900">
-                  Link <span className="text-xs text-zinc-500">(optional)</span>
-                </label>
-                <Input
-                  id="link"
-                  type="url"
-                  value={formData.link}
-                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                  placeholder="https://example.com"
-                />
-              </div>
-
-              <div className="space-y-2">
+            <section className="w-full space-y-6">
+              {/* Space Selector - Required field */}
+              <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <label htmlFor="readinessStatus" className="text-sm font-medium text-zinc-900">
-                    How rough is it?
+                  <label className="text-base font-semibold text-zinc-900">
+                    Choose a space
                   </label>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="h-4 w-4 text-zinc-400 cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
-                      <div className="space-y-1.5 text-xs">
-                        <p><strong>Just an idea:</strong> Haven&apos;t started building yet.</p>
-                        <p><strong>Early prototype:</strong> First attempt — rough but shows the concept.</p>
-                        <p><strong>Mostly working:</strong> Core functionality works, still has rough edges.</p>
-                        <p><strong>Ready to use:</strong> Works reliably. Someone else could pick it up now.</p>
-                      </div>
+                      <p className="text-xs">
+                        Spaces help categorize your project and make it easier for teammates to discover relevant work.
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <div className="space-y-3 pt-1">
-                  <Slider
-                    id="readinessStatus"
-                    min={0}
-                    max={3}
-                    step={1}
-                    value={[readinessSliderValues.indexOf(selectedReadinessStatus)]}
-                    onValueChange={([val]) => setSelectedReadinessStatus(readinessSliderValues[val])}
-                  />
-                  <div className="flex justify-between text-xs text-zinc-500">
-                    {readinessSliderLabels.map((label, i) => (
-                      <span
-                        key={label}
-                        className={`text-center ${i === readinessSliderValues.indexOf(selectedReadinessStatus) ? "font-semibold text-zinc-900" : ""}`}
-                        style={{ width: "25%" }}
-                      >
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                <SpacePicker
+                  spaces={focusAreas}
+                  selectedSpace={selectedFocusArea}
+                  onSelectionChange={setSelectedFocusArea}
+                  currentUserName={currentUser?.name}
+                />
               </div>
 
-              <div className="border-t border-zinc-200 pt-4">
-                <SimilarProjectsPreview
-                  name={deriveName()}
-                  description={summaryForPreview}
+              {/* Title - Required field */}
+              <div className="space-y-2">
+                <label htmlFor="workingTitle" className="text-sm font-medium text-zinc-900">
+                  Title
+                </label>
+                <Input
+                  id="workingTitle"
+                  className="h-11"
+                  value={formData.workingTitle}
+                  onChange={(e) => setFormData({ ...formData, workingTitle: e.target.value })}
+                  placeholder="AI Prompt Template: Clear Email Reply"
+                  required
                 />
+              </div>
+
+              <Tabs defaultValue="details" className="!mt-10">
+                <TabsList>
+                  <TabsTrigger value="details" className="px-5">Details</TabsTrigger>
+                  <TabsTrigger value="media" className="px-5">Media</TabsTrigger>
+                  <TabsTrigger value="link" className="px-5">Link</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="details" className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="summary" className="text-sm font-medium text-zinc-900">
+                        What did you build and why? <span className="text-xs text-zinc-500">(optional)</span>
+                      </label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="text-xs">
+                            A good description makes your project easier to find when teammates search for solutions. This helps the right people discover your work.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <RichTextEditor
+                      value={formData.summary}
+                      onChange={(value) => setFormData({ ...formData, summary: value })}
+                      placeholder="A copy-and-paste prompt I use with AI to turn a few bullet points into a clear, polite email response. It asks for the right details, includes next steps, and keeps the tone consistent."
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="readinessStatus" className="text-sm font-medium text-zinc-900">
+                        How rough is it?
+                      </label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <div className="space-y-1.5 text-xs">
+                            <p><strong>Just an idea:</strong> Haven&apos;t started building yet.</p>
+                            <p><strong>Early prototype:</strong> First attempt — rough but shows the concept.</p>
+                            <p><strong>Mostly working:</strong> Core functionality works, still has rough edges.</p>
+                            <p><strong>Ready to use:</strong> Works reliably. Someone else could pick it up now.</p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <div className="space-y-3 pt-1">
+                      <Slider
+                        id="readinessStatus"
+                        min={0}
+                        max={3}
+                        step={1}
+                        value={[readinessSliderValues.indexOf(selectedReadinessStatus)]}
+                        onValueChange={([val]) => setSelectedReadinessStatus(readinessSliderValues[val])}
+                      />
+                      <div className="flex justify-between text-xs text-zinc-500">
+                        {readinessSliderLabels.map((label, i) => (
+                          <span
+                            key={label}
+                            className={`text-center ${i === readinessSliderValues.indexOf(selectedReadinessStatus) ? "font-semibold text-zinc-900" : ""}`}
+                            style={{ width: "25%" }}
+                          >
+                            {label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="media" className="space-y-4 pt-4">
+                  <MediaUploadField
+                    newFiles={selectedFiles}
+                    onNewFilesChange={setSelectedFiles}
+                    disabled={isSubmitting}
+                  />
+                  <ZipUploadField
+                    selectedFile={selectedZipFile}
+                    onFileChange={setSelectedZipFile}
+                    disabled={isSubmitting}
+                  />
+                </TabsContent>
+
+                <TabsContent value="link" className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <label htmlFor="link" className="text-sm font-medium text-zinc-900">
+                      Link <span className="text-xs text-zinc-500">(optional)</span>
+                    </label>
+                    <Input
+                      id="link"
+                      type="url"
+                      value={formData.link}
+                      onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex items-center pt-4">
+                <Button type="submit" className="whitespace-nowrap" disabled={isSubmitting}>
+                  {isSubmitting ? "Sharing..." : "Share this"}
+                </Button>
               </div>
             </section>
 
+            <section className="w-full lg:sticky lg:top-10 lg:self-start">
+              <SimilarProjectsPreview
+                name={deriveName()}
+                description={summaryForPreview}
+              />
+            </section>
           </div>
 
         </form>
