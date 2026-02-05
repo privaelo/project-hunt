@@ -44,20 +44,19 @@ function getOrCreateViewerId(): string | null {
   }
 }
 
-function formatProjectLink(link?: string | null): {
+function formatProjectLink(url: string, label?: string): {
   href: string;
   label: string;
 } | null {
-  if (!link) {
-    return null;
-  }
-
-  const trimmed = link.trim();
+  const trimmed = url.trim();
   if (!trimmed) {
     return null;
   }
 
   const href = trimmed.startsWith("http") ? trimmed : `https://${trimmed}`;
+  if (label?.trim()) {
+    return { href, label: label.trim() };
+  }
   try {
     const hostname = new URL(href).hostname.replace(/^www\./, "");
     return {
@@ -70,6 +69,19 @@ function formatProjectLink(link?: string | null): {
       label: trimmed,
     };
   }
+}
+
+function getProjectLinks(project: { links?: Array<{ url: string; label?: string }> | null; link?: string | null }): Array<{ href: string; label: string }> {
+  if (project.links && project.links.length > 0) {
+    return project.links
+      .map((l) => formatProjectLink(l.url, l.label))
+      .filter((l): l is NonNullable<typeof l> => l !== null);
+  }
+  if (project.link) {
+    const formatted = formatProjectLink(project.link);
+    return formatted ? [formatted] : [];
+  }
+  return [];
 }
 
 export default function ProjectPage({
@@ -175,7 +187,7 @@ export default function ProjectPage({
     );
   }
 
-  const projectLink = formatProjectLink(project.link);
+  const projectLinks = getProjectLinks(project);
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -384,22 +396,23 @@ export default function ProjectPage({
                   </div>
                 )}
 
-                {(projectLink || (projectFile && projectFile.url)) && (
+                {(projectLinks.length > 0 || (projectFile && projectFile.url)) && (
                   <div className="space-y-3 border-t border-zinc-300 pt-5">
                     <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
                       Open &amp; download
                     </p>
-                    {projectLink && (
+                    {projectLinks.map((pl, i) => (
                       <a
-                        href={projectLink.href}
+                        key={i}
+                        href={pl.href}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-sm font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-4 hover:text-zinc-900 hover:decoration-zinc-500"
                       >
                         <Link2 className="h-4 w-4 text-zinc-400" aria-hidden="true" />
-                        {projectLink.label}
+                        {pl.label}
                       </a>
-                    )}
+                    ))}
                     {projectFile && projectFile.url && (
                       <ProjectFileDownload
                         filename={projectFile.filename}

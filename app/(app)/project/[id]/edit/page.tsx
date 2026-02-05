@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { isRichTextEmpty } from "@/lib/utils";
 import { Id } from "@/convex/_generated/dataModel";
-import { Info } from "lucide-react";
+import { Info, Plus, X } from "lucide-react";
 import { SpacePicker } from "@/components/SpacePicker";
 import { MediaUploadField, type ExistingMediaItem, type NewFileItem } from "@/components/MediaUploadField";
 import { ZipUploadField } from "@/components/ZipUploadField";
@@ -53,8 +53,8 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    link: "",
   });
+  const [links, setLinks] = useState<{ url: string; label: string }[]>([{ url: "", label: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
@@ -95,8 +95,15 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       setFormData({
         name: project.name,
         description: project.summary || "",
-        link: project.link || "",
       });
+      // Populate links from project.links, fall back to legacy project.link
+      if (project.links && project.links.length > 0) {
+        setLinks(project.links.map((l) => ({ url: l.url, label: l.label ?? "" })));
+      } else if (project.link) {
+        setLinks([{ url: project.link, label: "" }]);
+      } else {
+        setLinks([{ url: "", label: "" }]);
+      }
       setSelectedFocusArea(project.focusAreaId ?? null);
       const loadedStatus = project.readinessStatus === "in_progress" ? "early_prototype" : project.readinessStatus ?? "just_an_idea";
       setSelectedReadinessStatus(loadedStatus);
@@ -117,12 +124,16 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
     }
 
     try {
+      const filteredLinks = links
+        .filter((l) => l.url.trim())
+        .map((l) => ({ url: l.url.trim(), ...(l.label.trim() ? { label: l.label.trim() } : {}) }));
+
       // Update project fields
       await updateProject({
         projectId,
         name: trimmedName,
         summary: isRichTextEmpty(formData.description) ? undefined : formData.description,
-        link: formData.link.trim() || undefined,
+        links: filteredLinks.length > 0 ? filteredLinks : undefined,
         focusAreaId: selectedFocusArea === "personal" ? undefined : selectedFocusArea ?? undefined,
         readinessStatus: selectedReadinessStatus,
       });
@@ -328,16 +339,59 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
 
             <section className="w-full lg:sticky lg:top-10 lg:self-start space-y-4">
               <div className="space-y-2">
-                <label htmlFor="link" className="text-sm font-medium text-zinc-900">
-                  Link <span className="text-xs text-zinc-500">(optional)</span>
+                <label className="text-sm font-medium text-zinc-900">
+                  Links <span className="text-xs text-zinc-500">(optional)</span>
                 </label>
-                <Input
-                  id="link"
-                  type="url"
-                  value={formData.link}
-                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                  placeholder="https://example.com"
-                />
+                <div className="space-y-3">
+                  {links.map((link, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <div className="flex-1 space-y-1.5">
+                        <Input
+                          type="url"
+                          value={link.url}
+                          onChange={(e) => {
+                            const updated = [...links];
+                            updated[index] = { ...updated[index], url: e.target.value };
+                            setLinks(updated);
+                          }}
+                          placeholder="https://example.com"
+                        />
+                        <Input
+                          type="text"
+                          value={link.label}
+                          onChange={(e) => {
+                            const updated = [...links];
+                            updated[index] = { ...updated[index], label: e.target.value };
+                            setLinks(updated);
+                          }}
+                          placeholder="Label (optional, e.g. GitHub Repo)"
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      {links.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 shrink-0 text-zinc-400 hover:text-zinc-600"
+                          onClick={() => setLinks(links.filter((_, i) => i !== index))}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => setLinks([...links, { url: "", label: "" }])}
+                >
+                  <Plus className="mr-1.5 h-3.5 w-3.5" />
+                  Add link
+                </Button>
               </div>
 
               <div className="space-y-2">

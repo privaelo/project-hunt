@@ -22,6 +22,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Plus, X } from "lucide-react";
 
 const readinessSliderValues = ["just_an_idea", "early_prototype", "mostly_working", "ready_to_use"] as const;
 const readinessSliderLabels = ["Just an idea", "Early prototype", "Mostly working", "Ready to use"];
@@ -48,8 +49,8 @@ export default function SubmitProject() {
   const [formData, setFormData] = useState({
     summary: "",
     workingTitle: "",
-    link: "",
   });
+  const [links, setLinks] = useState<{ url: string; label: string }[]>([{ url: "", label: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
   const [selectedZipFile, setSelectedZipFile] = useState<File | null>(null);
@@ -88,10 +89,14 @@ export default function SubmitProject() {
 
     try {
       // Create project first
+      const filteredLinks = links
+        .filter((l) => l.url.trim())
+        .map((l) => ({ url: l.url.trim(), ...(l.label.trim() ? { label: l.label.trim() } : {}) }));
+
       const result = await createProject({
         name,
         summary,
-        link: formData.link.trim() || undefined,
+        links: filteredLinks.length > 0 ? filteredLinks : undefined,
         focusAreaId: selectedFocusArea === "personal" ? undefined : selectedFocusArea ?? undefined,
         readinessStatus: selectedReadinessStatus,
       });
@@ -331,16 +336,59 @@ export default function SubmitProject() {
 
                 <TabsContent value="link" className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <label htmlFor="link" className="text-sm font-medium text-zinc-900">
-                      Link <span className="text-xs text-zinc-500">(optional)</span>
+                    <label className="text-sm font-medium text-zinc-900">
+                      Links <span className="text-xs text-zinc-500">(optional)</span>
                     </label>
-                    <Input
-                      id="link"
-                      type="url"
-                      value={formData.link}
-                      onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                      placeholder="https://example.com"
-                    />
+                    <div className="space-y-3">
+                      {links.map((link, index) => (
+                        <div key={index} className="flex items-start gap-2">
+                          <div className="flex-1 space-y-1.5">
+                            <Input
+                              type="url"
+                              value={link.url}
+                              onChange={(e) => {
+                                const updated = [...links];
+                                updated[index] = { ...updated[index], url: e.target.value };
+                                setLinks(updated);
+                              }}
+                              placeholder="https://example.com"
+                            />
+                            <Input
+                              type="text"
+                              value={link.label}
+                              onChange={(e) => {
+                                const updated = [...links];
+                                updated[index] = { ...updated[index], label: e.target.value };
+                                setLinks(updated);
+                              }}
+                              placeholder="Label (optional, e.g. GitHub Repo)"
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                          {links.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 shrink-0 text-zinc-400 hover:text-zinc-600"
+                              onClick={() => setLinks(links.filter((_, i) => i !== index))}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => setLinks([...links, { url: "", label: "" }])}
+                    >
+                      <Plus className="mr-1.5 h-3.5 w-3.5" />
+                      Add link
+                    </Button>
                   </div>
                 </TabsContent>
               </Tabs>
