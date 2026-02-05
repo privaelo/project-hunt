@@ -32,18 +32,16 @@ export function LinksEditor({ links, onChange, disabled }: LinksEditorProps) {
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-zinc-900">
-        Links <span className="text-xs text-zinc-500">(optional)</span>
-      </label>
-      <div className="space-y-3">
+      <div className="space-y-6">
         {links.map((link, index) => (
           <div key={index} className="flex items-start gap-2">
-            <div className="flex-1 space-y-1.5">
+            <div className="flex-1 max-w-md space-y-1.5">
               <Input
-                type="url"
+                type="text"
                 value={link.url}
                 onChange={(e) => updateLink(index, "url", e.target.value)}
                 placeholder="https://example.com"
+                className="font-medium"
                 disabled={disabled}
               />
               <Input
@@ -51,7 +49,6 @@ export function LinksEditor({ links, onChange, disabled }: LinksEditorProps) {
                 value={link.label}
                 onChange={(e) => updateLink(index, "label", e.target.value)}
                 placeholder="Label (optional, e.g. GitHub Repo)"
-                className="h-8 text-xs"
                 disabled={disabled}
               />
             </div>

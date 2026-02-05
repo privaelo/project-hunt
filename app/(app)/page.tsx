@@ -107,7 +107,6 @@ export default function Home() {
               </h2>
 
             </div>
-            <ShareProjectCallout />
             <LayoutGroup>
               <div className="space-y-0">
                 {isLoading ? (
@@ -154,39 +153,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-    </div>
-  );
-}
-
-function ShareProjectCallout() {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white/90 px-3 py-2 shadow-sm">
-      <div>
-        <p className="text-sm text-zinc-600">
-          Working on something? Share it in two lines.
-        </p>
-      </div>
-      <div className="flex items-center gap-2">
-        <Authenticated>
-          <Link href="/submit">
-            <Button size="sm" className="whitespace-nowrap">
-              Share what you&apos;re working on
-            </Button>
-          </Link>
-        </Authenticated>
-        <Unauthenticated>
-            <Button size="sm" className="whitespace-nowrap" asChild>
-              <Link href="/sign-in" prefetch={false}>
-                Share what you&apos;re working on
-              </Link>
-            </Button>
-        </Unauthenticated>
-        <AuthLoading>
-          <Button size="sm" className="whitespace-nowrap" disabled>
-            Share what you&apos;re working on
-          </Button>
-        </AuthLoading>
-      </div>
     </div>
   );
 }

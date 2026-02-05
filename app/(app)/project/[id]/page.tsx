@@ -393,27 +393,29 @@ export default function ProjectPage({
                 {(projectLinks.length > 0 || (projectFile && projectFile.url)) && (
                   <div className="space-y-3 border-t border-zinc-300 pt-5">
                     <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                      Open &amp; download
+                      Links &amp; Downloads
                     </p>
-                    {projectLinks.map((pl, i) => (
-                      <a
-                        key={i}
-                        href={pl.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-4 hover:text-zinc-900 hover:decoration-zinc-500"
-                      >
-                        <Link2 className="h-4 w-4 text-zinc-400" aria-hidden="true" />
-                        {pl.label}
-                      </a>
-                    ))}
-                    {projectFile && projectFile.url && (
-                      <ProjectFileDownload
-                        filename={projectFile.filename}
-                        fileSize={projectFile.fileSize}
-                        url={projectFile.url}
-                      />
-                    )}
+                    <div className="space-y-2">
+                      {projectFile && projectFile.url && (
+                        <ProjectFileDownload
+                          filename={projectFile.filename}
+                          fileSize={projectFile.fileSize}
+                          url={projectFile.url}
+                        />
+                      )}
+                      {projectLinks.map((pl, i) => (
+                        <a
+                          key={i}
+                          href={pl.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-m font-medium text-zinc-700 hover:text-zinc-900 hover:underline"
+                        >
+                          <Link2 className="h-5 w-5 text-zinc-400" aria-hidden="true" />
+                          {pl.label}
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
