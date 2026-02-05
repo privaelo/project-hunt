@@ -103,7 +103,7 @@ export function AppSidebar() {
               <SidebarMenuButton asChild>
                 <Link href="/about">
                   <Info className="h-4 w-4" />
-                  <span>About</span>
+                  <span>Why I Built Garden</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

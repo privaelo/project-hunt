@@ -10,18 +10,16 @@ export default function AboutPage() {
         {/* Hero */}
         <section className="space-y-6">
           <h1 className="text-6xl font-bold tracking-tight text-zinc-900">
-            Where builders share what they&apos;re making
+            Why I built Garden
           </h1>
           <p className="text-xl text-zinc-600 leading-relaxed">
-            Garden is a simple, social place for associates to share and discover tools that make work easier. Post what you built, scripts, dashboards, Power Automate flows, Copilot prompt templates, CAD macros, templates, and more, so it doesn&apos;t get lost in chats and folders.
+            Garden started as a (slightly selfish) attempt to give my work a better spotlight than the endless void of giant Teams channels, but it didn't take long to realize I wasn't the only one who could benefit from a platform like this. 
           </p>
-        </section>
-
-        {/* Origin */}
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold text-zinc-900">Why Garden exists</h2>
-          <p className="text-lg text-zinc-600 leading-relaxed">
-            I built Garden after watching helpful scripts, dashboards, and quick fixes disappear into chats and personal folders. Great work was happening, but sharing it felt like a chore. Valuable creations got buried in threads, hard to find, easy to forget. I wanted to create a space where sharing is fun, browsing is interesting/useful, and good work gets the attention it deserves.
+          <p className="text-xl text-zinc-600 leading-relaxed">
+            Across the organization, people were building useful tools *often in parallel*, yet those scripts, dashboards, and automations rarely made it beyond a small circle.
+          </p>
+          <p className="text-xl text-zinc-600 leading-relaxed">
+            Garden is my attempt to fix that, even if just a little. It’s a step toward making internal tools easier to discover, bringing useful tools closer to those who can benefit from them, and making building more fun.
           </p>
         </section>
 
