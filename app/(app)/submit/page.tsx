@@ -22,6 +22,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { LinksEditor, type LinkItem } from "@/components/LinksEditor";
 
 const readinessSliderValues = ["just_an_idea", "early_prototype", "mostly_working", "ready_to_use"] as const;
 const readinessSliderLabels = ["Just an idea", "Early prototype", "Mostly working", "Ready to use"];
@@ -48,8 +49,8 @@ export default function SubmitProject() {
   const [formData, setFormData] = useState({
     summary: "",
     workingTitle: "",
-    link: "",
   });
+  const [links, setLinks] = useState<LinkItem[]>([{ url: "", label: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
   const [selectedZipFile, setSelectedZipFile] = useState<File | null>(null);
@@ -88,10 +89,14 @@ export default function SubmitProject() {
 
     try {
       // Create project first
+      const filteredLinks = links
+        .filter((l) => l.url.trim())
+        .map((l) => ({ url: l.url.trim(), ...(l.label.trim() ? { label: l.label.trim() } : {}) }));
+
       const result = await createProject({
         name,
         summary,
-        link: formData.link.trim() || undefined,
+        links: filteredLinks.length > 0 ? filteredLinks : undefined,
         focusAreaId: selectedFocusArea === "personal" ? undefined : selectedFocusArea ?? undefined,
         readinessStatus: selectedReadinessStatus,
       });
@@ -330,18 +335,7 @@ export default function SubmitProject() {
                 </TabsContent>
 
                 <TabsContent value="link" className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <label htmlFor="link" className="text-sm font-medium text-zinc-900">
-                      Link <span className="text-xs text-zinc-500">(optional)</span>
-                    </label>
-                    <Input
-                      id="link"
-                      type="url"
-                      value={formData.link}
-                      onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                      placeholder="https://example.com"
-                    />
-                  </div>
+                  <LinksEditor links={links} onChange={setLinks} disabled={isSubmitting} />
                 </TabsContent>
               </Tabs>
 

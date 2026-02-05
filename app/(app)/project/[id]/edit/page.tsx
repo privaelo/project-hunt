@@ -10,6 +10,7 @@ import { RichTextEditor } from "@/components/RichTextEditor";
 import { isRichTextEmpty } from "@/lib/utils";
 import { Id } from "@/convex/_generated/dataModel";
 import { Info } from "lucide-react";
+import { LinksEditor, type LinkItem } from "@/components/LinksEditor";
 import { SpacePicker } from "@/components/SpacePicker";
 import { MediaUploadField, type ExistingMediaItem, type NewFileItem } from "@/components/MediaUploadField";
 import { ZipUploadField } from "@/components/ZipUploadField";
@@ -53,8 +54,8 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    link: "",
   });
+  const [links, setLinks] = useState<LinkItem[]>([{ url: "", label: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
@@ -95,8 +96,12 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       setFormData({
         name: project.name,
         description: project.summary || "",
-        link: project.link || "",
       });
+      if (project.links && project.links.length > 0) {
+        setLinks(project.links.map((l) => ({ url: l.url, label: l.label ?? "" })));
+      } else {
+        setLinks([{ url: "", label: "" }]);
+      }
       setSelectedFocusArea(project.focusAreaId ?? null);
       const loadedStatus = project.readinessStatus === "in_progress" ? "early_prototype" : project.readinessStatus ?? "just_an_idea";
       setSelectedReadinessStatus(loadedStatus);
@@ -117,12 +122,16 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
     }
 
     try {
+      const filteredLinks = links
+        .filter((l) => l.url.trim())
+        .map((l) => ({ url: l.url.trim(), ...(l.label.trim() ? { label: l.label.trim() } : {}) }));
+
       // Update project fields
       await updateProject({
         projectId,
         name: trimmedName,
         summary: isRichTextEmpty(formData.description) ? undefined : formData.description,
-        link: formData.link.trim() || undefined,
+        links: filteredLinks.length > 0 ? filteredLinks : undefined,
         focusAreaId: selectedFocusArea === "personal" ? undefined : selectedFocusArea ?? undefined,
         readinessStatus: selectedReadinessStatus,
       });
@@ -327,18 +336,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
             </section>
 
             <section className="w-full lg:sticky lg:top-10 lg:self-start space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="link" className="text-sm font-medium text-zinc-900">
-                  Link <span className="text-xs text-zinc-500">(optional)</span>
-                </label>
-                <Input
-                  id="link"
-                  type="url"
-                  value={formData.link}
-                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                  placeholder="https://example.com"
-                />
-              </div>
+              <LinksEditor links={links} onChange={setLinks} disabled={isSubmitting} />
 
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
