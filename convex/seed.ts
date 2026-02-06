@@ -112,7 +112,7 @@ export const seed = internalMutation({
         status: "active" as const,
         readinessStatus: "ready_to_use" as const,
         upvotes: 2,
-        link: "https://example.com/signal-atlas",
+        links: [{ url: "https://example.com/signal-atlas", label: "Signal Atlas" }],
         pinned: true,
         engagementScore: 78,
         hotScore: 92,
@@ -126,7 +126,7 @@ export const seed = internalMutation({
         status: "active" as const,
         readinessStatus: "early_prototype" as const,
         upvotes: 1,
-        link: "https://example.com/launch-compass",
+        links: [{ url: "https://example.com/launch-compass", label: "Launch Compass" }],
         pinned: false,
         engagementScore: 52,
         hotScore: 40,
@@ -140,7 +140,7 @@ export const seed = internalMutation({
         status: "pending" as const,
         readinessStatus: "mostly_working" as const,
         upvotes: 1,
-        link: "https://example.com/insight-vault",
+        links: [{ url: "https://example.com/insight-vault", label: "Insight Vault" }],
         pinned: undefined,
         engagementScore: undefined,
         hotScore: undefined,
@@ -154,7 +154,7 @@ export const seed = internalMutation({
         status: "active" as const,
         readinessStatus: "ready_to_use" as const,
         upvotes: 3,
-        link: "https://example.com/privacy-pulse",
+        links: [{ url: "https://example.com/privacy-pulse", label: "Privacy Pulse" }],
         pinned: true,
         engagementScore: 90,
         hotScore: 98,
@@ -168,7 +168,7 @@ export const seed = internalMutation({
         status: "pending" as const,
         readinessStatus: "ready_to_use" as const,
         upvotes: 0,
-        link: undefined,
+        links: undefined,
         pinned: false,
         engagementScore: 12,
         hotScore: 10,
@@ -176,7 +176,7 @@ export const seed = internalMutation({
     ];
 
     for (const project of projects) {
-      const allFields = [project.name, project.summary, project.link]
+      const allFields = [project.name, project.summary, project.links]
         .filter(Boolean)
         .join(" ");
       const id = await ctx.db.insert("projects", {
@@ -189,7 +189,7 @@ export const seed = internalMutation({
         readinessStatus: project.readinessStatus,
         upvotes: project.upvotes,
         viewCount: project.upvotes * 10,
-        link: project.link,
+        links: project.links,
         pinned: project.pinned,
         engagementScore: project.engagementScore,
         hotScore: project.hotScore,

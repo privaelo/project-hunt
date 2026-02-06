@@ -19,30 +19,25 @@ export default function AboutPage() {
             Across the organization, people were building useful tools *often in parallel*, yet those scripts, dashboards, and automations rarely made it beyond a small circle.
           </p>
           <p className="text-xl text-zinc-600 leading-relaxed">
-            Garden is my attempt to fix that, even if just a little. It’s a step toward making internal tools easier to discover, bringing useful tools closer to those who can benefit from them, and making building more fun.
+            Garden is my attempt to fix that, even if just a little. It’s a step toward making internal tools easier to discover, surfacing work that might be useful beyond the team it was built for, and bringing good ideas closer to the people who didn’t even know they were looking for them.
           </p>
-        </section>
-
-        {/* Feedback */}
-        <section className="space-y-3">
-          <h2 className="text-2xl font-semibold text-zinc-900">Feedback</h2>
-          <p className="text-lg text-zinc-600 leading-relaxed">
-            If you have ideas, issues, or requests, I&apos;d love to hear them. Email{" "}
+          <p className="text-xl text-zinc-600 leading-relaxed">
+            But for me personally, I just want Garden to make creating things feel more fun, exciting, and worth sharing.
+          </p>
+          <p className="text-xl text-zinc-600 leading-relaxed">
+            If you have ideas, issues, or requests, I&apos;d love to hear them. Email me: {" "}
             <a className="underline underline-offset-4" href="mailto:donovan_liao@na.honda.com">
               donovan_liao@na.honda.com
             </a>
-            . Or dm me on Teams.
+            . Or ping me on Teams.
           </p>
         </section>
 
         {/* CTA */}
         <section className="flex flex-col items-center gap-4 pt-8 text-center">
           <h3 className="text-2xl font-semibold text-zinc-900">Have something to share?</h3>
-          <p className="text-lg text-zinc-600">
-            If you built it, it belongs here.
-          </p>
           <Button size="lg" asChild className="mt-2">
-            <Link href="/submit">Share what you&apos;re working on</Link>
+            <Link href="/submit">Share what you built</Link>
           </Button>
         </section>
       </main>

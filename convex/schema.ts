@@ -12,7 +12,6 @@ export default defineSchema({
     status: v.union(v.literal("pending"), v.literal("active")),
     userId: v.id("users"),
     allFields: v.optional(v.string()),
-    link: v.optional(v.string()),
     links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
     focusAreaId: v.optional(v.id("focusAreas")),
     readinessStatus: v.optional(v.union(

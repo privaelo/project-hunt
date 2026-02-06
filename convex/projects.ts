@@ -406,7 +406,6 @@ export const create = action({
   args: {
     name: v.string(),
     summary: v.optional(v.string()),
-    link: v.optional(v.string()),
     links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
     focusAreaId: v.optional(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("just_an_idea"), v.literal("early_prototype"), v.literal("mostly_working"), v.literal("ready_to_use")),
@@ -433,7 +432,6 @@ export const create = action({
       {
         name: args.name,
         summary: args.summary,
-        link: args.link,
         links: args.links,
         focusAreaId: args.focusAreaId,
         readinessStatus: args.readinessStatus,
@@ -489,7 +487,6 @@ export const createProject = internalMutation({
     summary: v.optional(v.string()),
     status: v.union(v.literal("pending"), v.literal("active")),
     userId: v.id("users"),
-    link: v.optional(v.string()),
     links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
     focusAreaId: v.optional(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("just_an_idea"), v.literal("early_prototype"), v.literal("mostly_working"), v.literal("ready_to_use")),
@@ -511,7 +508,6 @@ export const createProject = internalMutation({
       viewCount: 0,
       status: args.status,
       userId: args.userId,
-      link: args.link,
       links: args.links,
       focusAreaId: args.focusAreaId,
       readinessStatus: args.readinessStatus,
@@ -581,7 +577,6 @@ export const populateProjectDetails = internalQuery({
         userId: v.id("users"),
         _creationTime: v.number(),
         allFields: v.optional(v.string()),
-        link: v.optional(v.string()),
         links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
         focusAreaId: v.optional(v.id("focusAreas")),
         readinessStatus: v.optional(v.union(v.literal("in_progress"), v.literal("just_an_idea"), v.literal("early_prototype"), v.literal("mostly_working"), v.literal("ready_to_use"))),
@@ -664,7 +659,6 @@ export const updateProjectFields = internalMutation({
     projectId: v.id("projects"),
     name: v.string(),
     summary: v.optional(v.string()),
-    link: v.optional(v.string()),
     links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
     focusAreaId: v.optional(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("just_an_idea"), v.literal("early_prototype"), v.literal("mostly_working"), v.literal("ready_to_use")),
@@ -673,7 +667,6 @@ export const updateProjectFields = internalMutation({
     await ctx.db.patch(args.projectId, {
       name: args.name,
       summary: args.summary,
-      link: args.link,
       links: args.links,
       focusAreaId: args.focusAreaId,
       readinessStatus: args.readinessStatus,
@@ -686,7 +679,6 @@ export const updateProject = action({
     projectId: v.id("projects"),
     name: v.string(),
     summary: v.optional(v.string()),
-    link: v.optional(v.string()),
     links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
     focusAreaId: v.optional(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("just_an_idea"), v.literal("early_prototype"), v.literal("mostly_working"), v.literal("ready_to_use")),
@@ -713,7 +705,6 @@ export const updateProject = action({
       projectId: args.projectId,
       name: args.name,
       summary: args.summary,
-      link: args.link,
       links: args.links,
       focusAreaId: args.focusAreaId,
       readinessStatus: args.readinessStatus,
@@ -1820,7 +1811,6 @@ export const migrateClearFocusAreas = internalMutation({
         status: project.status,
         userId: project.userId,
         allFields: project.allFields,
-        link: project.link,
         links: project.links,
         focusAreaId: undefined, // Clear focus area
         readinessStatus: project.readinessStatus,
@@ -1854,41 +1844,6 @@ export const migrateReadinessStatus = internalMutation({
       if (project.readinessStatus === "in_progress") {
         await ctx.db.patch(project._id, {
           readinessStatus: "early_prototype",
-        });
-        updated++;
-      }
-    }
-
-    return { updated };
-  },
-});
-
-// Migration: Convert legacy single `link` field to `links` array
-// Run via: npx convex run projects:migrateLinkToLinksAction
-export const migrateLinkToLinksAction = action({
-  args: {},
-  handler: async (ctx): Promise<{ updated: number }> => {
-    return await ctx.runMutation(internal.projects.migrateLinkToLinks, {});
-  },
-});
-
-export const migrateLinkToLinks = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    const projects = await ctx.db.query("projects").collect();
-    let updated = 0;
-
-    for (const project of projects) {
-      if (project.link && (!project.links || project.links.length === 0)) {
-        await ctx.db.patch(project._id, {
-          links: [{ url: project.link }],
-          link: undefined,
-        });
-        updated++;
-      } else if (project.link && project.links && project.links.length > 0) {
-        // links already exists, just clear the legacy field
-        await ctx.db.patch(project._id, {
-          link: undefined,
         });
         updated++;
       }
