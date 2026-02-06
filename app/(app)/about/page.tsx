@@ -13,7 +13,7 @@ export default function AboutPage() {
             Why I built Garden
           </h1>
           <p className="text-xl text-zinc-600 leading-relaxed">
-            Garden started as a (slightly selfish) attempt to give my work a better spotlight than the endless void of giant Teams channels, but it didn't take long to realize I wasn't the only one who could benefit from a platform like this. 
+            Garden started as a (slightly selfish) attempt to give my work a better spotlight than the endless void of giant Teams channels, but it didn&apos;t take long to realize I wasn&apos;t the only one who could benefit from a platform like this. 
           </p>
           <p className="text-xl text-zinc-600 leading-relaxed">
             Across the organization, people were building useful tools *often in parallel*, yet those scripts, dashboards, and automations rarely made it beyond a small circle.
