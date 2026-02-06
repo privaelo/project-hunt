@@ -350,7 +350,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
                     <TooltipContent className="max-w-xs">
                       <div className="space-y-1.5 text-xs">
                         <p><strong>Just an idea:</strong> Haven&apos;t started building yet.</p>
-                        <p><strong>Early prototype:</strong> First attempt — rough but shows the concept.</p>
+                        <p><strong>Early prototype:</strong> First attempt. It&apos;s rough but shows the concept.</p>
                         <p><strong>Mostly working:</strong> Core functionality works, still has rough edges.</p>
                         <p><strong>Ready to use:</strong> Works reliably. Someone else could pick it up now.</p>
                       </div>

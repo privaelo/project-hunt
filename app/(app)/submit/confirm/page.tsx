@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, type KeyboardEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -274,12 +274,26 @@ export default function ConfirmSubmission() {
 }
 
 function SimilarProjectCard({ project }: { project: Project }) {
+  const projectHref = `/project/${project._id}`;
+
+  const openProject = () => {
+    window.open(projectHref, "_blank", "noopener,noreferrer");
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openProject();
+    }
+  };
+
   return (
-    <Link
-      href={`/project/${project._id}`}
-      target="_blank"
-      rel="noreferrer"
-      className="block rounded-2xl p-2 transition-colors hover:bg-zinc-100/60"
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={openProject}
+      onKeyDown={handleKeyDown}
+      className="block cursor-pointer rounded-2xl p-2 transition-colors hover:bg-zinc-100/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300"
     >
       <div className="space-y-4">
         <div>
@@ -347,6 +361,6 @@ function SimilarProjectCard({ project }: { project: Project }) {
           </span>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

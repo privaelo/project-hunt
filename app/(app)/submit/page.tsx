@@ -54,7 +54,7 @@ export default function SubmitProject() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
   const [selectedZipFile, setSelectedZipFile] = useState<File | null>(null);
-  const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>(null);
+  const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>("personal");
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"just_an_idea" | "early_prototype" | "mostly_working" | "ready_to_use">("just_an_idea");
 
   const deriveName = () => {
@@ -187,20 +187,6 @@ export default function SubmitProject() {
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
         <div className="mb-2 space-y-2">
           <h2 className="text-3xl font-semibold tracking-tight">Share what you&apos;re working on</h2>
-          <Accordion type="single" collapsible>
-            <AccordionItem value="things" className="border-b-0">
-              <AccordionTrigger className="py-1 text-sm font-medium text-zinc-700">
-                If you built something, it belongs here, even if it&apos;s rough and unfinished.
-              </AccordionTrigger>
-              <AccordionContent className="pt-2">
-                <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600">
-                  {thingsThatBelong.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -233,21 +219,19 @@ export default function SubmitProject() {
 
               {/* Title - Required field */}
               <div className="space-y-2">
-                <label htmlFor="workingTitle" className="text-sm font-medium text-zinc-900">
-                  Title
-                </label>
                 <Input
                   id="workingTitle"
-                  className="h-11"
+                  className="h-11 border border-zinc-300 focus-visible:border-zinc-400"
                   value={formData.workingTitle}
                   onChange={(e) => setFormData({ ...formData, workingTitle: e.target.value })}
-                  placeholder="AI Prompt Template: Clear Email Reply"
+                  placeholder="Title"
+                  aria-label="Title"
                   required
                 />
               </div>
 
               <Tabs defaultValue="details" className="!mt-10">
-                <TabsList>
+                <TabsList variant="line">
                   <TabsTrigger value="details" className="px-5">Details</TabsTrigger>
                   <TabsTrigger value="media" className="px-5">Media</TabsTrigger>
                   <TabsTrigger value="link" className="px-5">Link</TabsTrigger>
@@ -255,25 +239,12 @@ export default function SubmitProject() {
 
                 <TabsContent value="details" className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <label htmlFor="summary" className="text-sm font-medium text-zinc-900">
-                        What did you build and why? <span className="text-xs text-zinc-500">(optional)</span>
-                      </label>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          <p className="text-xs">
-                            A good description makes your project easier to find when teammates search for solutions. This helps the right people discover your work.
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
+
                     <RichTextEditor
                       value={formData.summary}
                       onChange={(value) => setFormData({ ...formData, summary: value })}
-                      placeholder="A copy-and-paste prompt I use with AI to turn a few bullet points into a clear, polite email response. It asks for the right details, includes next steps, and keeps the tone consistent."
+                      placeholder="What is it? (optional)"
+                      aria-label="What is it? (optional)"
                       disabled={isSubmitting}
                     />
                   </div>
@@ -290,7 +261,7 @@ export default function SubmitProject() {
                         <TooltipContent className="max-w-xs">
                           <div className="space-y-1.5 text-xs">
                             <p><strong>Just an idea:</strong> Haven&apos;t started building yet.</p>
-                            <p><strong>Early prototype:</strong> First attempt — rough but shows the concept.</p>
+                            <p><strong>Early prototype:</strong> First attempt. It&apos;s rough but shows the concept.</p>
                             <p><strong>Mostly working:</strong> Core functionality works, still has rough edges.</p>
                             <p><strong>Ready to use:</strong> Works reliably. Someone else could pick it up now.</p>
                           </div>
