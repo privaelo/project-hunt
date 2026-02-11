@@ -65,7 +65,7 @@ export const seed = internalMutation({
       const id = await ctx.db.insert("users", {
         name: user.name,
         email: i === 3 ? undefined : `preview_user_${String(i + 1).padStart(2, "0")}@example.com`,
-        workosUserId: `user_preview_${String(i + 1).padStart(2, "0")}`,
+        externalUserId: `user_preview_${String(i + 1).padStart(2, "0")}`,
         avatarUrlId: i % 2 === 0 ? `avatar_${i + 1}` : undefined,
         onboardingCompleted: i !== 4,
         teamId: user.teamId,
@@ -429,22 +429,17 @@ export const seed = internalMutation({
   },
 });
 
-// Seed everything: WorkOS data (real users/domains) + test data
+// Seed everything: test data + RAG indexing
 export const seedAll = internalAction({
   args: {},
   handler: async (ctx): Promise<{
     success: boolean;
-    workos: unknown;
     testData: unknown;
     ragIndexed: number;
   }> => {
-    console.log("Running full seed: WorkOS + test data...");
+    console.log("Running full seed...");
 
-    // First, seed real users and domains from WorkOS
-    const workosResult = await ctx.runAction(internal.admin.seedFromWorkOS, {});
-    console.log("WorkOS seeding complete:", workosResult);
-
-    // Then, seed test data (fake users, projects, comments, etc.)
+    // Seed test data (fake users, projects, comments, etc.)
     const testDataResult = await ctx.runMutation(internal.seed.seed, {});
     console.log("Test data seeding complete:", testDataResult);
 
@@ -474,7 +469,6 @@ export const seedAll = internalAction({
 
     return {
       success: true,
-      workos: workosResult,
       testData: testDataResult,
       ragIndexed,
     };

@@ -17,8 +17,8 @@ Garden is an internal Product Hunt-style platform that provides launch visibilit
 - **Convex Auth** for authentication helpers
 
 ### Authentication
-- **WorkOS AuthKit** for authentication and user management
-- **Clerk** integration for additional auth features
+- **AWS Cognito** for authentication and user management
+- **AWS Amplify** client-side SDK for Cognito integration
 
 ### UI Components
 - **shadcn/ui** components (Radix UI primitives)
@@ -123,9 +123,9 @@ npm run dev
 - HTTP endpoints: Defined in `/convex/http.ts`
 
 ### Authentication
-- Use WorkOS for user authentication
+- Use AWS Cognito for user authentication
 - User data stored in Convex `users` table
-- Link users with `workosUserId` for WorkOS integration
+- Link users with `externalUserId` (Cognito sub) for identity mapping
 
 ## State Management
 - **Primary**: Use Convex React hooks (`useQuery`, `useMutation`, `useAction`) for all Convex data fetching and mutations
@@ -152,9 +152,13 @@ npm run dev
 ## Environment Variables
 
 Key environment variables (stored in `.env.local`):
-- `NEXT_PUBLIC_WORKOS_REDIRECT_URI` - WorkOS redirect URI
+- `NEXT_PUBLIC_COGNITO_USER_POOL_ID` - Cognito User Pool ID
+- `NEXT_PUBLIC_COGNITO_CLIENT_ID` - Cognito App Client ID
+- `NEXT_PUBLIC_COGNITO_DOMAIN` - Cognito Hosted UI domain
+- `NEXT_PUBLIC_COGNITO_REDIRECT_URI` - OAuth redirect URI
+- `COGNITO_REGION` - AWS region (Convex server-side)
+- `COGNITO_USER_POOL_ID` - Cognito User Pool ID (Convex server-side)
 - Convex configuration
-- WorkOS API keys
 - PostHog configuration
 
 ## Best Practices
@@ -212,7 +216,7 @@ The project includes AI-powered features using OpenAI:
 - Never commit secrets or API keys
 - Use environment variables for sensitive data
 - Validate user input in Convex functions
-- Follow authentication best practices with WorkOS
+- Follow authentication best practices with AWS Cognito
 
 ## Deployment
 

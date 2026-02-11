@@ -1,45 +1,95 @@
 'use client';
 
-import { ReactNode, useCallback, useEffect, useRef } from 'react';
-import { ConvexReactClient } from 'convex/react';
+import '@/lib/amplify-config';
+
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ConvexReactClient, useMutation } from 'convex/react';
 import { ConvexProviderWithAuth } from 'convex/react';
-import { AuthKitProvider, useAuth, useAccessToken } from '@workos-inc/authkit-nextjs/components';
+import { fetchAuthSession, getCurrentUser } from 'aws-amplify/auth';
+import { Hub } from 'aws-amplify/utils';
+import { api } from '@/convex/_generated/api';
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export function ConvexClientProvider({ children }: { children: ReactNode }) {
   return (
-    <AuthKitProvider>
-      <ConvexProviderWithAuth client={convex} useAuth={useAuthFromAuthKit}>
-        {children}
-      </ConvexProviderWithAuth>
-    </AuthKitProvider>
+    <ConvexProviderWithAuth client={convex} useAuth={useAuthFromCognito}>
+      <EnsureUser />
+      {children}
+    </ConvexProviderWithAuth>
   );
 }
 
-function useAuthFromAuthKit() {
-  const { user, loading: isLoading } = useAuth();
-  const { accessToken, loading: tokenLoading, error: tokenError } = useAccessToken();
-  const loading = (isLoading ?? false) || (tokenLoading ?? false);
-  const authenticated = !!user && !!accessToken && !loading;
+function EnsureUser() {
+  const ensureUser = useMutation(api.users.ensureUser);
+  const hasEnsured = useRef(false);
 
-  const stableAccessToken = useRef<string | null>(null);
   useEffect(() => {
-    if (accessToken && !tokenError) {
-      stableAccessToken.current = accessToken;
+    if (hasEnsured.current) return;
+
+    async function check() {
+      try {
+        await getCurrentUser();
+        hasEnsured.current = true;
+        await ensureUser();
+      } catch {
+        // Not authenticated — nothing to do
+      }
     }
-  }, [accessToken, tokenError]);
+    void check();
+  }, [ensureUser]);
+
+  return null;
+}
+
+function useAuthFromCognito() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const tokenRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const session = await fetchAuthSession();
+        const idToken = session.tokens?.idToken?.toString() ?? null;
+        tokenRef.current = idToken;
+        setIsAuthenticated(!!idToken);
+      } catch {
+        tokenRef.current = null;
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    void checkAuth();
+
+    const unsubscribe = Hub.listen('auth', ({ payload }) => {
+      if (payload.event === 'signedIn' || payload.event === 'tokenRefresh') {
+        void checkAuth();
+      } else if (payload.event === 'signedOut') {
+        tokenRef.current = null;
+        setIsAuthenticated(false);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
 
   const fetchAccessToken = useCallback(async () => {
-    if (stableAccessToken.current && !tokenError) {
-      return stableAccessToken.current;
+    try {
+      const session = await fetchAuthSession({ forceRefresh: false });
+      const idToken = session.tokens?.idToken?.toString() ?? null;
+      tokenRef.current = idToken;
+      return idToken;
+    } catch {
+      return null;
     }
-    return null;
-  }, [tokenError]);
+  }, []);
 
-  return {
-    isLoading: loading,
-    isAuthenticated: authenticated,
+  return useMemo(() => ({
+    isLoading,
+    isAuthenticated,
     fetchAccessToken,
-  };
+  }), [isLoading, isAuthenticated, fetchAccessToken]);
 }

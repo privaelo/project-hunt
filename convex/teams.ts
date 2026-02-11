@@ -15,7 +15,7 @@ export const getCurrentUserInternal = internalQuery({
     }
     return await ctx.db
       .query("users")
-      .withIndex("by_workosUserId", (q) => q.eq("workosUserId", identity.subject))
+      .withIndex("by_externalUserId", (q) => q.eq("externalUserId", identity.subject))
       .unique();
   },
 });

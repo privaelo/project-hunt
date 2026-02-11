@@ -1,19 +1,5 @@
 import type { NextConfig } from "next";
 
-// Dynamically set WORKOS_REDIRECT_URI based on the deployment environment
-const getWorkosRedirectUri = () => {
-  // If explicitly set, use that (for local development)
-  if (process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI) {
-    return process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI;
-  }
-  // For Vercel deployments
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}/callback`;
-  }
-  // Fallback for local development
-  return 'http://localhost:3000/callback';
-};
-
 // Helper to get Convex hostname from env
 const getConvexRemotePattern = () => {
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
@@ -32,13 +18,8 @@ const getConvexRemotePattern = () => {
 const convexRemotePattern = getConvexRemotePattern();
 
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'workoscdn.com',
-      },
       {
         protocol: 'https',
         hostname: '*.convex.cloud',
@@ -57,9 +38,6 @@ const nextConfig: NextConfig = {
       },
       ...(convexRemotePattern ? [convexRemotePattern] : []),
     ],
-  },
-  env: {
-    NEXT_PUBLIC_WORKOS_REDIRECT_URI: getWorkosRedirectUri(),
   },
   async rewrites() {
     return [

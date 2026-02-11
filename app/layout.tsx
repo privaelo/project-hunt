@@ -4,7 +4,6 @@ import { Chonburi } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { Header } from "@/components/header";
-import { WorkOsWidgets } from "@workos-inc/widgets";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,10 +38,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${chonburi.variable} antialiased bg-zinc-50 text-zinc-900`}
       >
           <ConvexClientProvider>
-            <WorkOsWidgets>
-              <Header />
-              <div className="pt-16">{children}</div>
-            </WorkOsWidgets>
+            <Header />
+            <div className="pt-16">{children}</div>
           </ConvexClientProvider>
       </body>
     </html>

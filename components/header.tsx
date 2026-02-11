@@ -9,8 +9,7 @@ import {
   useQuery,
 } from "convex/react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from '@workos-inc/authkit-nextjs/components';
-import { signOut } from "@workos-inc/authkit-nextjs";
+import { signOut } from "aws-amplify/auth";
 import { Bell, LogOut, User, Sparkles, PlusCircle } from "lucide-react";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { api } from "@/convex/_generated/api";
@@ -48,7 +47,6 @@ function timeAgo(timestamp: number) {
 
 
 export function Header() {
-  const { user } = useAuth();
   const { user: convexUser } = useCurrentUser();
   const notifications = useQuery(api.notifications.getNotifications, { limit: 8 }) ?? [];
   const unreadCount = useQuery(api.notifications.getUnreadNotificationCount) ?? 0;
@@ -205,15 +203,15 @@ export function Header() {
               <Authenticated>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>
-                    {user?.firstName ?? "Profile"}
+                    {convexUser?.name?.split(" ")[0] ?? "Profile"}
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-[180px] p-1">
                       {convexUser && (
                         <li>
                           <NavigationMenuLink asChild>
-                            <Link 
-                              href={`/profile/${convexUser._id}`} 
+                            <Link
+                              href={`/profile/${convexUser._id}`}
                               className="flex flex-row w-full select-none items-center gap-2 rounded-md px-3 py-2 text-sm font-medium leading-none text-zinc-700 no-underline outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900"
                             >
                               <User className="h-4 w-4" />
@@ -224,7 +222,7 @@ export function Header() {
                       )}
                       <li>
                         <button
-                          onClick={() => signOut()}
+                          onClick={() => void signOut()}
                           className="flex w-full select-none items-center gap-2 rounded-md px-3 py-2 text-sm font-medium leading-none text-zinc-700 outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900"
                         >
                           <LogOut className="h-4 w-4" />

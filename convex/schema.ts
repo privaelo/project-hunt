@@ -120,14 +120,14 @@ export default defineSchema({
     avatarUrlId: v.optional(v.string()),
     teamId: v.optional(v.id("teams")),
     tokenIdentifier: v.optional(v.string()),
-    // this is the user id from workos for easier linking to workos (eg. for workos widgets that need to know the user id)
-    workosUserId: v.string(),
+    externalUserId: v.string(),
     onboardingCompleted: v.boolean(),
     userIntent: v.optional(v.union(v.literal("looking"), v.literal("sharing"), v.literal("both"))),
   })
     .index("by_teamId", ["teamId"])
     .index("by_userIntent", ["userIntent"])
-    .index("by_workosUserId", ["workosUserId"]),
+    .index("by_externalUserId", ["externalUserId"])
+    .index("by_email", ["email"]),
   userFocusAreas: defineTable({
     userId: v.id("users"),
     focusAreaId: v.id("focusAreas"),
