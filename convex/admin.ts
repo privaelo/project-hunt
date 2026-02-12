@@ -3,45 +3,6 @@ import { v } from "convex/values";
 import { rag } from "./rag";
 import { vNamespaceId } from "@convex-dev/rag";
 
-// Internal mutation to insert a domain
-export const insertDomain = internalMutation({
-  args: {
-    domain: v.string(),
-    organizationId: v.string(),
-  },
-  handler: async (ctx, args) => {
-    // Check if domain already exists
-    const existing = await ctx.db
-      .query("allowedDomains")
-      .withIndex("by_domain", (q) => q.eq("domain", args.domain))
-      .unique();
-
-    if (existing) {
-      console.log(`Domain ${args.domain} already exists, skipping`);
-      return;
-    }
-
-    await ctx.db.insert("allowedDomains", {
-      domain: args.domain,
-      organizationId: args.organizationId,
-    });
-    console.log(`Inserted domain: ${args.domain}`);
-  },
-});
-
-// Utility to clear all allowed domains (use with caution)
-export const clearAllowedDomains = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    const domains = await ctx.db.query("allowedDomains").collect();
-    for (const domain of domains) {
-      await ctx.db.delete(domain._id);
-    }
-    console.log(`Cleared ${domains.length} allowed domains`);
-    return { deleted: domains.length };
-  },
-});
-
 // Migration: Rename workosUserId → externalUserId for Cognito migration
 export const migrateWorkosToExternalUserId = internalMutation({
   args: {},

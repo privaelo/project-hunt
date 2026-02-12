@@ -152,8 +152,4 @@ export default defineSchema({
   })
     .index("by_isActive", ["isActive"])
     .index("by_group", ["group"]),
-  allowedDomains: defineTable({
-    domain: v.string(),
-    organizationId: v.string(),
-  }).index("by_domain", ["domain"]),
 });

@@ -171,20 +171,7 @@ export const ensureUser = mutation({
       }
     }
 
-    // 3. Validate email domain for new users
-    if (email) {
-      const emailDomain = email.split("@")[1];
-      const allowed = await ctx.db
-        .query("allowedDomains")
-        .withIndex("by_domain", (q) => q.eq("domain", emailDomain))
-        .unique();
-
-      if (!allowed) {
-        throw new Error("Email domain not allowed");
-      }
-    }
-
-    // 4. Create new user
+    // 3. Create new user
     const userId = await ctx.db.insert("users", {
       externalUserId: cognitoSub,
       email: email ?? undefined,

@@ -390,15 +390,6 @@ export const seed = internalMutation({
       });
     }
 
-    // 13. Allowed Domains
-    const allowedDomains = [
-      { domain: "example.com", organizationId: "org_example" },
-      { domain: "projecthunt.dev", organizationId: "org_projecthunt" },
-    ];
-    for (const domain of allowedDomains) {
-      await ctx.db.insert("allowedDomains", domain);
-    }
-
     // Build project data for RAG indexing (to be done in seedAll action)
     const projectsForRag = projects.map((project, index) => ({
       projectId: projectIds[index],
