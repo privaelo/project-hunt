@@ -2,6 +2,13 @@
 
 import { Amplify } from "aws-amplify";
 
+console.log('[AMPLIFY CONFIG]', {
+  userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID,
+  clientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID,
+  domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN,
+  redirectUri: process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI,
+});
+
 Amplify.configure({
   Auth: {
     Cognito: {
