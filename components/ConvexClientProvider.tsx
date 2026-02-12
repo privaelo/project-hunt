@@ -2,7 +2,7 @@
 
 import '@/lib/amplify-config';
 
-import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { ConvexReactClient, useMutation } from 'convex/react';
 import { ConvexProviderWithAuth } from 'convex/react';
 import { fetchAuthSession, getCurrentUser } from 'aws-amplify/auth';
@@ -45,17 +45,14 @@ function EnsureUser() {
 function useAuthFromCognito() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const tokenRef = useRef<string | null>(null);
 
   useEffect(() => {
     async function checkAuth() {
       try {
         const session = await fetchAuthSession();
         const idToken = session.tokens?.idToken?.toString() ?? null;
-        tokenRef.current = idToken;
         setIsAuthenticated(!!idToken);
       } catch {
-        tokenRef.current = null;
         setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
@@ -65,10 +62,13 @@ function useAuthFromCognito() {
     void checkAuth();
 
     const unsubscribe = Hub.listen('auth', ({ payload }) => {
-      if (payload.event === 'signedIn' || payload.event === 'tokenRefresh') {
+      if (
+        payload.event === 'signedIn' ||
+        payload.event === 'signInWithRedirect' ||
+        payload.event === 'tokenRefresh'
+      ) {
         void checkAuth();
       } else if (payload.event === 'signedOut') {
-        tokenRef.current = null;
         setIsAuthenticated(false);
       }
     });
@@ -76,16 +76,19 @@ function useAuthFromCognito() {
     return unsubscribe;
   }, []);
 
-  const fetchAccessToken = useCallback(async () => {
-    try {
-      const session = await fetchAuthSession({ forceRefresh: false });
-      const idToken = session.tokens?.idToken?.toString() ?? null;
-      tokenRef.current = idToken;
-      return idToken;
-    } catch {
-      return null;
-    }
-  }, []);
+  const fetchAccessToken = useCallback(
+    async ({ forceRefreshToken }: { forceRefreshToken: boolean }) => {
+      try {
+        const session = await fetchAuthSession({
+          forceRefresh: forceRefreshToken,
+        });
+        return session.tokens?.idToken?.toString() ?? null;
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
 
   return useMemo(() => ({
     isLoading,
