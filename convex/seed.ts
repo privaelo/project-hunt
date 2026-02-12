@@ -412,7 +412,6 @@ export const seed = internalMutation({
         commentUpvotes: commentUpvoteCount,
         projectViews: projectViews.length,
         notifications: notifications.length,
-        allowedDomains: allowedDomains.length,
       },
       projectsForRag,
     };
