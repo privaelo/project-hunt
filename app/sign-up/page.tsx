@@ -1,7 +1,5 @@
 'use client';
 
-import '@/lib/amplify-config';
-
 import { useEffect } from 'react';
 import { signInWithRedirect } from 'aws-amplify/auth';
 

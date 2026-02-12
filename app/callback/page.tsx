@@ -9,10 +9,7 @@ export default function CallbackPage() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('[CALLBACK DEBUG] CallbackPage mounted, URL:', window.location.href);
-
     const unsubscribe = Hub.listen('auth', ({ payload }) => {
-      console.log(`[CALLBACK DEBUG] Hub event: ${payload.event}`, payload);
       if (
         payload.event === 'signedIn' ||
         payload.event === 'signInWithRedirect'
@@ -20,7 +17,6 @@ export default function CallbackPage() {
         router.replace('/');
       }
       if (payload.event === 'signInWithRedirect_failure') {
-        console.error('[CALLBACK DEBUG] OAuth sign-in failed', payload);
         router.replace('/');
       }
     });
@@ -28,12 +24,11 @@ export default function CallbackPage() {
     // Fallback: if the token exchange already completed before the
     // listener attached, redirect immediately.
     getCurrentUser()
-      .then((user) => {
-        console.log('[CALLBACK DEBUG] getCurrentUser success:', user);
+      .then(() => {
         router.replace('/');
       })
-      .catch((err) => {
-        console.log('[CALLBACK DEBUG] getCurrentUser failed (waiting for Hub):', err);
+      .catch(() => {
+        // Waiting for Hub event
       });
 
     return unsubscribe;

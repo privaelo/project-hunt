@@ -54,35 +54,27 @@ function useAuthFromCognito() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    async function checkAuth(source: string) {
-      console.log(`[AUTH DEBUG] checkAuth called from: ${source}`);
+    async function checkAuth() {
       try {
         const session = await fetchAuthSession();
         const idToken = session.tokens?.idToken?.toString() ?? null;
-        console.log(`[AUTH DEBUG] fetchAuthSession result:`, {
-          hasTokens: !!session.tokens,
-          hasIdToken: !!idToken,
-          idTokenPrefix: idToken ? idToken.substring(0, 30) + '...' : null,
-        });
         setIsAuthenticated(!!idToken);
-      } catch (err) {
-        console.log(`[AUTH DEBUG] fetchAuthSession ERROR:`, err);
+      } catch {
         setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
       }
     }
 
-    void checkAuth('initial mount');
+    void checkAuth();
 
     const unsubscribe = Hub.listen('auth', ({ payload }) => {
-      console.log(`[AUTH DEBUG] Hub event: ${payload.event}`, payload);
       if (
         payload.event === 'signedIn' ||
         payload.event === 'signInWithRedirect' ||
         payload.event === 'tokenRefresh'
       ) {
-        void checkAuth(`hub:${payload.event}`);
+        void checkAuth();
       } else if (payload.event === 'signedOut') {
         setIsAuthenticated(false);
       }
@@ -97,26 +89,16 @@ function useAuthFromCognito() {
         const session = await fetchAuthSession({
           forceRefresh: forceRefreshToken,
         });
-        const token = session.tokens?.idToken?.toString() ?? null;
-        console.log(`[AUTH DEBUG] fetchAccessToken called (forceRefresh=${forceRefreshToken}):`, {
-          hasToken: !!token,
-          tokenPrefix: token ? token.substring(0, 30) + '...' : null,
-        });
-        return token;
-      } catch (err) {
-        console.log(`[AUTH DEBUG] fetchAccessToken ERROR:`, err);
+        return session.tokens?.idToken?.toString() ?? null;
+      } catch {
         return null;
       }
     },
     [],
   );
 
-  return useMemo(() => {
-    console.log(`[AUTH DEBUG] useAuthFromCognito returning:`, { isLoading, isAuthenticated });
-    return {
-      isLoading,
-      isAuthenticated,
-      fetchAccessToken,
-    };
-  }, [isLoading, isAuthenticated, fetchAccessToken]);
+  return useMemo(
+    () => ({ isLoading, isAuthenticated, fetchAccessToken }),
+    [isLoading, isAuthenticated, fetchAccessToken],
+  );
 }
