@@ -70,7 +70,6 @@ export const seed = internalMutation({
         onboardingCompleted: i !== 4,
         teamId: user.teamId,
         userIntent: user.userIntent,
-        tokenIdentifier: i === 5 ? `token_preview_${i + 1}` : undefined,
       });
       userIds.push(id);
     }

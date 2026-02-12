@@ -65,26 +65,6 @@ export const migrateWorkosToExternalUserId = internalMutation({
   },
 });
 
-// Migration: Remove tokenIdentifier field from all users
-export const removeTokenIdentifierFromUsers = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    const users = await ctx.db.query("users").collect();
-    let updated = 0;
-
-    for (const user of users) {
-      if ("tokenIdentifier" in user && user.tokenIdentifier !== undefined) {
-        await ctx.db.patch(user._id, { tokenIdentifier: undefined });
-        updated++;
-        console.log(`Removed tokenIdentifier from user: ${user.name}`);
-      }
-    }
-
-    console.log(`Migration complete. Updated ${updated} of ${users.length} users.`);
-    return { updated, total: users.length };
-  },
-});
-
 // Internal mutation to upsert a user
 export const upsertUser = internalMutation({
   args: {

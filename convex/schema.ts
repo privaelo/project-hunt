@@ -119,8 +119,8 @@ export default defineSchema({
     email: v.optional(v.string()),
     avatarUrlId: v.optional(v.string()),
     teamId: v.optional(v.id("teams")),
-    tokenIdentifier: v.optional(v.string()),
-    externalUserId: v.string(),
+    externalUserId: v.optional(v.string()),
+    workosUserId: v.optional(v.string()),
     onboardingCompleted: v.boolean(),
     userIntent: v.optional(v.union(v.literal("looking"), v.literal("sharing"), v.literal("both"))),
   })
