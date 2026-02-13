@@ -4,22 +4,26 @@ import { Amplify } from "aws-amplify";
 
 const signOutUri =
   process.env.NEXT_PUBLIC_COGNITO_SIGN_OUT_URI ??
-  new URL("/", process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!).origin;
+  (process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI
+    ? new URL("/", process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI).origin
+    : "/");
 
-Amplify.configure({
-  Auth: {
-    Cognito: {
-      userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID!,
-      userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
-      loginWith: {
-        oauth: {
-          domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
-          scopes: ["openid", "email", "profile"],
-          redirectSignIn: [process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!],
-          redirectSignOut: [signOutUri],
-          responseType: "code",
+if (process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID) {
+  Amplify.configure({
+    Auth: {
+      Cognito: {
+        userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID,
+        userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
+        loginWith: {
+          oauth: {
+            domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
+            scopes: ["openid", "email", "profile"],
+            redirectSignIn: [process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!],
+            redirectSignOut: [signOutUri],
+            responseType: "code",
+          },
         },
       },
     },
-  },
-});
+  });
+}
