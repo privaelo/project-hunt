@@ -3,29 +3,6 @@ import { v } from "convex/values";
 import { rag } from "./rag";
 import { vNamespaceId } from "@convex-dev/rag";
 
-// Migration: Rename workosUserId → externalUserId for Cognito migration
-export const migrateWorkosToExternalUserId = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    const users = await ctx.db.query("users").collect();
-    let updated = 0;
-
-    for (const user of users) {
-      const doc = user as Record<string, unknown>;
-      if (doc.workosUserId && !user.externalUserId) {
-        await ctx.db.patch(user._id, {
-          externalUserId: doc.workosUserId as string,
-        });
-        updated++;
-        console.log(`Migrated user: ${user.name} (${doc.workosUserId})`);
-      }
-    }
-
-    console.log(`Migration complete. Updated ${updated} of ${users.length} users.`);
-    return { updated, total: users.length };
-  },
-});
-
 // Internal mutation to upsert a user
 export const upsertUser = internalMutation({
   args: {
