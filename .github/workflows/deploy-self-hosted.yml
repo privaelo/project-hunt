@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: prod
 
     env:
       # Set these in your repo settings → Actions → Secrets and variables → Actions
