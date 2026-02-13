@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Authenticated, useQuery } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { CreateFocusAreaDialog } from "./CreateFocusAreaDialog";
 import { SpaceIcon } from "./SpaceIcon";
@@ -71,45 +71,43 @@ function SidebarSpaces() {
 export function AppSidebar() {
   return (
     <Sidebar collapsible="offcanvas">
-      <Authenticated>
-        <SidebarHeader className="p-4">
-          <SidebarMenu className="gap-0">
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild size="lg">
-                <Link href="/">
-                  <Home className="h-4 w-4" />
-                  <span>Home</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild size="lg">
-                <Link href="/submit">
-                  <PlusCircle className="h-4 w-4" />
-                  <span>Share a Tool</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader>
+      <SidebarHeader className="p-4">
+        <SidebarMenu className="gap-0">
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild size="lg">
+              <Link href="/">
+                <Home className="h-4 w-4" />
+                <span>Home</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild size="lg">
+              <Link href="/submit">
+                <PlusCircle className="h-4 w-4" />
+                <span>Share a Tool</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
 
-        <SidebarContent className="px-4">
-          <SidebarSpaces />
-        </SidebarContent>
+      <SidebarContent className="px-4">
+        <SidebarSpaces />
+      </SidebarContent>
 
-        <SidebarFooter className="p-4">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/about">
-                  <Info className="h-4 w-4" />
-                  <span>Why I Built Garden</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-      </Authenticated>
+      <SidebarFooter className="p-4">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link href="/about">
+                <Info className="h-4 w-4" />
+                <span>Why I Built Garden</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
