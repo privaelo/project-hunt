@@ -21,7 +21,7 @@ export default function ProtectedLayout({
       <Unauthenticated>
         <div className="flex min-h-screen items-center justify-center p-6 text-center">
           <p className="max-w-xl text-xl font-semibold tracking-tight text-zinc-800 sm:text-2xl">
-            Please sign in if you&apos;d like to peruse
+            Sign in to peruse
           </p>
         </div>
       </Unauthenticated>

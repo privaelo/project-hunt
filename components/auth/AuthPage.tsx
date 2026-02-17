@@ -34,6 +34,15 @@ const formFields = {
 };
 
 const components = {
+  SignIn: {
+    Header() {
+      return (
+        <p className="px-8 pt-6 text-sm text-muted-foreground">
+          Sign in with your Garden account — separate from your regular Microsoft account.
+        </p>
+      );
+    },
+  },
   ConfirmSignUp: {
     Footer() {
       return (

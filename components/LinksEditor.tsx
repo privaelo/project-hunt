@@ -69,7 +69,7 @@ export function LinksEditor({ links, onChange, disabled }: LinksEditorProps) {
       </div>
       <Button
         type="button"
-        variant="outline"
+        variant="ghost"
         size="sm"
         className="mt-2"
         onClick={addLink}

@@ -218,25 +218,8 @@ export default function ProfilePage({
         </div>
 
         <Tabs defaultValue="projects" className="space-y-6">
-          <div className="flex justify-center">
-            <TabsList className="bg-white/90 shadow-sm ring-1 ring-zinc-200">
-              <TabsTrigger value="projects" className="gap-2">
-                Built
-                <Badge variant="secondary" className="bg-zinc-100">
-                  {profile.projectCount}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="adopted" className="gap-2">
-                {`Tools ${firstName} uses`}
-                <Badge variant="secondary" className="bg-zinc-100">
-                  {profile.adoptionCount}
-                </Badge>
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="projects" className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative flex items-center">
+            <div className="absolute left-0">
               {isOwner && (
                 <Button variant="outline" asChild>
                   <Link href="/submit" prefetch={false}>
@@ -245,6 +228,25 @@ export default function ProfilePage({
                 </Button>
               )}
             </div>
+            <div className="flex flex-1 justify-center">
+              <TabsList className="bg-white/90 shadow-sm ring-1 ring-zinc-200">
+                <TabsTrigger value="projects" className="gap-2">
+                  Built
+                  <Badge variant="secondary" className="bg-zinc-100">
+                    {profile.projectCount}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="adopted" className="gap-2">
+                  {`Tools ${firstName} uses`}
+                  <Badge variant="secondary" className="bg-zinc-100">
+                    {profile.adoptionCount}
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          </div>
+
+          <TabsContent value="projects" className="space-y-4">
             {projects === undefined ? (
               <EmptyState message="Loading tools..." />
             ) : projects.length === 0 ? (

@@ -271,3 +271,35 @@ body {
 .rich-text-content s {
   text-decoration: line-through;
 }
+
+/* Amplify Authenticator - platform theme */
+[data-amplify-authenticator] {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --amplify-components-authenticator-router-background-color: var(--card);
+  --amplify-components-authenticator-router-border-color: var(--border);
+  --amplify-components-authenticator-router-border-width: 1px;
+  --amplify-components-authenticator-router-box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+  --amplify-components-authenticator-form-padding: var(--amplify-space-xl);
+  --amplify-components-button-primary-background-color: var(--primary);
+  --amplify-components-button-primary-color: var(--primary-foreground);
+  --amplify-components-button-primary-hover-background-color: var(--primary);
+  --amplify-components-button-primary-hover-color: var(--primary-foreground);
+  --amplify-components-button-primary-focus-background-color: var(--primary);
+  --amplify-components-button-primary-focus-color: var(--primary-foreground);
+  --amplify-components-button-primary-active-background-color: var(--primary);
+  --amplify-components-button-primary-active-color: var(--primary-foreground);
+  --amplify-components-button-link-color: var(--primary);
+  --amplify-components-button-link-hover-color: var(--primary);
+  --amplify-components-button-link-focus-color: var(--primary);
+  --amplify-components-button-link-active-color: var(--primary);
+  --amplify-components-fieldcontrol-border-color: var(--border);
+  --amplify-components-fieldcontrol-color: var(--foreground);
+  --amplify-components-fieldcontrol-focus-border-color: var(--ring);
+  --amplify-components-fieldcontrol-focus-box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+  --amplify-components-fieldcontrol-border-radius: var(--radius);
+  --amplify-components-field-label-color: var(--foreground);
+  --amplify-components-tabs-item-color: var(--muted-foreground);
+  --amplify-components-tabs-item-active-color: var(--foreground);
+  --amplify-components-tabs-item-active-border-color: var(--primary);
+  --amplify-components-tabs-item-border-color: var(--border);
+}
