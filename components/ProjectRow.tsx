@@ -142,8 +142,8 @@ export function ProjectRow({
       </div>
 
       {/* Title */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <h3 className="text-xl font-semibold text-zinc-900">{project.name}</h3>
+      <div className="flex items-center gap-2 flex-wrap -mt-1">
+        <h3 className="text-lg font-semibold text-zinc-900">{project.name}</h3>
         <ReadinessBadge status={project.readinessStatus} />
       </div>
 

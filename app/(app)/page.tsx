@@ -10,7 +10,6 @@ import { motion, LayoutGroup } from "motion/react";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
-import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 import { Separator } from "@/components/ui/separator";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { ProjectRow, type ProjectRowData } from "@/components/ProjectRow";
