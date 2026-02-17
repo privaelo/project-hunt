@@ -5,8 +5,6 @@
 /* Provides styles for Radix Themes components and its theming API */
 @import '@radix-ui/themes/styles.css';
 
-@import "@aws-amplify/ui-react/styles.css";
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

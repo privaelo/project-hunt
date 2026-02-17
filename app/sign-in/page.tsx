@@ -1,5 +1,6 @@
 'use client';
 
+import '@aws-amplify/ui-react/styles.css';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Authenticator } from '@aws-amplify/ui-react';

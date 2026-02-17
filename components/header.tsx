@@ -220,7 +220,7 @@ export function Header() {
                       <li>
                         <button
                           onClick={() => void signOut()}
-                          className="flex w-full select-none items-center gap-2 rounded-md px-3 py-2 text-sm font-medium leading-none text-zinc-700 outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900"
+                          className="flex w-full select-none items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium normal-case tracking-normal leading-none text-zinc-700 outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900"
                         >
                           <LogOut className="h-4 w-4" />
                           <span>Log Out</span>
@@ -239,11 +239,11 @@ export function Header() {
                   Sign In
                 </Link>
               </Button>
-              <Link href="/sign-up" prefetch={false}>
-                <Button size="sm">
+              <Button size="sm" asChild>
+                <Link href="/sign-up" prefetch={false}>
                   Sign Up
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </>
           )}
 
