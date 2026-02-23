@@ -1,4 +1,4 @@
-import { query, QueryCtx, mutation } from "./_generated/server";
+import { query, QueryCtx, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 
@@ -159,10 +159,10 @@ export const ensureUser = mutation({
     // 2. Try re-linking by email (for users migrated from WorkOS)
     if (email) {
       const emailLower = email.toLowerCase();
-      const allUsers = await ctx.db.query("users").collect();
-      const existingByEmail = allUsers.find(
-        (u) => u.email?.toLowerCase() === emailLower
-      ) ?? null;
+      const existingByEmail = await ctx.db
+        .query("users")
+        .withIndex("by_email_lower", (q) => q.eq("emailLower", emailLower))
+        .first();
 
       if (existingByEmail) {
         await ctx.db.patch(existingByEmail._id, {
@@ -177,6 +177,7 @@ export const ensureUser = mutation({
     const userId = await ctx.db.insert("users", {
       externalUserId: cognitoSub,
       email: email ?? undefined,
+      emailLower: email ? email.toLowerCase() : undefined,
       name,
       onboardingCompleted: false,
     });
@@ -236,5 +237,22 @@ export const getActiveUsers = query({
       .filter((u) => u.score > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, limit);
+  },
+});
+
+// One-time backfill: populate emailLower for existing users that predate this field.
+// Run once via the Convex dashboard after deploying: internal:users:backfillEmailLower
+export const backfillEmailLower = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+    let updated = 0;
+    for (const user of users) {
+      if (user.email && user.emailLower === undefined) {
+        await ctx.db.patch(user._id, { emailLower: user.email.toLowerCase() });
+        updated++;
+      }
+    }
+    return { updated };
   },
 });

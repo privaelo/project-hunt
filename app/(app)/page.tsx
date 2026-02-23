@@ -100,12 +100,6 @@ export default function Home() {
       <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6 pb-16 pt-10">
         <section className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div className="space-y-2">
-            <div>
-              <h2 className="text-3xl font-semibold tracking-tight flex items-center gap-3">
-                What people are making
-              </h2>
-
-            </div>
             <LayoutGroup>
               <div className="space-y-0">
                 {isLoading ? (

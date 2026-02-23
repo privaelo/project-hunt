@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   useMutation,
   useQuery,
@@ -84,7 +85,7 @@ export function Header() {
     <header className="fixed inset-x-0 top-0 z-50 w-full border-b border-zinc-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         {/* Left: Garden Logo/Name */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Link
             href="/"
             className="text-xl font-semibold text-emerald-700 hover:text-emerald-800 transition-colors"
@@ -92,6 +93,14 @@ export function Header() {
           >
             Garden
           </Link>
+          <span className="hidden sm:block h-5 w-px bg-zinc-300" aria-hidden />
+          <Image
+            src="/TTGFullLogo.png"
+            alt="Tech Tribes Global"
+            width={160}
+            height={32}
+            priority
+          />
         </div>
 
         {isAuthenticated && (

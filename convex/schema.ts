@@ -117,6 +117,7 @@ export default defineSchema({
   users: defineTable({
     name: v.string(),
     email: v.optional(v.string()),
+    emailLower: v.optional(v.string()),
     avatarUrlId: v.optional(v.string()),
     teamId: v.optional(v.id("teams")),
     externalUserId: v.optional(v.string()),
@@ -127,7 +128,8 @@ export default defineSchema({
     .index("by_teamId", ["teamId"])
     .index("by_userIntent", ["userIntent"])
     .index("by_externalUserId", ["externalUserId"])
-    .index("by_email", ["email"]),
+    .index("by_email", ["email"])
+    .index("by_email_lower", ["emailLower"]),
   userFocusAreas: defineTable({
     userId: v.id("users"),
     focusAreaId: v.id("focusAreas"),
