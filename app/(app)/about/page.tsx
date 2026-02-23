@@ -16,7 +16,7 @@ export default function AboutPage() {
             Garden started as a (slightly selfish) attempt to give my work a better spotlight than the endless void of giant Teams channels, but it didn&apos;t take long to realize I wasn&apos;t the only one who could benefit from a platform like this. 
           </p>
           <p className="text-xl text-zinc-600 leading-relaxed">
-            Across the organization, people were building useful tools *often in parallel*, yet those scripts, dashboards, and automations rarely made it beyond a small circle.
+            Across Honda, people were building useful tools *often in parallel*, yet those scripts, dashboards, and automations rarely made it beyond a small circle.
           </p>
           <p className="text-xl text-zinc-600 leading-relaxed">
             Garden is my attempt to fix that, even if just a little. It’s a step toward making internal tools easier to discover, surfacing work that might be useful beyond the team it was built for, and bringing good ideas closer to the people who didn’t even know they were looking for them.
