@@ -158,10 +158,11 @@ export const ensureUser = mutation({
 
     // 2. Try re-linking by email (for users migrated from WorkOS)
     if (email) {
-      const existingByEmail = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", email))
-        .first();
+      const emailLower = email.toLowerCase();
+      const allUsers = await ctx.db.query("users").collect();
+      const existingByEmail = allUsers.find(
+        (u) => u.email?.toLowerCase() === emailLower
+      ) ?? null;
 
       if (existingByEmail) {
         await ctx.db.patch(existingByEmail._id, {
