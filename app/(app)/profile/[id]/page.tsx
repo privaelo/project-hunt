@@ -151,7 +151,7 @@ export default function ProfilePage({
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <main className="mx-auto w-full max-w-5xl space-y-8 px-6 pb-16 pt-10">
+      <main className="mx-auto w-full max-w-5xl space-y-8 px-6 pb-16 pt-4">
         <div className="relative flex flex-col items-center gap-6 pr-12 text-center md:items-start md:text-left">
           {!isOwner && email && (
             <div className="absolute right-0 top-0 flex gap-1">

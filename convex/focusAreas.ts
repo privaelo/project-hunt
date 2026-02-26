@@ -117,6 +117,17 @@ export const isFollowingSpace = query({
   },
 });
 
+export const getMemberCount = query({
+  args: { focusAreaId: v.id("focusAreas") },
+  handler: async (ctx, args) => {
+    const members = await ctx.db
+      .query("userFocusAreas")
+      .withIndex("by_focus_area", (q) => q.eq("focusAreaId", args.focusAreaId))
+      .collect();
+    return members.length;
+  },
+});
+
 export const toggleFollowSpace = mutation({
   args: { focusAreaId: v.id("focusAreas") },
   handler: async (ctx, args) => {

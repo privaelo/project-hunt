@@ -207,7 +207,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   if (isLoading) {
     return (
       <div className="min-h-screen bg-zinc-50">
-        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
+        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-4">
           <p className="text-zinc-500">Loading...</p>
         </main>
       </div>
@@ -217,7 +217,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   if (!project) {
     return (
       <div className="min-h-screen bg-zinc-50">
-        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
+        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-4">
           <p className="text-zinc-500">Project not found</p>
         </main>
       </div>
@@ -226,7 +226,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-4">
         <div className="mb-2 space-y-2">
           <h2 className="text-3xl font-semibold tracking-tight">Update your project details</h2>
         </div>

@@ -96,7 +96,7 @@ function ConfirmSubmissionContent() {
   if (!projectId) {
     return (
       <div className="min-h-screen bg-zinc-50">
-        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
+        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-4">
           <p className="text-center text-zinc-500">Invalid project ID</p>
         </main>
       </div>
@@ -106,7 +106,7 @@ function ConfirmSubmissionContent() {
   if (!project) {
     return (
       <div className="min-h-screen bg-zinc-50">
-        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
+        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-4">
           <p className="text-center text-zinc-500">Loading...</p>
         </main>
       </div>
@@ -115,7 +115,7 @@ function ConfirmSubmissionContent() {
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-4">
         <div className="mb-2 space-y-2">
           <h2 className="text-3xl font-semibold tracking-tight">Share what you&apos;re working on</h2>
           <Accordion type="single" collapsible>
@@ -262,7 +262,7 @@ export default function ConfirmSubmission() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-zinc-50">
-          <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-10">
+          <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-4">
             <p className="text-center text-zinc-500">Loading...</p>
           </main>
         </div>
