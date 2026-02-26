@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useRef } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/app/useCurrentUser";
@@ -17,8 +17,15 @@ import { RichTextContent } from "@/components/RichTextContent";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Facepile } from "@/components/Facepile";
 import Link from "next/link";
-import { Eye, Link2, Pencil } from "lucide-react";
+import { Eye, Link2, Pencil, Share } from "lucide-react";
 import { SpaceIcon } from "@/components/SpaceIcon";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const VIEWER_ID_STORAGE_KEY = "ph_viewer_id";
 
@@ -91,17 +98,13 @@ export default function ProjectPage({
   const projectMedia = useQuery(api.projects.getProjectMedia, { projectId });
   const projectFile = useQuery(api.projects.getProjectFile, { projectId });
   const comments = useQuery(api.comments.getComments, { projectId });
-  const isFollowingSpace = useQuery(
-    api.focusAreas.isFollowingSpace,
-    project?.focusArea ? { focusAreaId: project.focusArea._id } : "skip"
-  );
-  const toggleFollowSpace = useMutation(api.focusAreas.toggleFollowSpace);
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
   const toggleAdoption = useMutation(api.projects.toggleAdoption);
   const trackView = useMutation(api.projects.trackView);
   const trackedProjectId = useRef<Id<"projects"> | null>(null);
 
   const isOwner = user && project && project.userId === user._id;
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Get top-level comments (no parent)
   const topLevelComments =
@@ -125,21 +128,17 @@ export default function ProjectPage({
     void trackView({ projectId, viewerId });
   }, [project, projectId, trackView]);
 
-  const handleFollowSpace = async () => {
-    if (!project?.focusArea) return;
-    try {
-      await toggleFollowSpace({ focusAreaId: project.focusArea._id });
-    } catch (error) {
-      console.error("Failed to toggle follow:", error);
-    }
-  };
-
   const handleUpvote = async () => {
     try {
       await toggleUpvote({ projectId });
     } catch (error) {
       console.error("Failed to toggle upvote:", error);
     }
+  };
+
+  const handleShare = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+    setShareOpen(true);
   };
 
   const handleAdopt = async () => {
@@ -357,38 +356,16 @@ export default function ProjectPage({
                   </div>
                 </div>
 
-                {project.focusArea && (
-                  <div className="space-y-3 border-t border-zinc-300 pt-5">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                      Space
-                    </p>
-                    <div className="flex items-center justify-between gap-2">
-                      <Link
-                        href={`/space/${project.focusArea._id}`}
-                        className="flex items-center gap-2 text-sm font-medium text-zinc-700 hover:text-zinc-900"
-                      >
-                        <SpaceIcon icon={project.focusArea.icon} name={project.focusArea.name} size="sm" />
-                        g/{project.focusArea.name}
-                      </Link>
-                      {isAuthenticated ? (
-                        <Button
-                          variant={isFollowingSpace ? "default" : "outline"}
-                          size="sm"
-                          onClick={handleFollowSpace}
-                          className="h-7 text-xs"
-                        >
-                          {isFollowingSpace ? "Joined" : "Join"}
-                        </Button>
-                      ) : (
-                        <Button variant="outline" size="sm" className="h-7 text-xs" asChild>
-                          <Link href="/sign-in" prefetch={false}>
-                            Join
-                          </Link>
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                )}
+                <div>
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 rounded-full bg-accent text-accent-foreground border-accent hover:bg-background hover:text-foreground hover:border-input"
+                    onClick={handleShare}
+                  >
+                    <Share className="h-4 w-4" />
+                    Share
+                  </Button>
+                </div>
 
                 {(projectLinks.length > 0 || (projectFile && projectFile.url)) && (
                   <div className="space-y-3 border-t border-zinc-300 pt-5">
@@ -423,6 +400,17 @@ export default function ProjectPage({
           </aside>
         </div>
       </main>
+
+      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Link copied!</DialogTitle>
+            <DialogDescription>
+              The link to this project has been copied to your clipboard.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
