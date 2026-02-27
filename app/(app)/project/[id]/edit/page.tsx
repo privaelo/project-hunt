@@ -13,7 +13,7 @@ import { Info } from "lucide-react";
 import { LinksEditor, type LinkItem } from "@/components/LinksEditor";
 import { SpacePicker } from "@/components/SpacePicker";
 import { MediaUploadField, type ExistingMediaItem, type NewFileItem } from "@/components/MediaUploadField";
-import { ZipUploadField } from "@/components/ZipUploadField";
+import { FileUploadField, type NewProjectFileItem } from "@/components/FileUploadField";
 import { Slider } from "@/components/ui/slider";
 import {
   Tooltip,
@@ -30,7 +30,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   const projectId = id as Id<"projects">;
   const project = useQuery(api.projects.getById, { projectId });
   const projectMedia = useQuery(api.projects.getProjectMedia, { projectId });
-  const projectFile = useQuery(api.projects.getProjectFile, { projectId });
+  const projectFiles = useQuery(api.projects.getProjectFiles, { projectId });
   const updateProject = useAction(api.projects.updateProject);
   const generateUploadUrl = useMutation(api.projects.generateUploadUrl);
   const deleteMediaFromProject = useMutation(api.projects.deleteMediaFromProject);
@@ -59,8 +59,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
-  const [selectedZipFile, setSelectedZipFile] = useState<File | null>(null);
-  const [deleteExistingZipFile, setDeleteExistingZipFile] = useState(false);
+  const [newProjectFiles, setNewProjectFiles] = useState<NewProjectFileItem[]>([]);
   const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>(null);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"just_an_idea" | "early_prototype" | "mostly_working" | "ready_to_use">("just_an_idea");
 
@@ -86,8 +85,13 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
     }
   };
 
-  const handleExistingZipFileDelete = () => {
-    setDeleteExistingZipFile(true);
+  const handleExistingFileDelete = async (fileId: Id<"projectFiles">) => {
+    try {
+      await deleteFileFromProject({ projectId, fileId });
+    } catch (error) {
+      console.error("Failed to delete file:", error);
+      alert("Failed to delete file. Please try again.");
+    }
   };
 
   // Populate form when project data loads
@@ -167,32 +171,32 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
         );
       }
 
-      // Handle zip file changes
-      if (deleteExistingZipFile && !selectedZipFile) {
-        // Delete existing file without replacement
-        await deleteFileFromProject({ projectId });
-      } else if (selectedZipFile) {
-        // Upload new zip file (will replace existing if any)
-        const uploadUrl = await generateUploadUrl();
-        const uploadResult = await fetch(uploadUrl, {
-          method: "POST",
-          headers: { "Content-Type": selectedZipFile.type },
-          body: selectedZipFile,
-        });
+      // Upload new project files if any
+      if (newProjectFiles.length > 0) {
+        await Promise.all(
+          newProjectFiles.map(async ({ file }) => {
+            const uploadUrl = await generateUploadUrl();
+            const uploadResult = await fetch(uploadUrl, {
+              method: "POST",
+              headers: { "Content-Type": file.type },
+              body: file,
+            });
 
-        if (!uploadResult.ok) {
-          throw new Error(`Failed to upload ${selectedZipFile.name}`);
-        }
+            if (!uploadResult.ok) {
+              throw new Error(`Failed to upload ${file.name}`);
+            }
 
-        const { storageId } = await uploadResult.json();
+            const { storageId } = await uploadResult.json();
 
-        await addFileToProject({
-          projectId,
-          storageId,
-          filename: selectedZipFile.name,
-          contentType: selectedZipFile.type,
-          fileSize: selectedZipFile.size,
-        });
+            await addFileToProject({
+              projectId,
+              storageId,
+              filename: file.name,
+              contentType: file.type,
+              fileSize: file.size,
+            });
+          })
+        );
       }
 
       router.push(`/project/${id}`);
@@ -308,14 +312,15 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
                   disabled={isSubmitting}
                 />
 
-                <ZipUploadField
-                  selectedFile={selectedZipFile}
-                  onFileChange={setSelectedZipFile}
-                  existingFile={!deleteExistingZipFile && projectFile ? {
-                    filename: projectFile.filename,
-                    fileSize: projectFile.fileSize,
-                  } : null}
-                  onExistingFileDelete={handleExistingZipFileDelete}
+                <FileUploadField
+                  existingFiles={projectFiles?.map((f) => ({
+                    _id: f._id,
+                    filename: f.filename,
+                    fileSize: f.fileSize,
+                  }))}
+                  onExistingFileDelete={handleExistingFileDelete}
+                  newFiles={newProjectFiles}
+                  onNewFilesChange={setNewProjectFiles}
                   disabled={isSubmitting}
                 />
               </div>

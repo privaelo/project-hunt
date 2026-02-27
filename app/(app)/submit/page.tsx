@@ -15,7 +15,7 @@ import { Info } from "lucide-react";
 import { SimilarProjectsPreview } from "@/components/SimilarProjectsPreview";
 import { SpacePicker } from "@/components/SpacePicker";
 import { MediaUploadField, type NewFileItem } from "@/components/MediaUploadField";
-import { ZipUploadField } from "@/components/ZipUploadField";
+import { FileUploadField, type NewProjectFileItem } from "@/components/FileUploadField";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -53,7 +53,7 @@ export default function SubmitProject() {
   const [links, setLinks] = useState<LinkItem[]>([{ url: "", label: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
-  const [selectedZipFile, setSelectedZipFile] = useState<File | null>(null);
+  const [selectedProjectFiles, setSelectedProjectFiles] = useState<NewProjectFileItem[]>([]);
   const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>("personal");
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"just_an_idea" | "early_prototype" | "mostly_working" | "ready_to_use">("just_an_idea");
 
@@ -133,28 +133,32 @@ export default function SubmitProject() {
         );
       }
 
-      // Upload zip file if selected
-      if (selectedZipFile) {
-        const uploadUrl = await generateUploadUrl();
-        const uploadResult = await fetch(uploadUrl, {
-          method: "POST",
-          headers: { "Content-Type": selectedZipFile.type },
-          body: selectedZipFile,
-        });
+      // Upload project files if any are selected
+      if (selectedProjectFiles.length > 0) {
+        await Promise.all(
+          selectedProjectFiles.map(async ({ file }) => {
+            const uploadUrl = await generateUploadUrl();
+            const uploadResult = await fetch(uploadUrl, {
+              method: "POST",
+              headers: { "Content-Type": file.type },
+              body: file,
+            });
 
-        if (!uploadResult.ok) {
-          throw new Error(`Failed to upload ${selectedZipFile.name}`);
-        }
+            if (!uploadResult.ok) {
+              throw new Error(`Failed to upload ${file.name}`);
+            }
 
-        const { storageId } = await uploadResult.json();
+            const { storageId } = await uploadResult.json();
 
-        await addFileToProject({
-          projectId: result.projectId,
-          storageId,
-          filename: selectedZipFile.name,
-          contentType: selectedZipFile.type,
-          fileSize: selectedZipFile.size,
-        });
+            await addFileToProject({
+              projectId: result.projectId,
+              storageId,
+              filename: file.name,
+              contentType: file.type,
+              fileSize: file.size,
+            });
+          })
+        );
       }
 
       // If no similar projects found, auto-confirm and go home
@@ -298,9 +302,9 @@ export default function SubmitProject() {
                     onNewFilesChange={setSelectedFiles}
                     disabled={isSubmitting}
                   />
-                  <ZipUploadField
-                    selectedFile={selectedZipFile}
-                    onFileChange={setSelectedZipFile}
+                  <FileUploadField
+                    newFiles={selectedProjectFiles}
+                    onNewFilesChange={setSelectedProjectFiles}
                     disabled={isSubmitting}
                   />
                 </TabsContent>

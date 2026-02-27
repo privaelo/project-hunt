@@ -4,4 +4,5 @@ export function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export const MAX_ZIP_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB per file
+export const MAX_PROJECT_FILES = 10;

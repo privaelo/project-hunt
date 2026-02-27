@@ -96,7 +96,7 @@ export default function ProjectPage({
   const projectId = id as Id<"projects">;
   const project = useQuery(api.projects.getById, { projectId });
   const projectMedia = useQuery(api.projects.getProjectMedia, { projectId });
-  const projectFile = useQuery(api.projects.getProjectFile, { projectId });
+  const projectFiles = useQuery(api.projects.getProjectFiles, { projectId });
   const comments = useQuery(api.comments.getComments, { projectId });
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
   const toggleAdoption = useMutation(api.projects.toggleAdoption);
@@ -367,18 +367,14 @@ export default function ProjectPage({
                   </Button>
                 </div>
 
-                {(projectLinks.length > 0 || (projectFile && projectFile.url)) && (
+                {(projectLinks.length > 0 || (projectFiles && projectFiles.length > 0)) && (
                   <div className="space-y-3 border-t border-zinc-300 pt-5">
                     <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
                       Links &amp; Downloads
                     </p>
                     <div className="space-y-2">
-                      {projectFile && projectFile.url && (
-                        <ProjectFileDownload
-                          filename={projectFile.filename}
-                          fileSize={projectFile.fileSize}
-                          url={projectFile.url}
-                        />
+                      {projectFiles && projectFiles.length > 0 && (
+                        <ProjectFileDownload files={projectFiles} />
                       )}
                       {projectLinks.map((pl, i) => (
                         <a

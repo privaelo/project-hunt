@@ -184,15 +184,14 @@ export const addFileToProject = mutation({
       throw new Error("You can only edit your own projects");
     }
 
-    // Delete any existing file for this project (single file limit)
-    const existingFile = await ctx.db
+    // Enforce max 10 files per project
+    const existingFiles = await ctx.db
       .query("projectFiles")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .first();
+      .collect();
 
-    if (existingFile) {
-      await ctx.storage.delete(existingFile.storageId);
-      await ctx.db.delete(existingFile._id);
+    if (existingFiles.length >= 10) {
+      throw new Error("Maximum of 10 files per project");
     }
 
     // Add new file
@@ -210,6 +209,7 @@ export const addFileToProject = mutation({
 export const deleteFileFromProject = mutation({
   args: {
     projectId: v.id("projects"),
+    fileId: v.id("projectFiles"),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
@@ -223,12 +223,9 @@ export const deleteFileFromProject = mutation({
       throw new Error("You can only edit your own projects");
     }
 
-    const file = await ctx.db
-      .query("projectFiles")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .first();
+    const file = await ctx.db.get(args.fileId);
 
-    if (!file) {
+    if (!file || file.projectId !== args.projectId) {
       throw new Error("File not found");
     }
 
@@ -236,34 +233,30 @@ export const deleteFileFromProject = mutation({
     await ctx.storage.delete(file.storageId);
 
     // Delete file record
-    await ctx.db.delete(file._id);
+    await ctx.db.delete(args.fileId);
   },
 });
 
-export const getProjectFile = query({
+export const getProjectFiles = query({
   args: {
     projectId: v.id("projects"),
   },
   handler: async (ctx, args) => {
-    const file = await ctx.db
+    const files = await ctx.db
       .query("projectFiles")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .first();
+      .collect();
 
-    if (!file) {
-      return null;
-    }
-
-    const url = await ctx.storage.getUrl(file.storageId);
-
-    return {
-      _id: file._id,
-      filename: file.filename,
-      contentType: file.contentType,
-      fileSize: file.fileSize,
-      uploadedAt: file.uploadedAt,
-      url,
-    };
+    return await Promise.all(
+      files.map(async (file) => ({
+        _id: file._id,
+        filename: file.filename,
+        contentType: file.contentType,
+        fileSize: file.fileSize,
+        uploadedAt: file.uploadedAt,
+        url: await ctx.storage.getUrl(file.storageId),
+      }))
+    );
   },
 });
 
