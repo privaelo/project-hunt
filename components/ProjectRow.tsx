@@ -8,6 +8,13 @@ import { motion } from "motion/react";
 import { MessageCircle, Share } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { ProjectMediaCarousel } from "@/components/ProjectMediaCarousel";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Facepile } from "@/components/Facepile";
@@ -78,6 +85,7 @@ export function ProjectRow({
   isAuthenticated,
 }: ProjectRowProps) {
   const router = useRouter();
+  const [shareOpen, setShareOpen] = React.useState(false);
 
   const handleProjectClick = () => {
     router.push(`/project/${project._id}`);
@@ -96,6 +104,7 @@ export function ProjectRow({
   const handleShareClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigator.clipboard.writeText(`${window.location.origin}/project/${project._id}`);
+    setShareOpen(true);
   };
 
   const handleAdoptClick = () => {
@@ -217,6 +226,17 @@ export function ProjectRow({
           </Button>
         </motion.div>
       </div>
+
+      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Link copied!</DialogTitle>
+            <DialogDescription>
+              The link to this project has been copied to your clipboard.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
