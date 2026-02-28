@@ -1,7 +1,7 @@
 // components/ProjectRow.tsx
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
@@ -85,7 +85,7 @@ export function ProjectRow({
   isAuthenticated,
 }: ProjectRowProps) {
   const router = useRouter();
-  const [shareOpen, setShareOpen] = React.useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const handleProjectClick = () => {
     router.push(`/project/${project._id}`);
