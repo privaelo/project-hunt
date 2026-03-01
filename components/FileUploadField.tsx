@@ -4,17 +4,7 @@ import { useDropzone } from "react-dropzone";
 import { File as FileIcon, X } from "lucide-react";
 import { formatFileSize, MAX_FILE_SIZE, MAX_PROJECT_FILES } from "@/lib/fileSize";
 import { Id } from "@/convex/_generated/dataModel";
-
-export type ExistingFileItem = {
-  _id: Id<"projectFiles">;
-  filename: string;
-  fileSize: number;
-};
-
-export type NewProjectFileItem = {
-  file: File;
-  id: string;
-};
+import type { ExistingFileItem, NewProjectFileItem } from "@/lib/types";
 
 interface FileUploadFieldProps {
   existingFiles?: ExistingFileItem[];

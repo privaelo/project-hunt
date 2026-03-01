@@ -10,10 +10,11 @@ import { RichTextEditor } from "@/components/RichTextEditor";
 import { isRichTextEmpty } from "@/lib/utils";
 import { Id } from "@/convex/_generated/dataModel";
 import { Info } from "lucide-react";
-import { LinksEditor, type LinkItem } from "@/components/LinksEditor";
+import { LinksEditor } from "@/components/LinksEditor";
 import { SpacePicker } from "@/components/SpacePicker";
-import { MediaUploadField, type ExistingMediaItem, type NewFileItem } from "@/components/MediaUploadField";
-import { FileUploadField, type NewProjectFileItem } from "@/components/FileUploadField";
+import { MediaUploadField } from "@/components/MediaUploadField";
+import { FileUploadField } from "@/components/FileUploadField";
+import type { LinkItem, ExistingMediaItem, NewFileItem, NewProjectFileItem } from "@/lib/types";
 import { Slider } from "@/components/ui/slider";
 import {
   Tooltip,

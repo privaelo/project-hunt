@@ -12,7 +12,8 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCurrentUser } from "@/app/useCurrentUser";
-import { ProjectRow, type ProjectRowData } from "@/components/ProjectRow";
+import { ProjectRow } from "@/components/ProjectRow";
+import type { ProjectRowData } from "@/lib/types";
 
 type NewestProject = {
   _id: Id<"projects">;

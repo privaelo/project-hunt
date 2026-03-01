@@ -6,19 +6,13 @@ import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageList } from "./MessageList";
+import type { OptimisticMessage } from "@/lib/types";
 
 const EXAMPLE_PROMPTS = [
   "Power Automate flows for approvals",
   "Scripts to clean up Excel data",
   "Copilot prompts for writing emails",
 ];
-
-type OptimisticMessage = {
-  id: string;
-  role: 'user';
-  content: string;
-  timestamp: number;
-};
 
 export function ChatInterface() {
   const [threadId, setThreadId] = useState<string | null>(null);

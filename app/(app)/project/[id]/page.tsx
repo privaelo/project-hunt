@@ -17,7 +17,7 @@ import { RichTextContent } from "@/components/RichTextContent";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Facepile } from "@/components/Facepile";
 import Link from "next/link";
-import { Eye, Link2, Pencil, Share } from "lucide-react";
+import { Eye, Forward, Link2, Pencil } from "lucide-react";
 import { SpaceIcon } from "@/components/SpaceIcon";
 import {
   Dialog,
@@ -291,17 +291,14 @@ export default function ProjectPage({
               <div className="space-y-6">
                 <div className="space-y-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                      Used by
-                    </p>
-                    <div className="mt-2 flex items-center justify-between gap-3">
+                    <div className="flex items-center justify-between gap-3">
                       <Facepile
                         adopters={project.adopters}
                         totalCount={project.adoptionCount}
-                        maxVisible={6}
+                        maxVisible={3}
                         size="sm"
                         hasAdopted={project.hasAdopted}
-                        showLabel={false}
+                        showLabel={true}
                         currentUser={
                           user
                             ? {
@@ -362,7 +359,7 @@ export default function ProjectPage({
                     className="w-full gap-2 rounded-full bg-accent text-accent-foreground border-accent hover:bg-background hover:text-foreground hover:border-input"
                     onClick={handleShare}
                   >
-                    <Share className="h-4 w-4" />
+                    <Forward className="h-4 w-4" />
                     Share
                   </Button>
                 </div>

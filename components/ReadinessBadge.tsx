@@ -4,8 +4,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-
-type ReadinessStatus = "in_progress" | "just_an_idea" | "early_prototype" | "mostly_working" | "ready_to_use";
+import type { ReadinessStatus } from "@/lib/types";
 
 interface ReadinessBadgeProps {
   status: ReadinessStatus | undefined;
@@ -15,25 +14,25 @@ interface ReadinessBadgeProps {
 const statusConfig: Record<string, { color: string; ring: string; label: string; tooltip: string }> = {
   just_an_idea: {
     color: "bg-zinc-400",
-    ring: "ring-zinc-400/40",
+    ring: "ring-zinc-400/45",
     label: "Just an idea",
     tooltip: "Just an idea — not built yet.",
   },
   early_prototype: {
     color: "bg-amber-400",
-    ring: "ring-amber-400/40",
+    ring: "ring-amber-400/45",
     label: "Early prototype",
     tooltip: "Early prototype, feedback welcome.",
   },
   mostly_working: {
-    color: "bg-blue-500",
-    ring: "ring-blue-500/40",
+    color: "bg-lime-400",
+    ring: "ring-lime-400/45",
     label: "Mostly working",
     tooltip: "Mostly working, still has rough edges.",
   },
   ready_to_use: {
-    color: "bg-emerald-500",
-    ring: "ring-emerald-500/40",
+    color: "bg-emerald-600",
+    ring: "ring-emerald-600/45",
     label: "Ready to use",
     tooltip: "Stable and ready to use.",
   },

@@ -6,13 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { SearchingIndicator } from "@/components/chat/SearchingIndicator";
 import { ProjectCardsDisplay } from "@/components/chat/ProjectCardsDisplay";
 import ReactMarkdown from "react-markdown";
-
-type OptimisticMessage = {
-  id: string;
-  role: 'user';
-  content: string;
-  timestamp: number;
-};
+import type { OptimisticMessage } from "@/lib/types";
 
 interface MessageListProps {
   threadId: string;

@@ -23,17 +23,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-// Types
-export type ExistingMediaItem = {
-  _id: Id<"mediaFiles">;
-  storageId: Id<"_storage">;
-  type: string;
-};
-
-export type NewFileItem = {
-  file: File;
-  id: string;
-};
+import type { ExistingMediaItem, NewFileItem } from "@/lib/types";
 
 interface MediaUploadFieldProps {
   // Existing media (for edit page)

@@ -21,27 +21,16 @@ import { api } from "@/convex/_generated/api";
 import { Check, Plus } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
-
-type Adopter = {
-  _id: Id<"users">;
-  name: string;
-  avatarUrl: string;
-};
-
-type CurrentUser = {
-  _id: Id<"users">;
-  name: string;
-  avatarUrl: string;
-} | null;
+import type { UserRef } from "@/lib/types";
 
 interface FacepileProps {
-  adopters: Adopter[];
+  adopters: UserRef[];
   totalCount: number;
   maxVisible?: number;
   size?: "sm" | "md";
   // Interactive props
   hasAdopted?: boolean;
-  currentUser?: CurrentUser;
+  currentUser?: UserRef | null;
   isAuthenticated?: boolean;
   onToggle?: () => void;
   showLabel?: boolean;
@@ -51,7 +40,7 @@ interface FacepileProps {
 export function Facepile({
   adopters,
   totalCount,
-  maxVisible = 4,
+  maxVisible = 3,
   size = "sm",
   hasAdopted = false,
   currentUser = null,
@@ -78,7 +67,11 @@ export function Facepile({
 
   // Calculate how many "other" adopters to show
   // If user has adopted, their avatar takes one slot
-  const slotsForOthers = hasAdopted ? maxVisible - 1 : maxVisible;
+  const showPlusButton = isInteractive && (!isAuthenticated || !hasAdopted);
+  const slotsForOthersBase = hasAdopted ? maxVisible - 1 : maxVisible;
+  const slotsForOthers = showPlusButton
+    ? Math.max(0, slotsForOthersBase - 1)
+    : slotsForOthersBase;
   const visibleOthers = otherAdopters.slice(0, Math.max(0, slotsForOthers));
 
   // Remaining count excludes visible others and current user (if adopted)
@@ -184,9 +177,12 @@ export function Facepile({
         {/* Current user's avatar (if adopted) or +You button */}
         {renderUserAction()}
       </div>
-      {remainingCount > 0 && (
+      {(showLabel || remainingCount > 0) && (
         <span className="text-sm text-zinc-500 whitespace-nowrap cursor-pointer hover:underline">
-          and {remainingCount} {remainingCount === 1 ? "other" : "others"}
+          {remainingCount > 0 && (
+            <>and {remainingCount} {remainingCount === 1 ? "other" : "others"} </>
+          )}
+          {showLabel && (totalCount === 1 ? "uses this" : "use this")}
         </span>
       )}
     </div>
@@ -199,11 +195,6 @@ export function Facepile({
         className="flex items-center gap-2"
         onClick={(e) => e.stopPropagation()}
       >
-        {showLabel && totalCount > 0 && (
-          <span className="text-sm text-zinc-500 whitespace-nowrap">
-            Used by
-          </span>
-        )}
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <div className="cursor-pointer hover:opacity-80 transition-opacity">
@@ -253,11 +244,6 @@ export function Facepile({
       className="flex items-center gap-2"
       onClick={(e) => e.stopPropagation()}
     >
-      {showLabel && totalCount > 0 && (
-        <span className="text-sm text-zinc-500 whitespace-nowrap">
-          Used by
-        </span>
-      )}
       {content}
     </div>
   );
