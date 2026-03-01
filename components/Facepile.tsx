@@ -78,7 +78,11 @@ export function Facepile({
 
   // Calculate how many "other" adopters to show
   // If user has adopted, their avatar takes one slot
-  const slotsForOthers = hasAdopted ? maxVisible - 1 : maxVisible;
+  const showPlusButton = isInteractive && (!isAuthenticated || !hasAdopted);
+  const slotsForOthersBase = hasAdopted ? maxVisible - 1 : maxVisible;
+  const slotsForOthers = showPlusButton
+    ? Math.max(0, slotsForOthersBase - 1)
+    : slotsForOthersBase;
   const visibleOthers = otherAdopters.slice(0, Math.max(0, slotsForOthers));
 
   // Remaining count excludes visible others and current user (if adopted)
