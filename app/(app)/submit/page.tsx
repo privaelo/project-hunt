@@ -14,15 +14,16 @@ import { Slider } from "@/components/ui/slider";
 import { Info } from "lucide-react";
 import { SimilarProjectsPreview } from "@/components/SimilarProjectsPreview";
 import { SpacePicker } from "@/components/SpacePicker";
-import { MediaUploadField, type NewFileItem } from "@/components/MediaUploadField";
-import { FileUploadField, type NewProjectFileItem } from "@/components/FileUploadField";
+import { MediaUploadField } from "@/components/MediaUploadField";
+import { FileUploadField } from "@/components/FileUploadField";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { LinksEditor, type LinkItem } from "@/components/LinksEditor";
+import { LinksEditor } from "@/components/LinksEditor";
+import type { NewFileItem, NewProjectFileItem, LinkItem } from "@/lib/types";
 
 const readinessSliderValues = ["just_an_idea", "early_prototype", "mostly_working", "ready_to_use"] as const;
 const readinessSliderLabels = ["Just an idea", "Early prototype", "Mostly working", "Ready to use"];

@@ -3,11 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, X } from "lucide-react";
-
-export interface LinkItem {
-  url: string;
-  label: string;
-}
+import type { LinkItem } from "@/lib/types";
 
 interface LinksEditorProps {
   links: LinkItem[];

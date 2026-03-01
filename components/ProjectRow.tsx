@@ -20,49 +20,13 @@ import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Facepile } from "@/components/Facepile";
 import { SpaceIcon } from "@/components/SpaceIcon";
 import { stripHtml } from "@/lib/utils";
-
-export type FocusArea = {
-  _id: Id<"focusAreas">;
-  name: string;
-  group: string | undefined;
-  icon: string | undefined;
-};
-
-export type ProjectRowData = {
-  _id: Id<"projects">;
-  _creationTime: number;
-  name: string;
-  summary?: string;
-  team?: string;
-  upvotes: number;
-  viewCount: number;
-  commentCount: number;
-  hasUpvoted: boolean;
-  userId: Id<"users">;
-  creatorName: string;
-  creatorAvatar: string;
-  focusArea: FocusArea | null;
-  readinessStatus?: "in_progress" | "just_an_idea" | "early_prototype" | "mostly_working" | "ready_to_use";
-  previewMedia: Array<{
-    _id: string;
-    storageId: string;
-    type: string;
-    url: string | null;
-  }>;
-  adoptionCount: number;
-  adopters: Array<{
-    _id: Id<"users">;
-    name: string;
-    avatarUrl: string;
-  }>;
-  hasAdopted: boolean;
-};
+import type { FocusArea, ProjectRowData, UserRef } from "@/lib/types";
 
 interface ProjectRowProps {
   project: ProjectRowData;
   onUpvote: (projectId: Id<"projects">) => void;
   onAdopt: (projectId: Id<"projects">) => void;
-  currentUser: { _id: Id<"users">; name: string; avatarUrl: string } | null;
+  currentUser: UserRef | null;
   isAuthenticated: boolean;
 }
 

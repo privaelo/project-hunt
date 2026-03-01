@@ -4,8 +4,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-
-type ReadinessStatus = "in_progress" | "just_an_idea" | "early_prototype" | "mostly_working" | "ready_to_use";
+import type { ReadinessStatus } from "@/lib/types";
 
 interface ReadinessBadgeProps {
   status: ReadinessStatus | undefined;

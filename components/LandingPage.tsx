@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowUp, Users2, Sparkles, Share2, Zap } from "lucide-react";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { TooltipProvider } from "@/components/ui/tooltip";
-
-type ReadinessStatus = "ready_to_use" | "mostly_working" | "early_prototype" | "just_an_idea";
+import type { ReadinessStatus } from "@/lib/types";
 
 const MOCK_PROJECTS: {
   name: string;

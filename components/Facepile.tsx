@@ -21,27 +21,16 @@ import { api } from "@/convex/_generated/api";
 import { Check, Plus } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
-
-type Adopter = {
-  _id: Id<"users">;
-  name: string;
-  avatarUrl: string;
-};
-
-type CurrentUser = {
-  _id: Id<"users">;
-  name: string;
-  avatarUrl: string;
-} | null;
+import type { UserRef } from "@/lib/types";
 
 interface FacepileProps {
-  adopters: Adopter[];
+  adopters: UserRef[];
   totalCount: number;
   maxVisible?: number;
   size?: "sm" | "md";
   // Interactive props
   hasAdopted?: boolean;
-  currentUser?: CurrentUser;
+  currentUser?: UserRef | null;
   isAuthenticated?: boolean;
   onToggle?: () => void;
   showLabel?: boolean;
