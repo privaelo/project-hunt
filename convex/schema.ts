@@ -154,4 +154,46 @@ export default defineSchema({
   })
     .index("by_isActive", ["isActive"])
     .index("by_group", ["group"]),
+  threads: defineTable({
+    title: v.string(),
+    body: v.optional(v.string()),
+    userId: v.id("users"),
+    focusAreaId: v.id("focusAreas"),
+    upvoteCount: v.number(),
+    commentCount: v.number(),
+    engagementScore: v.optional(v.number()),
+    hotScore: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_focusArea", ["focusAreaId"])
+    .index("by_focusArea_hotScore", ["focusAreaId", "hotScore"])
+    .index("by_focusArea_createdAt", ["focusAreaId", "createdAt"])
+    .index("by_focusArea_commentCount", ["focusAreaId", "commentCount"])
+    .index("by_userId", ["userId"]),
+  threadUpvotes: defineTable({
+    threadId: v.id("threads"),
+    userId: v.id("users"),
+    createdAt: v.number(),
+  })
+    .index("by_thread", ["threadId"])
+    .index("by_thread_and_user", ["threadId", "userId"]),
+  threadComments: defineTable({
+    threadId: v.id("threads"),
+    userId: v.id("users"),
+    content: v.string(),
+    parentCommentId: v.optional(v.id("threadComments")),
+    createdAt: v.number(),
+    isDeleted: v.optional(v.boolean()),
+    upvotes: v.optional(v.number()),
+  })
+    .index("by_thread", ["threadId"])
+    .index("by_parent", ["parentCommentId"])
+    .index("by_user", ["userId"]),
+  threadCommentUpvotes: defineTable({
+    commentId: v.id("threadComments"),
+    userId: v.id("users"),
+    createdAt: v.number(),
+  })
+    .index("by_comment", ["commentId"])
+    .index("by_comment_and_user", ["commentId", "userId"]),
 });

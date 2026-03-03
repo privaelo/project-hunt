@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useRef, useEffect, useCallback } from "react";
+import { use, useRef, useEffect, useCallback, useState } from "react";
 import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -10,9 +10,12 @@ import Link from "next/link";
 
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { ProjectRow } from "@/components/ProjectRow";
-import type { ProjectRowData } from "@/lib/types";
+import { ThreadRow } from "@/components/ThreadRow";
+import { CreateThreadForm } from "@/components/CreateThreadForm";
+import type { ProjectRowData, ThreadRowData } from "@/lib/types";
 import { SpaceIcon } from "@/components/SpaceIcon";
 import { Users } from "lucide-react";
 
@@ -25,49 +28,101 @@ export default function SpacePage({
   const focusAreaId = id as Id<"focusAreas">;
 
   const focusArea = useQuery(api.focusAreas.getById, { id: focusAreaId });
-  const { results, status, loadMore } = usePaginatedQuery(
-    api.projects.listPaginatedBySpace,
-    { focusAreaId },
-    { initialNumItems: 15 }
-  );
   const { isAuthenticated, user } = useCurrentUser();
   const isFollowing = useQuery(api.focusAreas.isFollowingSpace, { focusAreaId });
   const memberCount = useQuery(api.focusAreas.getMemberCount, { focusAreaId });
   const toggleFollowSpace = useMutation(api.focusAreas.toggleFollowSpace);
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
   const toggleAdoption = useMutation(api.projects.toggleAdoption);
+  const toggleThreadUpvote = useMutation(api.threads.toggleUpvote);
+
+  const [threadSort, setThreadSort] = useState<
+    "trending" | "new" | "most_commented"
+  >("trending");
+
+  // Projects pagination
+  const {
+    results: projectResults,
+    status: projectStatus,
+    loadMore: loadMoreProjects,
+  } = usePaginatedQuery(
+    api.projects.listPaginatedBySpace,
+    { focusAreaId },
+    { initialNumItems: 15 }
+  );
+
+  // Threads pagination
+  const {
+    results: threadResults,
+    status: threadStatus,
+    loadMore: loadMoreThreads,
+  } = usePaginatedQuery(
+    api.threads.listPaginatedBySpace,
+    { focusAreaId, sort: threadSort },
+    { initialNumItems: 15 }
+  );
 
   const currentUser = user
     ? { _id: user._id, name: user.name, avatarUrl: user.avatarUrlId || "" }
     : null;
 
-  const isLoading = status === "LoadingFirstPage";
-  const canLoadMore = status === "CanLoadMore";
-  const isLoadingMore = status === "LoadingMore";
+  // Projects loading states
+  const isLoadingProjects = projectStatus === "LoadingFirstPage";
+  const canLoadMoreProjects = projectStatus === "CanLoadMore";
+  const isLoadingMoreProjects = projectStatus === "LoadingMore";
 
-  const loadMoreRef = useRef<HTMLDivElement>(null);
+  // Threads loading states
+  const isLoadingThreads = threadStatus === "LoadingFirstPage";
+  const canLoadMoreThreads = threadStatus === "CanLoadMore";
+  const isLoadingMoreThreads = threadStatus === "LoadingMore";
 
-  const loadMoreCallback = useCallback(() => {
-    if (canLoadMore) {
-      loadMore(15);
+  // Projects infinite scroll
+  const projectLoadMoreRef = useRef<HTMLDivElement>(null);
+  const loadMoreProjectsCallback = useCallback(() => {
+    if (canLoadMoreProjects) {
+      loadMoreProjects(15);
     }
-  }, [canLoadMore, loadMore]);
+  }, [canLoadMoreProjects, loadMoreProjects]);
 
   useEffect(() => {
-    if (!canLoadMore || !loadMoreRef.current) return;
+    if (!canLoadMoreProjects || !projectLoadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          loadMoreCallback();
+          loadMoreProjectsCallback();
         }
       },
       { rootMargin: "200px" }
     );
 
-    observer.observe(loadMoreRef.current);
+    observer.observe(projectLoadMoreRef.current);
     return () => observer.disconnect();
-  }, [canLoadMore, loadMoreCallback]);
+  }, [canLoadMoreProjects, loadMoreProjectsCallback]);
+
+  // Threads infinite scroll
+  const threadLoadMoreRef = useRef<HTMLDivElement>(null);
+  const loadMoreThreadsCallback = useCallback(() => {
+    if (canLoadMoreThreads) {
+      loadMoreThreads(15);
+    }
+  }, [canLoadMoreThreads, loadMoreThreads]);
+
+  useEffect(() => {
+    if (!canLoadMoreThreads || !threadLoadMoreRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreThreadsCallback();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(threadLoadMoreRef.current);
+    return () => observer.disconnect();
+  }, [canLoadMoreThreads, loadMoreThreadsCallback]);
 
   const handleFollowSpace = async () => {
     try {
@@ -93,6 +148,14 @@ export default function SpacePage({
     }
   };
 
+  const handleThreadUpvote = async (threadId: Id<"threads">) => {
+    try {
+      await toggleThreadUpvote({ threadId });
+    } catch (error) {
+      console.error("Failed to toggle upvote:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto w-full max-w-[1400px] px-6 pb-16 pt-4">
@@ -110,52 +173,140 @@ export default function SpacePage({
               )}
             </div>
 
-            <LayoutGroup>
-              <div className="space-y-0">
-                {isLoading ? (
-                  <div className="py-8 text-center text-sm text-zinc-500">
-                    Loading projects...
-                  </div>
-                ) : results.length ? (
-                  <>
-                    {results.map((project, index) => (
-                      <React.Fragment key={project._id}>
-                        {index > 0 && <Separator className="bg-zinc-200" />}
-                        <motion.div
-                          layout
-                          layoutId={project._id}
-                          transition={{
-                            type: "spring",
-                            stiffness: 500,
-                            damping: 35,
-                          }}
-                        >
-                          <ProjectRow
-                            project={project as ProjectRowData}
-                            onUpvote={handleUpvote}
-                            onAdopt={handleAdopt}
-                            currentUser={currentUser}
-                            isAuthenticated={isAuthenticated}
-                          />
-                        </motion.div>
-                      </React.Fragment>
-                    ))}
-                    <div ref={loadMoreRef} className="h-4" />
-                    {isLoadingMore && (
-                      <div className="py-4 text-center text-sm text-zinc-500">
-                        Loading more projects...
+            <Tabs defaultValue="projects">
+              <TabsList variant="line">
+                <TabsTrigger value="projects">Projects</TabsTrigger>
+                <TabsTrigger value="threads">Threads</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="projects">
+                <LayoutGroup>
+                  <div className="space-y-0">
+                    {isLoadingProjects ? (
+                      <div className="py-8 text-center text-sm text-zinc-500">
+                        Loading projects...
+                      </div>
+                    ) : projectResults.length ? (
+                      <>
+                        {projectResults.map((project, index) => (
+                          <React.Fragment key={project._id}>
+                            {index > 0 && <Separator className="bg-zinc-200" />}
+                            <motion.div
+                              layout
+                              layoutId={project._id}
+                              transition={{
+                                type: "spring",
+                                stiffness: 500,
+                                damping: 35,
+                              }}
+                            >
+                              <ProjectRow
+                                project={project as ProjectRowData}
+                                onUpvote={handleUpvote}
+                                onAdopt={handleAdopt}
+                                currentUser={currentUser}
+                                isAuthenticated={isAuthenticated}
+                              />
+                            </motion.div>
+                          </React.Fragment>
+                        ))}
+                        <div ref={projectLoadMoreRef} className="h-4" />
+                        {isLoadingMoreProjects && (
+                          <div className="py-4 text-center text-sm text-zinc-500">
+                            Loading more projects...
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="rounded-3xl bg-zinc-100/60 p-6 text-center text-sm text-zinc-500 space-y-3">
+                        <p className="font-medium text-zinc-900">
+                          No projects in this space yet.
+                        </p>
                       </div>
                     )}
-                  </>
-                ) : (
-                  <div className="rounded-3xl bg-zinc-100/60 p-6 text-center text-sm text-zinc-500 space-y-3">
-                    <p className="font-medium text-zinc-900">
-                      No projects in this space yet.
-                    </p>
                   </div>
-                )}
-              </div>
-            </LayoutGroup>
+                </LayoutGroup>
+              </TabsContent>
+
+              <TabsContent value="threads">
+                <div className="space-y-4">
+                  {isAuthenticated && (
+                    <CreateThreadForm focusAreaId={focusAreaId} />
+                  )}
+
+                  {/* Sort controls */}
+                  <div className="flex items-center gap-2">
+                    {(
+                      [
+                        { value: "trending", label: "Trending" },
+                        { value: "new", label: "New" },
+                        { value: "most_commented", label: "Most Commented" },
+                      ] as const
+                    ).map((option) => (
+                      <Button
+                        key={option.value}
+                        variant={
+                          threadSort === option.value ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setThreadSort(option.value)}
+                        className="rounded-full text-xs"
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
+
+                  <LayoutGroup>
+                    <div className="space-y-0">
+                      {isLoadingThreads ? (
+                        <div className="py-8 text-center text-sm text-zinc-500">
+                          Loading threads...
+                        </div>
+                      ) : threadResults.length ? (
+                        <>
+                          {threadResults.map((thread, index) => (
+                            <React.Fragment key={thread._id}>
+                              {index > 0 && (
+                                <Separator className="bg-zinc-200" />
+                              )}
+                              <motion.div
+                                layout
+                                layoutId={thread._id}
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 500,
+                                  damping: 35,
+                                }}
+                              >
+                                <ThreadRow
+                                  thread={thread as ThreadRowData}
+                                  onUpvote={handleThreadUpvote}
+                                  isAuthenticated={isAuthenticated}
+                                />
+                              </motion.div>
+                            </React.Fragment>
+                          ))}
+                          <div ref={threadLoadMoreRef} className="h-4" />
+                          {isLoadingMoreThreads && (
+                            <div className="py-4 text-center text-sm text-zinc-500">
+                              Loading more threads...
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="rounded-3xl bg-zinc-100/60 p-6 text-center text-sm text-zinc-500 space-y-3">
+                          <p className="font-medium text-zinc-900">
+                            No threads in this space yet.
+                          </p>
+                          <p>Start a conversation to get things going.</p>
+                        </div>
+                      )}
+                    </div>
+                  </LayoutGroup>
+                </div>
+              </TabsContent>
+            </Tabs>
           </section>
 
           <aside className="w-full lg:sticky lg:top-20 lg:w-72 xl:w-80">

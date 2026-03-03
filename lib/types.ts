@@ -54,6 +54,23 @@ export type ProjectRowData = {
   hasAdopted: boolean;
 };
 
+// --- Threads ---
+
+export type ThreadRowData = {
+  _id: Id<"threads">;
+  _creationTime: number;
+  title: string;
+  body?: string;
+  upvoteCount: number;
+  commentCount: number;
+  hasUpvoted: boolean;
+  userId: Id<"users">;
+  creatorName: string;
+  creatorAvatar: string;
+  focusArea: FocusArea | null;
+  createdAt: number;
+};
+
 // --- Chat ---
 
 export type OptimisticMessage = {
