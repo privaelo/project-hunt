@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useRef, useEffect, useCallback } from "react";
+import { use, useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -17,7 +17,7 @@ import { ThreadRow } from "@/components/ThreadRow";
 import { CreateThreadForm } from "@/components/CreateThreadForm";
 import type { ProjectRowData, ThreadRowData } from "@/lib/types";
 import { SpaceIcon } from "@/components/SpaceIcon";
-import { Users } from "lucide-react";
+import { Users, MessageCircle } from "lucide-react";
 
 export default function SpacePage({
   params,
@@ -35,6 +35,10 @@ export default function SpacePage({
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
   const toggleAdoption = useMutation(api.projects.toggleAdoption);
   const toggleThreadUpvote = useMutation(api.threads.toggleUpvote);
+  const topThreads = useQuery(api.threads.getTopThreadsBySpace, { focusAreaId });
+  const topProjects = useQuery(api.projects.getTopProjectsBySpace, { focusAreaId });
+
+  const [activeTab, setActiveTab] = useState("projects");
 
   // Projects pagination
   const {
@@ -169,7 +173,7 @@ export default function SpacePage({
               )}
             </div>
 
-            <Tabs defaultValue="projects">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList variant="line">
                 <TabsTrigger value="projects">Projects</TabsTrigger>
                 <TabsTrigger value="threads">Threads</TabsTrigger>
@@ -282,7 +286,7 @@ export default function SpacePage({
             </Tabs>
           </section>
 
-          <aside className="w-full lg:sticky lg:top-20 lg:w-72 xl:w-80">
+          <aside className="w-full lg:sticky lg:top-20 lg:w-72 xl:w-80 space-y-4">
             <div className="rounded-lg bg-zinc-100 p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -312,8 +316,113 @@ export default function SpacePage({
                 )}
               </div>
             </div>
+
+            {activeTab === "projects" ? (
+              <div className="rounded-lg bg-zinc-100 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400 mb-3">
+                  Threads
+                </p>
+
+                {topThreads === undefined ? (
+                  <div className="space-y-3">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="animate-pulse space-y-1">
+                        <div className="h-3 bg-zinc-200 rounded w-3/4" />
+                        <div className="h-2 bg-zinc-200 rounded w-1/2" />
+                      </div>
+                    ))}
+                  </div>
+                ) : topThreads.length === 0 ? (
+                  <p className="text-sm text-zinc-500">No threads yet.</p>
+                ) : (
+                  <div className="space-y-1">
+                    {topThreads.map((thread) => (
+                      <Link
+                        key={thread._id}
+                        href={`/thread/${thread._id}`}
+                        className="block rounded-md px-2 py-2 -mx-2 hover:bg-zinc-200/60 transition-colors"
+                      >
+                        <h4 className="text-sm font-medium text-zinc-900 line-clamp-2 leading-tight">
+                          {thread.title}
+                        </h4>
+                        <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+                          <span className="flex items-center gap-0.5">
+                            <span>&uarr;</span> {thread.upvoteCount}
+                          </span>
+                          <span className="text-zinc-300">&bull;</span>
+                          <span className="flex items-center gap-0.5">
+                            <MessageCircle className="h-3 w-3" /> {thread.commentCount}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-3">
+                  <button
+                    onClick={() => setActiveTab("threads")}
+                    className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
+                  >
+                    View all &rarr;
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg bg-zinc-100 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400 mb-3">
+                  Projects
+                </p>
+
+                {topProjects === undefined ? (
+                  <div className="space-y-3">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="animate-pulse space-y-1">
+                        <div className="h-3 bg-zinc-200 rounded w-3/4" />
+                        <div className="h-2 bg-zinc-200 rounded w-1/2" />
+                      </div>
+                    ))}
+                  </div>
+                ) : topProjects.length === 0 ? (
+                  <p className="text-sm text-zinc-500">No projects yet.</p>
+                ) : (
+                  <div className="space-y-1">
+                    {topProjects.map((project) => (
+                      <Link
+                        key={project._id}
+                        href={`/project/${project._id}`}
+                        className="block rounded-md px-2 py-2 -mx-2 hover:bg-zinc-200/60 transition-colors"
+                      >
+                        <h4 className="text-sm font-medium text-zinc-900 line-clamp-2 leading-tight">
+                          {project.name}
+                        </h4>
+                        <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+                          <span className="flex items-center gap-0.5">
+                            <span>&uarr;</span> {project.upvoteCount}
+                          </span>
+                          <span className="text-zinc-300">&bull;</span>
+                          <span className="flex items-center gap-0.5">
+                            <MessageCircle className="h-3 w-3" /> {project.commentCount}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-3">
+                  <button
+                    onClick={() => setActiveTab("projects")}
+                    className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
+                  >
+                    View all &rarr;
+                  </button>
+                </div>
+              </div>
+            )}
           </aside>
         </div>
+
       </main>
     </div>
   );

@@ -324,6 +324,42 @@ export const getNewestProjects = query({
   },
 });
 
+export const getTopProjectsBySpace = query({
+  args: {
+    focusAreaId: v.id("focusAreas"),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 5;
+    const projects = await ctx.db
+      .query("projects")
+      .withIndex("by_status_focusArea_hotScore", (q) =>
+        q.eq("status", "active").eq("focusAreaId", args.focusAreaId)
+      )
+      .order("desc")
+      .take(limit);
+
+    return Promise.all(
+      projects.map(async (project) => {
+        const upvotes = await ctx.db
+          .query("upvotes")
+          .withIndex("by_project", (q) => q.eq("projectId", project._id))
+          .collect();
+        const comments = await ctx.db
+          .query("comments")
+          .withIndex("by_project", (q) => q.eq("projectId", project._id))
+          .collect();
+        return {
+          _id: project._id,
+          name: project.name,
+          upvoteCount: upvotes.length,
+          commentCount: comments.filter((c) => !c.isDeleted).length,
+        };
+      })
+    );
+  },
+});
+
 export const getById = query({
   args: {
     projectId: v.id("projects"),

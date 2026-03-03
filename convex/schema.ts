@@ -167,6 +167,7 @@ export default defineSchema({
   })
     .index("by_focusArea", ["focusAreaId"])
     .index("by_focusArea_hotScore", ["focusAreaId", "hotScore"])
+    .index("by_hotScore", ["hotScore"])
     .index("by_userId", ["userId"]),
   threadUpvotes: defineTable({
     threadId: v.id("threads"),

@@ -134,6 +134,99 @@ export const listPaginatedBySpace = query({
   },
 });
 
+export const getTopThreadsBySpace = query({
+  args: {
+    focusAreaId: v.id("focusAreas"),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 5;
+    const threads = await ctx.db
+      .query("threads")
+      .withIndex("by_focusArea_hotScore", (q) =>
+        q.eq("focusAreaId", args.focusAreaId)
+      )
+      .order("desc")
+      .take(limit);
+
+    const currentUser = await getCurrentUser(ctx);
+    const userId = currentUser?._id;
+
+    return Promise.all(
+      threads.map(async (thread) => {
+        const creator = await ctx.db.get(thread.userId);
+        let hasUpvoted = false;
+        if (userId) {
+          const existingUpvote = await ctx.db
+            .query("threadUpvotes")
+            .withIndex("by_thread_and_user", (q) =>
+              q.eq("threadId", thread._id).eq("userId", userId)
+            )
+            .unique();
+          hasUpvoted = !!existingUpvote;
+        }
+        return {
+          _id: thread._id,
+          title: thread.title,
+          upvoteCount: thread.upvoteCount,
+          commentCount: thread.commentCount,
+          hasUpvoted,
+          creatorName: creator?.name ?? "Unknown User",
+          createdAt: thread.createdAt,
+        };
+      })
+    );
+  },
+});
+
+export const getTrendingThreads = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 5;
+    const threads = await ctx.db
+      .query("threads")
+      .withIndex("by_hotScore")
+      .order("desc")
+      .take(limit);
+
+    const currentUser = await getCurrentUser(ctx);
+    const userId = currentUser?._id;
+
+    return Promise.all(
+      threads.map(async (thread) => {
+        const [creator, focusArea] = await Promise.all([
+          ctx.db.get(thread.userId),
+          ctx.db.get(thread.focusAreaId),
+        ]);
+        let hasUpvoted = false;
+        if (userId) {
+          const existingUpvote = await ctx.db
+            .query("threadUpvotes")
+            .withIndex("by_thread_and_user", (q) =>
+              q.eq("threadId", thread._id).eq("userId", userId)
+            )
+            .unique();
+          hasUpvoted = !!existingUpvote;
+        }
+        return {
+          _id: thread._id,
+          title: thread.title,
+          upvoteCount: thread.upvoteCount,
+          commentCount: thread.commentCount,
+          hasUpvoted,
+          creatorName: creator?.name ?? "Unknown User",
+          createdAt: thread.createdAt,
+          spaceName: focusArea?.name ?? null,
+          spaceIcon: focusArea?.icon ?? null,
+          spaceId: focusArea?._id ?? null,
+        };
+      })
+    );
+  },
+});
+
 // ─── Upvotes ─────────────────────────────────────────────────────────────────
 
 export const toggleUpvote = mutation({

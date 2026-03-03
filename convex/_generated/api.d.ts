@@ -28,6 +28,7 @@ import type * as rag from "../rag.js";
 import type * as ragbot from "../ragbot.js";
 import type * as seed from "../seed.js";
 import type * as teams from "../teams.js";
+import type * as threads from "../threads.js";
 import type * as tools from "../tools.js";
 import type * as users from "../users.js";
 
@@ -58,6 +59,7 @@ declare const fullApi: ApiFromModules<{
   ragbot: typeof ragbot;
   seed: typeof seed;
   teams: typeof teams;
+  threads: typeof threads;
   tools: typeof tools;
   users: typeof users;
 }>;

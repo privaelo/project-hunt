@@ -40,6 +40,7 @@ export {
   getByUserId,
   getAdoptedByUser,
   getNewestProjects,
+  getTopProjectsBySpace,
   getById,
   getProjectsByEntryIdsPublic,
 } from "./projects/listing";

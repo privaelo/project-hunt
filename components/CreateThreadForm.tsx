@@ -11,11 +11,13 @@ import { MessageSquarePlus } from "lucide-react";
 
 interface CreateThreadFormProps {
   focusAreaId: Id<"focusAreas">;
+  defaultExpanded?: boolean;
+  onSuccess?: () => void;
 }
 
-export function CreateThreadForm({ focusAreaId }: CreateThreadFormProps) {
+export function CreateThreadForm({ focusAreaId, defaultExpanded, onSuccess }: CreateThreadFormProps) {
   const createThread = useMutation(api.threads.createThread);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded ?? false);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,6 +36,7 @@ export function CreateThreadForm({ focusAreaId }: CreateThreadFormProps) {
       setTitle("");
       setBody("");
       setIsExpanded(false);
+      onSuccess?.();
     } catch (error) {
       console.error("Failed to create thread:", error);
       alert("Failed to create thread. Please try again.");
