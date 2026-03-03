@@ -86,7 +86,7 @@ export const listPaginatedBySpace = query({
 
     const paginatedResult = await ctx.db
       .query("threads")
-      .withIndex("by_focusArea_createdAt", (q) =>
+      .withIndex("by_focusArea_hotScore", (q) =>
         q.eq("focusAreaId", args.focusAreaId)
       )
       .order("desc")
