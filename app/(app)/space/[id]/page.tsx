@@ -399,7 +399,7 @@ export default function SpacePage({
                       onClick={() => setActiveTab("threads")}
                       className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
                     >
-                      View all
+                      View all threads
                     </button>
                   </div>
                 </div>
@@ -450,7 +450,7 @@ export default function SpacePage({
                       onClick={() => setActiveTab("projects")}
                       className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
                     >
-                      View all
+                      View all projects
                     </button>
                   </div>
                 </div>
