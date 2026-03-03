@@ -349,8 +349,8 @@ export default function SpacePage({
             )}
             </section>
 
-            <aside className="w-full lg:sticky lg:top-2 lg:w-72 xl:w-80">
-            <div className="rounded-xl bg-white border border-zinc-200 p-4 space-y-4">
+            <aside className="w-full lg:sticky lg:top-20 lg:w-72 xl:w-80">
+            <div className="rounded-xl bg-zinc-100 p-4 space-y-4">
               {/* Context-aware cross-promotion */}
               {activeTab === "projects" ? (
                 <div>
@@ -464,3 +464,5 @@ export default function SpacePage({
     </div>
   );
 }
+
+

@@ -82,6 +82,9 @@ export default function Home() {
       <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6 pb-16 pt-4">
         <section className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div className="space-y-2">
+            <h1 className="text-2xl font-semibold text-zinc-900">
+              What people are working on
+            </h1>
             <LayoutGroup>
               <div className="space-y-0">
                 {isLoading ? (
@@ -153,9 +156,9 @@ function TrendingThreads() {
   const router = useRouter();
 
   return (
-    <div className="rounded-xl bg-white border border-zinc-200 p-4 space-y-4">
-      <div className="flex items-center gap-2">
-        <h3 className="text-2xl font-semibold text-zinc-900">Trending Threads</h3>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 px-3">
+        <h3 className="text-lg font-semibold text-zinc-900">Trending Threads</h3>
       </div>
 
       {!trendingThreads ? (
@@ -210,3 +213,5 @@ function TrendingThreads() {
     </div>
   );
 }
+
+
