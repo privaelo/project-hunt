@@ -14,27 +14,8 @@ import { Separator } from "@/components/ui/separator";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { ProjectRow } from "@/components/ProjectRow";
 import type { ProjectRowData } from "@/lib/types";
-
-type NewestProject = {
-  _id: Id<"projects">;
-  name: string;
-  team: string;
-  upvotes: number;
-  creatorName: string;
-  creatorAvatar: string;
-  _creationTime: number;
-};
-
-function getRelativeTime(timestamp: number): string {
-  const now = Date.now();
-  const diffInSeconds = Math.floor((now - timestamp) / 1000);
-
-  if (diffInSeconds < 60) return "just now";
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-  return `${Math.floor(diffInSeconds / 604800)}w ago`;
-}
+import { MessageCircle } from "lucide-react";
+import { SpaceIcon } from "@/components/SpaceIcon";
 
 export default function Home() {
   const { results, status, loadMore } = usePaginatedQuery(
@@ -143,7 +124,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col gap-8">
-            <NewestProjects />
+            <TrendingThreads />
           </div>
         </section>
       </main>
@@ -167,72 +148,62 @@ function EmptyState() {
   );
 }
 
-function NewestProjectCard({ project }: { project: NewestProject }) {
+function TrendingThreads() {
+  const trendingThreads = useQuery(api.threads.getTrendingThreads, { limit: 5 });
   const router = useRouter();
-
-  const handleClick = () => {
-    router.push(`/project/${project._id}`);
-  };
-
-  return (
-    <div
-      className="cursor-pointer space-y-2 rounded-lg p-3 transition-colors hover:bg-zinc-100"
-      onClick={handleClick}
-    >
-      {/* Project Name */}
-      <div className="flex items-center gap-2">
-        <h4 className="font-semibold text-zinc-900 text-sm leading-tight line-clamp-2 flex-1">
-          {project.name}
-        </h4>
-        <span className="text-xs text-zinc-500 whitespace-nowrap">
-          {getRelativeTime(project._creationTime)}
-        </span>
-      </div>
-
-      {/* Metadata: Team, Upvotes */}
-      <div className="flex items-center gap-2 text-xs text-zinc-500">
-        {project.team && (
-          <>
-            <span className="font-medium text-zinc-700">{project.team}</span>
-            <span>•</span>
-          </>
-        )}
-        <span className="flex items-center gap-1">
-          <span>↑</span>
-          <span>{project.upvotes}</span>
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function NewestProjects() {
-  const newestProjects = useQuery(api.projects.getNewestProjects, { limit: 3 });
 
   return (
     <div className="flex flex-col gap-4 max-w-[320px]">
       <div className="flex items-center gap-2 px-3">
-        <h3 className="text-2xl font-semibold text-zinc-900">Newest Tools</h3>
+        <h3 className="text-2xl font-semibold text-zinc-900">Trending Threads</h3>
       </div>
 
-      {!newestProjects ? (
-        // Loading state
+      {!trendingThreads ? (
         <div className="space-y-3 px-3">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="animate-pulse space-y-2">
-              <div className="h-4 bg-zinc-200 rounded w-3/4"></div>
-              <div className="h-3 bg-zinc-200 rounded w-full"></div>
+              <div className="h-4 bg-zinc-200 rounded w-3/4" />
+              <div className="h-3 bg-zinc-200 rounded w-full" />
             </div>
           ))}
         </div>
-      ) : newestProjects.length === 0 ? (
-        // Empty state
-        <p className="text-sm text-zinc-500 px-3">Nothing here yet.</p>
+      ) : trendingThreads.length === 0 ? (
+        <p className="text-sm text-zinc-500 px-3">No threads yet.</p>
       ) : (
-        // Projects list
-        <div className="flex flex-col gap-3">
-          {newestProjects.map((project) => (
-            <NewestProjectCard key={project._id} project={project} />
+        <div className="flex flex-col gap-1">
+          {trendingThreads.map((thread) => (
+            <div
+              key={thread._id}
+              className="rounded-lg p-3 transition-colors hover:bg-zinc-100 space-y-1.5 cursor-pointer"
+              onClick={() => router.push(`/thread/${thread._id}`)}
+            >
+              {thread.spaceName && thread.spaceId && (
+                <Link
+                  href={`/space/${thread.spaceId}`}
+                  className="flex items-center gap-1 text-xs font-medium text-zinc-600 transition-colors hover:text-green-600"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <SpaceIcon
+                    icon={thread.spaceIcon ?? undefined}
+                    name={thread.spaceName}
+                    size="xs"
+                  />
+                  g/{thread.spaceName}
+                </Link>
+              )}
+              <h4 className="font-semibold text-zinc-900 text-sm leading-tight line-clamp-2">
+                {thread.title}
+              </h4>
+              <div className="flex items-center gap-2 text-xs text-zinc-500">
+                <span className="flex items-center gap-0.5">
+                  <span>&uarr;</span> {thread.upvoteCount}
+                </span>
+                <span>&bull;</span>
+                <span className="flex items-center gap-0.5">
+                  <MessageCircle className="h-3 w-3" /> {thread.commentCount}
+                </span>
+              </div>
+            </div>
           ))}
         </div>
       )}

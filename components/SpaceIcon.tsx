@@ -4,21 +4,24 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 interface SpaceIconProps {
   icon?: string;
   name: string;
-  size?: "sm" | "md";
+  size?: "xs" | "sm" | "md";
   className?: string;
 }
 
 const sizeClasses = {
+  xs: "h-4 w-4",
   sm: "h-5 w-5",
   md: "h-8 w-8",
 } as const;
 
 const iconTextClasses = {
+  xs: "text-xs",
   sm: "text-base",
   md: "text-2xl",
 } as const;
 
 const fallbackTextClasses = {
+  xs: "text-[8px]",
   sm: "text-[10px]",
   md: "text-xs",
 } as const;

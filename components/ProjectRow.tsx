@@ -28,6 +28,7 @@ interface ProjectRowProps {
   onAdopt: (projectId: Id<"projects">) => void;
   currentUser: UserRef | null;
   isAuthenticated: boolean;
+  hideSpaceLabel?: boolean;
 }
 
 function getRelativeTime(timestamp: number): string {
@@ -47,6 +48,7 @@ export function ProjectRow({
   onAdopt,
   currentUser,
   isAuthenticated,
+  hideSpaceLabel,
 }: ProjectRowProps) {
   const router = useRouter();
   const [shareOpen, setShareOpen] = useState(false);
@@ -85,7 +87,7 @@ export function ProjectRow({
       {/* Header: Focus area, time, views, facepile */}
       <div className="flex items-center justify-between gap-2 text-xs text-zinc-500">
         <div className="flex flex-wrap items-center gap-2">
-          {project.focusArea ? (
+          {project.focusArea && !hideSpaceLabel ? (
             <Link
               href={`/space/${project.focusArea._id}`}
               className="flex items-center gap-1 font-medium text-zinc-600 transition-colors hover:text-green-600"
