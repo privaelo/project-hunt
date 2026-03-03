@@ -10,6 +10,15 @@ import { RichTextEditor } from "@/components/RichTextEditor";
 import { isRichTextEmpty } from "@/lib/utils";
 import { Id } from "@/convex/_generated/dataModel";
 import { Info } from "lucide-react";
+import Link from "next/link";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb";
 import { LinksEditor } from "@/components/LinksEditor";
 import { SpacePicker } from "@/components/SpacePicker";
 import { MediaUploadField } from "@/components/MediaUploadField";
@@ -232,6 +241,37 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   return (
     <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            {project.focusArea && (
+              <>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link href={`/space/${project.focusArea._id}`}>
+                      g/{project.focusArea.name}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+              </>
+            )}
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href={`/project/${id}`}>{project.name}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Edit</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="mb-2 space-y-2">
           <h2 className="text-3xl font-semibold tracking-tight">Update your project details</h2>
         </div>

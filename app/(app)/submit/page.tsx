@@ -22,8 +22,17 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import Link from "next/link";
 import { LinksEditor } from "@/components/LinksEditor";
 import type { NewFileItem, NewProjectFileItem, LinkItem } from "@/lib/types";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb";
 
 const readinessSliderValues = ["just_an_idea", "early_prototype", "mostly_working", "ready_to_use"] as const;
 const readinessSliderLabels = ["Just an idea", "Early prototype", "Mostly working", "Ready to use"];
@@ -190,6 +199,19 @@ export default function SubmitProject() {
   return (
     <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Share a Tool</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="mb-2 space-y-2">
           <h2 className="text-3xl font-semibold tracking-tight">Share what you&apos;re working on</h2>
         </div>

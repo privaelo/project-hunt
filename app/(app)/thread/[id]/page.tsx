@@ -16,6 +16,14 @@ import Link from "next/link";
 import { Forward } from "lucide-react";
 import { SpaceIcon } from "@/components/SpaceIcon";
 import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -99,7 +107,32 @@ export default function ThreadPage({
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <main className="mx-auto max-w-5xl px-6 py-10">
+      <main className="mx-auto max-w-5xl px-6 pt-4 pb-10">
+        <Breadcrumb className="mb-4">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            {thread.focusArea && (
+              <>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link href={`/space/${thread.focusArea._id}`}>
+                      g/{thread.focusArea.name}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+              </>
+            )}
+            <BreadcrumbItem>
+              <BreadcrumbPage>{thread.title}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="space-y-8 lg:flex lg:items-start lg:gap-10 lg:space-y-0">
           <section className="flex-1 min-w-0 space-y-4">
             <div className="space-y-2">
@@ -134,7 +167,7 @@ export default function ThreadPage({
                     <div className="flex items-center gap-1 text-xs text-zinc-500">
                       <Link
                         href={`/profile/${thread.userId}`}
-                        className="whitespace-nowrap hover:underline"
+                        className="whitespace-nowrap text-zinc-900 hover:underline"
                       >
                         u/{thread.creatorName || "Unknown User"}
                       </Link>

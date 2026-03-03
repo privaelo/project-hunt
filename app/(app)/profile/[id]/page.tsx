@@ -16,6 +16,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Eye, MessageSquare, Pencil, Target, Users } from "lucide-react";
 import { stripHtml } from "@/lib/utils";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb";
 
 const intentLabels: Record<string, string> = {
   looking: "Looking for tools",
@@ -152,6 +160,19 @@ export default function ProfilePage({
   return (
     <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto w-full max-w-5xl space-y-8 px-6 pb-16 pt-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>u/{profile.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="relative flex flex-col items-center gap-6 pr-12 text-center md:items-start md:text-left">
           {!isOwner && email && (
             <div className="absolute right-0 top-0 flex gap-1">

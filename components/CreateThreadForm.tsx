@@ -60,7 +60,7 @@ export function CreateThreadForm({ focusAreaId, defaultExpanded, onSuccess }: Cr
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-lg border border-zinc-200 bg-white p-4 space-y-3"
+      className="space-y-3 py-2"
     >
       <Input
         value={title}

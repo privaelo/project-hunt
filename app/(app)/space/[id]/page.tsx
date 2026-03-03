@@ -10,7 +10,6 @@ import Link from "next/link";
 
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { ProjectRow } from "@/components/ProjectRow";
 import { ThreadRow } from "@/components/ThreadRow";
@@ -18,6 +17,14 @@ import { CreateThreadForm } from "@/components/CreateThreadForm";
 import type { ProjectRowData, ThreadRowData } from "@/lib/types";
 import { SpaceIcon } from "@/components/SpaceIcon";
 import { Users, MessageCircle } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb";
 
 export default function SpacePage({
   params,
@@ -159,9 +166,25 @@ export default function SpacePage({
   return (
     <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto w-full max-w-[1400px] px-6 pb-16 pt-4">
-        <div className="space-y-8 lg:flex lg:items-start lg:gap-10 lg:space-y-0">
-          <section className="flex-1 min-w-0 space-y-8">
-            <div className="space-y-2">
+        {focusArea && (
+          <Breadcrumb className="mb-4">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/">Home</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>g/{focusArea.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        )}
+        <div className="space-y-6">
+          {/* Full-width space header */}
+          <div className="flex items-start gap-4 lg:gap-10">
+            <div className="flex-1 space-y-2">
               <div className="flex items-center gap-3">
                 {focusArea && <SpaceIcon icon={focusArea.icon} name={focusArea.name} size="md" />}
                 <h2 className="text-3xl font-semibold tracking-tight">
@@ -173,157 +196,165 @@ export default function SpacePage({
               )}
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList variant="line">
-                <TabsTrigger value="projects">Projects</TabsTrigger>
-                <TabsTrigger value="threads">Threads</TabsTrigger>
-              </TabsList>
+            <div className="flex items-center gap-3 shrink-0 pt-1 lg:w-72 xl:w-80">
+              <div className="flex items-center gap-1.5 text-sm text-zinc-500">
+                <Users className="h-4 w-4" />
+                <span>{memberCount ?? 0}</span>
+              </div>
+              {isAuthenticated ? (
+                <Button
+                  variant={isFollowing ? "default" : "outline"}
+                  size="sm"
+                  onClick={handleFollowSpace}
+                >
+                  {isFollowing ? "Joined" : "Join"}
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/sign-in" prefetch={false}>
+                    Join
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </div>
 
-              <TabsContent value="projects">
+          {/* Two-column: feed + sidebar */}
+          <div className="lg:flex lg:items-start lg:gap-10">
+            <section className="flex-1 min-w-0 space-y-4">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setActiveTab("projects")}
+                className={`text-sm font-semibold pb-1 border-b-2 transition-colors ${
+                  activeTab === "projects"
+                    ? "text-zinc-900 border-zinc-900"
+                    : "text-zinc-400 border-transparent hover:text-zinc-600"
+                }`}
+              >
+                Projects
+              </button>
+              <button
+                onClick={() => setActiveTab("threads")}
+                className={`text-sm font-semibold pb-1 border-b-2 transition-colors ${
+                  activeTab === "threads"
+                    ? "text-zinc-900 border-zinc-900"
+                    : "text-zinc-400 border-transparent hover:text-zinc-600"
+                }`}
+              >
+                Threads
+              </button>
+            </div>
+            {activeTab === "projects" ? (
+              <LayoutGroup>
+                <div className="space-y-0">
+                  {isLoadingProjects ? (
+                    <div className="py-8 text-center text-sm text-zinc-500">
+                      Loading projects...
+                    </div>
+                  ) : projectResults.length ? (
+                    <>
+                      {projectResults.map((project, index) => (
+                        <React.Fragment key={project._id}>
+                          {index > 0 && <Separator className="bg-zinc-200" />}
+                          <motion.div
+                            layout
+                            layoutId={project._id}
+                            transition={{
+                              type: "spring",
+                              stiffness: 500,
+                              damping: 35,
+                            }}
+                          >
+                            <ProjectRow
+                              project={project as ProjectRowData}
+                              onUpvote={handleUpvote}
+                              onAdopt={handleAdopt}
+                              currentUser={currentUser}
+                              isAuthenticated={isAuthenticated}
+                              hideSpaceLabel
+                            />
+                          </motion.div>
+                        </React.Fragment>
+                      ))}
+                      <div ref={projectLoadMoreRef} className="h-4" />
+                      {isLoadingMoreProjects && (
+                        <div className="py-4 text-center text-sm text-zinc-500">
+                          Loading more projects...
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="rounded-3xl bg-zinc-100/60 p-6 text-center text-sm text-zinc-500 space-y-3">
+                      <p className="font-medium text-zinc-900">
+                        No projects in this space yet.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </LayoutGroup>
+            ) : (
+              <div className="space-y-4">
+                {isAuthenticated && (
+                  <CreateThreadForm focusAreaId={focusAreaId} />
+                )}
+
                 <LayoutGroup>
                   <div className="space-y-0">
-                    {isLoadingProjects ? (
+                    {isLoadingThreads ? (
                       <div className="py-8 text-center text-sm text-zinc-500">
-                        Loading projects...
+                        Loading threads...
                       </div>
-                    ) : projectResults.length ? (
+                    ) : threadResults.length ? (
                       <>
-                        {projectResults.map((project, index) => (
-                          <React.Fragment key={project._id}>
-                            {index > 0 && <Separator className="bg-zinc-200" />}
+                        {threadResults.map((thread, index) => (
+                          <React.Fragment key={thread._id}>
+                            {index > 0 && (
+                              <Separator className="bg-zinc-200" />
+                            )}
                             <motion.div
                               layout
-                              layoutId={project._id}
+                              layoutId={thread._id}
                               transition={{
                                 type: "spring",
                                 stiffness: 500,
                                 damping: 35,
                               }}
                             >
-                              <ProjectRow
-                                project={project as ProjectRowData}
-                                onUpvote={handleUpvote}
-                                onAdopt={handleAdopt}
-                                currentUser={currentUser}
+                              <ThreadRow
+                                thread={thread as ThreadRowData}
+                                onUpvote={handleThreadUpvote}
                                 isAuthenticated={isAuthenticated}
-                                hideSpaceLabel
                               />
                             </motion.div>
                           </React.Fragment>
                         ))}
-                        <div ref={projectLoadMoreRef} className="h-4" />
-                        {isLoadingMoreProjects && (
+                        <div ref={threadLoadMoreRef} className="h-4" />
+                        {isLoadingMoreThreads && (
                           <div className="py-4 text-center text-sm text-zinc-500">
-                            Loading more projects...
+                            Loading more threads...
                           </div>
                         )}
                       </>
                     ) : (
                       <div className="rounded-3xl bg-zinc-100/60 p-6 text-center text-sm text-zinc-500 space-y-3">
                         <p className="font-medium text-zinc-900">
-                          No projects in this space yet.
+                          No threads in this space yet.
                         </p>
+                        <p>Start a conversation to get things going.</p>
                       </div>
                     )}
                   </div>
                 </LayoutGroup>
-              </TabsContent>
-
-              <TabsContent value="threads">
-                <div className="space-y-4">
-                  {isAuthenticated && (
-                    <CreateThreadForm focusAreaId={focusAreaId} />
-                  )}
-
-                  <LayoutGroup>
-                    <div className="space-y-0">
-                      {isLoadingThreads ? (
-                        <div className="py-8 text-center text-sm text-zinc-500">
-                          Loading threads...
-                        </div>
-                      ) : threadResults.length ? (
-                        <>
-                          {threadResults.map((thread, index) => (
-                            <React.Fragment key={thread._id}>
-                              {index > 0 && (
-                                <Separator className="bg-zinc-200" />
-                              )}
-                              <motion.div
-                                layout
-                                layoutId={thread._id}
-                                transition={{
-                                  type: "spring",
-                                  stiffness: 500,
-                                  damping: 35,
-                                }}
-                              >
-                                <ThreadRow
-                                  thread={thread as ThreadRowData}
-                                  onUpvote={handleThreadUpvote}
-                                  isAuthenticated={isAuthenticated}
-                                />
-                              </motion.div>
-                            </React.Fragment>
-                          ))}
-                          <div ref={threadLoadMoreRef} className="h-4" />
-                          {isLoadingMoreThreads && (
-                            <div className="py-4 text-center text-sm text-zinc-500">
-                              Loading more threads...
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <div className="rounded-3xl bg-zinc-100/60 p-6 text-center text-sm text-zinc-500 space-y-3">
-                          <p className="font-medium text-zinc-900">
-                            No threads in this space yet.
-                          </p>
-                          <p>Start a conversation to get things going.</p>
-                        </div>
-                      )}
-                    </div>
-                  </LayoutGroup>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </section>
-
-          <aside className="w-full lg:sticky lg:top-20 lg:w-72 xl:w-80">
-            <div className="rounded-lg bg-zinc-100 p-4 space-y-4">
-              {/* Members + Join */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                    Members
-                  </p>
-                  <div className="mt-1 flex items-center gap-2 text-sm font-medium text-zinc-700">
-                    <Users className="h-4 w-4 text-zinc-400" />
-                    <span>{memberCount ?? 0}</span>
-                  </div>
-                </div>
-
-                {isAuthenticated ? (
-                  <Button
-                    variant={isFollowing ? "default" : "outline"}
-                    size="sm"
-                    onClick={handleFollowSpace}
-                  >
-                    {isFollowing ? "Joined" : "Join"}
-                  </Button>
-                ) : (
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="/sign-in" prefetch={false}>
-                      Join
-                    </Link>
-                  </Button>
-                )}
               </div>
+            )}
+            </section>
 
-              <Separator className="bg-zinc-200" />
-
+            <aside className="w-full lg:sticky lg:top-2 lg:w-72 xl:w-80">
+            <div className="rounded-xl bg-zinc-100/80 p-4 space-y-4">
               {/* Context-aware cross-promotion */}
               {activeTab === "projects" ? (
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400 mb-3">
+                  <p className="text-sm font-semibold text-zinc-700 mb-3">
                     Threads
                   </p>
 
@@ -374,7 +405,7 @@ export default function SpacePage({
                 </div>
               ) : (
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400 mb-3">
+                  <p className="text-sm font-semibold text-zinc-700 mb-3">
                     Projects
                   </p>
 
@@ -425,7 +456,8 @@ export default function SpacePage({
                 </div>
               )}
             </div>
-          </aside>
+            </aside>
+          </div>
         </div>
 
       </main>
