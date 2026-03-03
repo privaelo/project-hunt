@@ -78,48 +78,19 @@ export const getById = query({
 export const listPaginatedBySpace = query({
   args: {
     focusAreaId: v.id("focusAreas"),
-    sort: v.optional(
-      v.union(
-        v.literal("trending"),
-        v.literal("new"),
-        v.literal("most_commented")
-      )
-    ),
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
-    const sort = args.sort ?? "trending";
     const currentUser = await getCurrentUser(ctx);
     const userId = currentUser?._id;
 
-    let paginatedResult;
-
-    if (sort === "new") {
-      paginatedResult = await ctx.db
-        .query("threads")
-        .withIndex("by_focusArea_createdAt", (q) =>
-          q.eq("focusAreaId", args.focusAreaId)
-        )
-        .order("desc")
-        .paginate(args.paginationOpts);
-    } else if (sort === "most_commented") {
-      paginatedResult = await ctx.db
-        .query("threads")
-        .withIndex("by_focusArea_commentCount", (q) =>
-          q.eq("focusAreaId", args.focusAreaId)
-        )
-        .order("desc")
-        .paginate(args.paginationOpts);
-    } else {
-      // trending (default)
-      paginatedResult = await ctx.db
-        .query("threads")
-        .withIndex("by_focusArea_hotScore", (q) =>
-          q.eq("focusAreaId", args.focusAreaId)
-        )
-        .order("desc")
-        .paginate(args.paginationOpts);
-    }
+    const paginatedResult = await ctx.db
+      .query("threads")
+      .withIndex("by_focusArea_createdAt", (q) =>
+        q.eq("focusAreaId", args.focusAreaId)
+      )
+      .order("desc")
+      .paginate(args.paginationOpts);
 
     const enrichedThreads = await Promise.all(
       paginatedResult.page.map(async (thread) => {

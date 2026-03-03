@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useRef, useEffect, useCallback, useState } from "react";
+import { use, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -36,10 +36,6 @@ export default function SpacePage({
   const toggleAdoption = useMutation(api.projects.toggleAdoption);
   const toggleThreadUpvote = useMutation(api.threads.toggleUpvote);
 
-  const [threadSort, setThreadSort] = useState<
-    "trending" | "new" | "most_commented"
-  >("trending");
-
   // Projects pagination
   const {
     results: projectResults,
@@ -58,7 +54,7 @@ export default function SpacePage({
     loadMore: loadMoreThreads,
   } = usePaginatedQuery(
     api.threads.listPaginatedBySpace,
-    { focusAreaId, sort: threadSort },
+    { focusAreaId },
     { initialNumItems: 15 }
   );
 
@@ -233,29 +229,6 @@ export default function SpacePage({
                   {isAuthenticated && (
                     <CreateThreadForm focusAreaId={focusAreaId} />
                   )}
-
-                  {/* Sort controls */}
-                  <div className="flex items-center gap-2">
-                    {(
-                      [
-                        { value: "trending", label: "Trending" },
-                        { value: "new", label: "New" },
-                        { value: "most_commented", label: "Most Commented" },
-                      ] as const
-                    ).map((option) => (
-                      <Button
-                        key={option.value}
-                        variant={
-                          threadSort === option.value ? "default" : "outline"
-                        }
-                        size="sm"
-                        onClick={() => setThreadSort(option.value)}
-                        className="rounded-full text-xs"
-                      >
-                        {option.label}
-                      </Button>
-                    ))}
-                  </div>
 
                   <LayoutGroup>
                     <div className="space-y-0">
