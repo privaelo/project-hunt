@@ -171,7 +171,7 @@ function TrendingThreads() {
           ))}
         </div>
       ) : trendingThreads.length === 0 ? (
-        <p className="text-sm text-zinc-500">No threads yet.</p>
+        <p className="text-sm text-zinc-500 px-3">No threads yet.</p>
       ) : (
         <div className="flex flex-col gap-1">
           {trendingThreads.map((thread) => (
