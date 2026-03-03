@@ -153,13 +153,13 @@ function TrendingThreads() {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col gap-4 max-w-[320px]">
-      <div className="flex items-center gap-2 px-3">
+    <div className="rounded-xl bg-white border border-zinc-200 p-4 space-y-4">
+      <div className="flex items-center gap-2">
         <h3 className="text-2xl font-semibold text-zinc-900">Trending Threads</h3>
       </div>
 
       {!trendingThreads ? (
-        <div className="space-y-3 px-3">
+        <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="animate-pulse space-y-2">
               <div className="h-4 bg-zinc-200 rounded w-3/4" />
@@ -168,13 +168,13 @@ function TrendingThreads() {
           ))}
         </div>
       ) : trendingThreads.length === 0 ? (
-        <p className="text-sm text-zinc-500 px-3">No threads yet.</p>
+        <p className="text-sm text-zinc-500">No threads yet.</p>
       ) : (
         <div className="flex flex-col gap-1">
           {trendingThreads.map((thread) => (
             <div
               key={thread._id}
-              className="rounded-lg p-3 transition-colors hover:bg-zinc-100 space-y-1.5 cursor-pointer"
+              className="rounded-lg p-3 transition-colors hover:bg-zinc-50 space-y-1.5 cursor-pointer"
               onClick={() => router.push(`/thread/${thread._id}`)}
             >
               {thread.spaceName && thread.spaceId && (

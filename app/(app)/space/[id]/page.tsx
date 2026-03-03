@@ -350,7 +350,7 @@ export default function SpacePage({
             </section>
 
             <aside className="w-full lg:sticky lg:top-2 lg:w-72 xl:w-80">
-            <div className="rounded-xl bg-zinc-100/80 p-4 space-y-4">
+            <div className="rounded-xl bg-white border border-zinc-200 p-4 space-y-4">
               {/* Context-aware cross-promotion */}
               {activeTab === "projects" ? (
                 <div>
@@ -375,7 +375,7 @@ export default function SpacePage({
                         <Link
                           key={thread._id}
                           href={`/thread/${thread._id}`}
-                          className="block rounded-md px-2 py-2 -mx-2 hover:bg-zinc-200/60 transition-colors"
+                          className="block rounded-md px-2 py-2 -mx-2 hover:bg-zinc-50 transition-colors"
                         >
                           <h4 className="text-sm font-medium text-zinc-900 line-clamp-2 leading-tight">
                             {thread.title}
@@ -399,7 +399,7 @@ export default function SpacePage({
                       onClick={() => setActiveTab("threads")}
                       className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
                     >
-                      View all &rarr;
+                      View all
                     </button>
                   </div>
                 </div>
@@ -426,7 +426,7 @@ export default function SpacePage({
                         <Link
                           key={project._id}
                           href={`/project/${project._id}`}
-                          className="block rounded-md px-2 py-2 -mx-2 hover:bg-zinc-200/60 transition-colors"
+                          className="block rounded-md px-2 py-2 -mx-2 hover:bg-zinc-50 transition-colors"
                         >
                           <h4 className="text-sm font-medium text-zinc-900 line-clamp-2 leading-tight">
                             {project.name}
@@ -450,7 +450,7 @@ export default function SpacePage({
                       onClick={() => setActiveTab("projects")}
                       className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
                     >
-                      View all &rarr;
+                      View all
                     </button>
                   </div>
                 </div>
