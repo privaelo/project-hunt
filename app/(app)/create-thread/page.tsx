@@ -8,25 +8,22 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { SpaceIcon } from "@/components/SpaceIcon";
+import { SpacePicker } from "@/components/SpacePicker";
 
 export default function CreateThreadPage() {
   const router = useRouter();
   const focusAreas = useQuery(api.focusAreas.listActive);
   const createThread = useMutation(api.threads.createThread);
 
-  const [focusAreaId, setFocusAreaId] = useState<string>("");
+  const [selectedSpace, setSelectedSpace] = useState<
+    Id<"focusAreas"> | "personal" | null
+  >(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const focusAreaId =
+    selectedSpace && selectedSpace !== "personal" ? selectedSpace : null;
   const canSubmit = focusAreaId && title.trim() && !isSubmitting;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,7 +35,7 @@ export default function CreateThreadPage() {
       const threadId = await createThread({
         title: title.trim(),
         body: body.trim() || undefined,
-        focusAreaId: focusAreaId as Id<"focusAreas">,
+        focusAreaId,
       });
       router.push(`/thread/${threadId}`);
     } catch (error) {
@@ -57,25 +54,11 @@ export default function CreateThreadPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-zinc-700">Space</label>
-            <Select value={focusAreaId} onValueChange={setFocusAreaId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose a space" />
-              </SelectTrigger>
-              <SelectContent>
-                {focusAreas?.map((area) => (
-                  <SelectItem key={area._id} value={area._id}>
-                    <div className="flex items-center gap-2">
-                      <SpaceIcon
-                        icon={area.icon}
-                        name={area.name}
-                        size="sm"
-                      />
-                      <span>g/{area.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SpacePicker
+              spaces={focusAreas}
+              selectedSpace={selectedSpace}
+              onSelectionChange={setSelectedSpace}
+            />
           </div>
 
           <div className="space-y-1.5">
