@@ -5,10 +5,16 @@ import '@/lib/amplify-config';
 import { ReactNode, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { ConvexReactClient, useConvexAuth, useMutation } from 'convex/react';
 import { ConvexProviderWithAuth } from 'convex/react';
-import { fetchAuthSession } from 'aws-amplify/auth';
+// signInWithRedirect must be imported here (layout level) so its
+// side-effect OAuth callback listener is registered on every page.
+// In Next.js, code-splitting drops it if only imported on the callback page.
+import { fetchAuthSession, signInWithRedirect } from 'aws-amplify/auth';
 import { Hub } from 'aws-amplify/utils';
 
 import { api } from '@/convex/_generated/api';
+
+// Prevent tree-shaking from removing the signInWithRedirect import
+void signInWithRedirect;
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -78,6 +84,7 @@ function useAuthFromCognito() {
     const unsubscribe = Hub.listen('auth', ({ payload }) => {
       if (
         payload.event === 'signedIn' ||
+        payload.event === 'signInWithRedirect' ||
         payload.event === 'tokenRefresh'
       ) {
         void checkAuth();
