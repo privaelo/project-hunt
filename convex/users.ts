@@ -133,6 +133,19 @@ export const completeOnboarding = mutation({
   },
 });
 
+// Extracts Cognito custom claims that should be kept in sync with the user record.
+// Add new synced attributes here — they will automatically be applied in all
+// three ensureUser code paths (returning user, email re-link, new user insert).
+function extractCognitoAttributes(identity: Record<string, unknown>) {
+  const department = identity["custom:department"] as string | undefined;
+  const avatarUrlId = identity["picture"] as string | undefined;
+
+  return {
+    ...(department !== undefined ? { department } : {}),
+    ...(avatarUrlId !== undefined ? { avatarUrlId } : {}),
+  };
+}
+
 // Called by the client after Cognito authentication to ensure the user
 // record exists and is linked to the current Cognito identity.
 export const ensureUser = mutation({
@@ -146,8 +159,8 @@ export const ensureUser = mutation({
     const cognitoSub = identity.subject;
     const email = identity.email;
     const name = identity.name ?? email ?? "Unknown User";
-    // Cognito custom attributes are forwarded as-is on the identity token
-    const department = (identity as Record<string, unknown>)["custom:department"] as string | undefined;
+
+    const syncedAttrs = extractCognitoAttributes(identity as Record<string, unknown>);
 
     // 1. Try lookup by externalUserId (Cognito sub)
     const existingByExternalId = await ctx.db
@@ -156,8 +169,11 @@ export const ensureUser = mutation({
       .unique();
 
     if (existingByExternalId) {
-      if (department !== undefined && existingByExternalId.department !== department) {
-        await ctx.db.patch(existingByExternalId._id, { department });
+      const changed = (Object.keys(syncedAttrs) as Array<keyof typeof syncedAttrs>).some(
+        (k) => syncedAttrs[k] !== undefined && existingByExternalId[k] !== syncedAttrs[k]
+      );
+      if (changed) {
+        await ctx.db.patch(existingByExternalId._id, syncedAttrs);
       }
       return existingByExternalId._id;
     }
@@ -174,7 +190,7 @@ export const ensureUser = mutation({
         await ctx.db.patch(existingByEmail._id, {
           externalUserId: cognitoSub,
           workosUserId: undefined,
-          ...(department !== undefined ? { department } : {}),
+          ...syncedAttrs,
         });
         return existingByEmail._id;
       }
@@ -187,7 +203,7 @@ export const ensureUser = mutation({
       emailLower: email ? email.toLowerCase() : undefined,
       name,
       onboardingCompleted: false,
-      ...(department !== undefined ? { department } : {}),
+      ...syncedAttrs,
     });
 
     return userId;
