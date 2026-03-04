@@ -27,9 +27,9 @@ export interface BaseComment {
 interface CommentThreadProps {
   comment: BaseComment;
   allComments: BaseComment[];
-  onDelete: (commentId: string) => Promise<void>;
-  onToggleUpvote: (commentId: string) => Promise<void>;
-  onSubmitReply: (content: string, parentCommentId: string) => Promise<void>;
+  onDelete: (commentId: string) => Promise<unknown>;
+  onToggleUpvote: (commentId: string) => Promise<unknown>;
+  onSubmitReply: (content: string, parentCommentId: string) => Promise<unknown>;
   depth?: number;
 }
 

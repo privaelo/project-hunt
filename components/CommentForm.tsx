@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 
 interface CommentFormProps {
-  onSubmit: (content: string) => Promise<void>;
+  onSubmit: (content: string) => Promise<unknown>;
   onCancel?: () => void;
   placeholder?: string;
   submitText?: string;
