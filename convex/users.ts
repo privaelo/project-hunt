@@ -101,6 +101,7 @@ export const getProfile = query({
       avatarUrlId: user.avatarUrlId ?? "",
       email: user.email ?? null,
       team: team?.name ?? "",
+      department: user.department ?? null,
       userIntent: user.userIntent ?? null,
       focusAreas: focusAreas.map((fa) => ({
         _id: fa._id,

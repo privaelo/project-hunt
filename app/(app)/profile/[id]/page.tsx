@@ -14,7 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
-import { ArrowBigUp, Eye, MessageSquare, Pencil, Target, Users } from "lucide-react";
+import { ArrowBigUp, Eye, MessageSquare, Pencil, Users } from "lucide-react";
 import { stripHtml } from "@/lib/utils";
 import {
   Breadcrumb,
@@ -25,11 +25,6 @@ import {
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
 
-const intentLabels: Record<string, string> = {
-  looking: "Looking for tools",
-  sharing: "Sharing tools",
-  both: "Looking + sharing",
-};
 
 type Profile = {
   _id: Id<"users">;
@@ -37,6 +32,7 @@ type Profile = {
   avatarUrlId: string;
   email?: string | null;
   team: string;
+  department: string | null;
   userIntent: "looking" | "sharing" | "both" | null;
   focusAreas: Array<{ _id: Id<"focusAreas">; name: string; group: string }>;
   projectCount: number;
@@ -146,9 +142,6 @@ export default function ProfilePage({
     );
   }
 
-  const intentLabel = profile.userIntent
-    ? intentLabels[profile.userIntent]
-    : "";
   const firstName = (profile.name || "").trim().split(" ")[0] || "User";
   const email = profile.email?.trim() || "";
   const teamsChatLink = email
@@ -222,10 +215,9 @@ export default function ProfilePage({
                 </h1>
               </div>
               <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-zinc-600 md:justify-start">
-                {intentLabel && (
+                {profile.department && (
                   <span className="inline-flex items-center gap-2">
-                    <Target className="h-4 w-4 text-zinc-400" aria-hidden="true" />
-                    {intentLabel}
+                    <span className="text-zinc-500">{profile.department}</span>
                   </span>
                 )}
                 {profile.team && (
