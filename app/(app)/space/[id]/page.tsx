@@ -183,8 +183,8 @@ export default function SpacePage({
         )}
         <div className="space-y-6">
           {/* Full-width space header */}
-          <div className="flex items-start gap-4 lg:gap-10">
-            <div className="flex-1 space-y-2">
+          <div className="space-y-2 lg:flex lg:items-start lg:justify-between lg:gap-10 lg:space-y-0">
+            <div className="space-y-2 min-w-0">
               <div className="flex items-center gap-3">
                 {focusArea && <SpaceIcon icon={focusArea.icon} name={focusArea.name} size="md" />}
                 <h2 className="text-3xl font-semibold tracking-tight">
@@ -195,11 +195,10 @@ export default function SpacePage({
                 <p className="text-sm text-zinc-500">{focusArea.description}</p>
               )}
             </div>
-
-            <div className="flex items-center gap-3 shrink-0 pt-1 lg:w-72 xl:w-80">
+            <div className="hidden lg:flex lg:w-72 xl:w-80 lg:items-center lg:justify-between">
               <div className="flex items-center gap-1.5 text-sm text-zinc-500">
                 <Users className="h-4 w-4" />
-                <span>{memberCount ?? 0}</span>
+                <span>{memberCount ?? 0} members</span>
               </div>
               {isAuthenticated ? (
                 <Button
@@ -351,6 +350,22 @@ export default function SpacePage({
 
             <aside className="w-full lg:sticky lg:top-20 lg:w-72 xl:w-80">
             <div className="rounded-xl bg-zinc-100 p-4 space-y-4">
+              {/* Member count + join */}
+              <div className="flex items-center justify-between lg:hidden">
+                <div className="flex items-center gap-1.5 text-sm text-zinc-500">
+                  <Users className="h-4 w-4" />
+                  <span>{memberCount ?? 0} members</span>
+                </div>
+                {isAuthenticated ? (
+                  <Button variant={isFollowing ? "default" : "outline"} size="sm" onClick={handleFollowSpace}>
+                    {isFollowing ? "Joined" : "Join"}
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/sign-in" prefetch={false}>Join</Link>
+                  </Button>
+                )}
+              </div>
               {/* Context-aware cross-promotion */}
               {activeTab === "projects" ? (
                 <div>

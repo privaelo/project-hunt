@@ -18,7 +18,12 @@
       "mcp__shadcn-ui__get_component_examples",
       "Bash(npx next build)",
       "WebFetch(domain:ui.shadcn.com)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git add convex/threads.ts app/\\\\\\(app\\\\\\)/thread/[id]/page.tsx components/app-sidebar.tsx app/\\\\\\(app\\\\\\)/create-thread/)",
+      "Bash(git commit:*)",
+      "Bash(git add \"app/\\(app\\)/create-thread/page.tsx\")",
+      "Bash(brew list gh)"
     ]
   }
 }
