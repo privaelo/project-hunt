@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -40,6 +41,7 @@ export default function CreateThreadPage() {
       router.push(`/thread/${threadId}`);
     } catch (error) {
       console.error("Failed to create thread:", error);
+      toast.error("Failed to create thread. Please try again.");
       setIsSubmitting(false);
     }
   };

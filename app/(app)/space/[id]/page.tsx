@@ -2,6 +2,7 @@
 
 import { use, useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { motion, LayoutGroup } from "motion/react";
@@ -136,6 +137,7 @@ export default function SpacePage({
       await toggleFollowSpace({ focusAreaId });
     } catch (error) {
       console.error("Failed to toggle follow:", error);
+      toast.error("Failed to update membership. Please try again.");
     }
   };
 
@@ -144,6 +146,7 @@ export default function SpacePage({
       await toggleUpvote({ projectId });
     } catch (error) {
       console.error("Failed to toggle upvote:", error);
+      toast.error("Failed to upvote. Please try again.");
     }
   };
 
@@ -152,6 +155,7 @@ export default function SpacePage({
       await toggleAdoption({ projectId });
     } catch (error) {
       console.error("Failed to toggle adoption:", error);
+      toast.error("Failed to update adoption. Please try again.");
     }
   };
 
@@ -160,6 +164,7 @@ export default function SpacePage({
       await toggleThreadUpvote({ threadId });
     } catch (error) {
       console.error("Failed to toggle upvote:", error);
+      toast.error("Failed to upvote. Please try again.");
     }
   };
 

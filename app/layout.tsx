@@ -4,6 +4,7 @@ import { Chonburi } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { Header } from "@/components/header";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
             <Header />
             <div className="pt-16">{children}</div>
           </ConvexClientProvider>
+          <Toaster />
       </body>
     </html>
   );

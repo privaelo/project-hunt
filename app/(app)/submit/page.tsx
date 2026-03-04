@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useAction, useQuery } from "convex/react";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
@@ -83,13 +84,13 @@ export default function SubmitProject() {
     const summary = isRichTextEmpty(formData.summary) ? undefined : formData.summary;
 
     if (!trimmedTitle) {
-      alert("Please add a title.");
+      toast.error("Please add a title.");
       setIsSubmitting(false);
       return;
     }
 
     if (selectedFocusArea === null) {
-      alert("Please choose a space for your project.");
+      toast.error("Please choose a space for your project.");
       setIsSubmitting(false);
       return;
     }
@@ -188,7 +189,7 @@ export default function SubmitProject() {
         }
       }
       console.error("Failed to create project:", error);
-      alert("Failed to share. Please try again.");
+      toast.error("Failed to share. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

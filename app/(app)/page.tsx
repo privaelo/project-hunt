@@ -4,6 +4,7 @@ import { useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, usePaginatedQuery } from "convex/react";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { motion, LayoutGroup } from "motion/react";
@@ -66,6 +67,7 @@ export default function Home() {
       await toggleUpvote({ projectId });
     } catch (error) {
       console.error("Failed to toggle upvote:", error);
+      toast.error("Failed to upvote. Please try again.");
     }
   };
 
@@ -74,6 +76,7 @@ export default function Home() {
       await toggleAdoption({ projectId });
     } catch (error) {
       console.error("Failed to toggle adoption:", error);
+      toast.error("Failed to update adoption. Please try again.");
     }
   };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentForm } from "./CommentForm";
@@ -59,7 +60,7 @@ export function CommentThread({
       await onDelete(comment._id);
     } catch (error) {
       console.error("Failed to delete comment:", error);
-      alert("Failed to delete comment. Please try again.");
+      toast.error("Failed to delete comment. Please try again.");
     } finally {
       setIsDeleting(false);
     }
@@ -80,7 +81,7 @@ export function CommentThread({
       await onToggleUpvote(comment._id);
     } catch (error) {
       console.error("Failed to toggle comment upvote:", error);
-      alert("Failed to update upvote. Please try again.");
+      toast.error("Failed to update upvote. Please try again.");
     } finally {
       setIsTogglingUpvote(false);
     }

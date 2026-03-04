@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, startTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useMutation, useQuery } from 'convex/react';
+import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import { useConvexAuth } from 'convex/react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -49,6 +50,7 @@ export default function OnboardingPage() {
       router.push('/');
     } catch (error) {
       console.error('Failed to complete onboarding:', error);
+      toast.error('Failed to complete setup. Please try again.');
       setIsSubmitting(false);
     }
   };

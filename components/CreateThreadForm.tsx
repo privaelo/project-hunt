@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,7 @@ export function CreateThreadForm({ focusAreaId, defaultExpanded, onSuccess }: Cr
       onSuccess?.();
     } catch (error) {
       console.error("Failed to create thread:", error);
-      alert("Failed to create thread. Please try again.");
+      toast.error("Failed to create thread. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

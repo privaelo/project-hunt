@@ -3,6 +3,7 @@
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAction, useQuery, useMutation } from "convex/react";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,7 +82,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       });
     } catch (error) {
       console.error("Failed to reorder media:", error);
-      alert("Failed to reorder media. Please try again.");
+      toast.error("Failed to reorder media. Please try again.");
       // No manual rollback needed - Convex optimistic update handles this
     }
   };
@@ -91,7 +92,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       await deleteMediaFromProject({ projectId, mediaId });
     } catch (error) {
       console.error("Failed to delete media:", error);
-      alert("Failed to delete media. Please try again.");
+      toast.error("Failed to delete media. Please try again.");
     }
   };
 
@@ -100,7 +101,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       await deleteFileFromProject({ projectId, fileId });
     } catch (error) {
       console.error("Failed to delete file:", error);
-      alert("Failed to delete file. Please try again.");
+      toast.error("Failed to delete file. Please try again.");
     }
   };
 
@@ -130,7 +131,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
     const trimmedName = formData.name.trim();
 
     if (!trimmedName) {
-      alert("Please add a title.");
+      toast.error("Please add a title.");
       setIsSubmitting(false);
       return;
     }
@@ -212,7 +213,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       router.push(`/project/${id}`);
     } catch (error) {
       console.error("Failed to update project:", error);
-      alert("Failed to update project. Please try again.");
+      toast.error("Failed to update project. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

@@ -2,6 +2,7 @@
 
 import { use } from "react";
 import { useQuery, useMutation } from "convex/react";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { api } from "@/convex/_generated/api";
@@ -76,6 +77,7 @@ export default function ThreadPage({
       await toggleUpvote({ threadId });
     } catch (error) {
       console.error("Failed to toggle upvote:", error);
+      toast.error("Failed to upvote. Please try again.");
     }
   };
 
@@ -109,6 +111,7 @@ export default function ThreadPage({
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update thread:", error);
+      toast.error("Failed to update thread. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -125,6 +128,7 @@ export default function ThreadPage({
       }
     } catch (error) {
       console.error("Failed to delete thread:", error);
+      toast.error("Failed to delete thread. Please try again.");
       setIsDeleting(false);
     }
   };

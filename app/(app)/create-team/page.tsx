@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAction } from "convex/react";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +31,7 @@ export default function CreateTeam() {
       router.push("/");
     } catch (error) {
       console.error("Failed to create team:", error);
-      alert("Failed to create team. Please try again.");
+      toast.error("Failed to create team. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

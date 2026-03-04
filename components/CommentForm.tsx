@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useConvexAuth } from "convex/react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
@@ -34,7 +35,7 @@ export function CommentForm({
       onCancel?.();
     } catch (error) {
       console.error("Failed to post comment:", error);
-      alert("Failed to post comment. Please try again.");
+      toast.error("Failed to post comment. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState, type KeyboardEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useAction } from "convex/react";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
@@ -82,7 +83,7 @@ function ConfirmSubmissionContent() {
       router.push("/");
     } catch (error) {
       console.error("Failed to confirm project:", error);
-      alert("Failed to confirm project. Please try again.");
+      toast.error("Failed to confirm project. Please try again.");
       setIsProcessing(false);
     }
   };
@@ -96,7 +97,7 @@ function ConfirmSubmissionContent() {
       router.push("/");
     } catch (error) {
       console.error("Failed to cancel project:", error);
-      alert("Failed to cancel project. Please try again.");
+      toast.error("Failed to cancel project. Please try again.");
       setIsProcessing(false);
     }
   };
