@@ -21,6 +21,7 @@ The app title in `app/layout.tsx` is "Garden"; the repo is named `project-hunt`.
 | Animation | Motion (Framer Motion v12) |
 | Rich Text | `react-quill-new` (editor), `dompurify` (sanitizer), `react-markdown` (renderer) |
 | Drag & Drop | `@dnd-kit/core`, `@dnd-kit/sortable` (media reordering) |
+| Toasts | Sonner (replaces `alert()` and silent failures throughout) |
 
 ---
 
@@ -29,7 +30,7 @@ The app title in `app/layout.tsx` is "Garden"; the repo is named `project-hunt`.
 ```
 project-hunt/
 ├── app/                        # Next.js App Router
-│   ├── layout.tsx              # Root layout — sets up fonts, ConvexClientProvider, Header
+│   ├── layout.tsx              # Root layout — sets up fonts, ConvexClientProvider, Header, Sonner Toaster
 │   ├── globals.css             # Global styles (Tailwind entry)
 │   ├── (app)/                  # Route group: authenticated/main app
 │   │   ├── layout.tsx          # Protected layout — OnboardingGuard, Sidebar, auth gating
@@ -38,7 +39,7 @@ project-hunt/
 │   │   ├── about/page.tsx
 │   │   ├── create-team/page.tsx
 │   │   ├── create-thread/page.tsx  # Standalone thread creation page
-│   │   ├── profile/[id]/page.tsx
+│   │   ├── profile/[id]/page.tsx   # User profile — tabs for Built/Uses; shows department
 │   │   ├── project/[id]/page.tsx       # Project detail
 │   │   ├── project/[id]/edit/page.tsx  # Project edit form
 │   │   ├── space/[id]/page.tsx         # Focus area/space feed (tabs: Projects + Threads)
@@ -47,20 +48,21 @@ project-hunt/
 │   │       ├── page.tsx
 │   │       └── confirm/page.tsx
 │   ├── callback/page.tsx       # OAuth callback
-│   ├── onboarding/page.tsx     # New user onboarding
+│   ├── onboarding/page.tsx     # New user onboarding (collects userIntent)
 │   ├── sign-in/page.tsx
 │   ├── sign-up/page.tsx
 │   └── useCurrentUser.ts       # Hook: returns { isAuthenticated, user }
 │
 ├── components/
 │   ├── ui/                     # shadcn/ui base components (do not modify manually)
+│   │   └── sonner.tsx          # Custom Sonner toaster wrapper with Lucide icons
 │   ├── auth/AuthPage.tsx       # Auth UI wrapper
 │   ├── chat/                   # AI chat components (ProjectCardsDisplay, SearchingIndicator)
 │   ├── ConvexClientProvider.tsx # Convex + Cognito auth bridge
 │   ├── app-sidebar.tsx         # Main navigation sidebar
 │   ├── header.tsx              # Top navigation bar
 │   ├── LandingPage.tsx         # Public landing page component
-│   ├── ProjectRow.tsx          # Project list item card
+│   ├── ProjectRow.tsx          # Project list item card (ArrowBigUp upvote icon)
 │   ├── ProjectMediaCarousel.tsx # Media carousel for project detail
 │   ├── ProjectFileDownload.tsx # File download section on project detail
 │   ├── SimilarProjectsPreview.tsx # Similar projects shown on /submit
@@ -70,9 +72,7 @@ project-hunt/
 │   ├── SpacePicker.tsx         # Combobox for selecting a focus area (space)
 │   ├── CreateThreadForm.tsx    # Inline form for creating a thread in a space
 │   ├── ThreadRow.tsx           # Thread list item card
-│   ├── ThreadCommentForm.tsx   # Comment form for threads
-│   ├── ThreadCommentThread.tsx # Threaded comment display for threads
-│   ├── CommentThread.tsx / CommentForm.tsx  # Comments for projects
+│   ├── CommentThread.tsx / CommentForm.tsx  # Shared comment UI for both projects and threads
 │   ├── ChatInterface.tsx / MessageList.tsx  # AI chat UI
 │   ├── LinksEditor.tsx         # Links editing UI for project forms
 │   ├── RichTextEditor.tsx / RichTextContent.tsx
@@ -100,7 +100,7 @@ project-hunt/
 │   ├── ragbot.ts               # AI agent (ProjectFinder) + thread management
 │   ├── rag.ts                  # RAG component init
 │   ├── tools.ts                # Agent tools: searchProjects, showProjects
-│   ├── users.ts                # User management (ensureUser, getCurrentUser)
+│   ├── users.ts                # User management (ensureUser, getCurrentUser, department sync)
 │   ├── teams.ts
 │   ├── comments.ts             # Project comments
 │   ├── notifications.ts
@@ -182,10 +182,10 @@ Key tables and their purpose:
 | `upvotes` | Per-user upvotes on projects |
 | `adoptions` | Per-user "I'm using this" signals |
 | `projectViews` | Unique view tracking per viewer ID |
-| `comments` | Threaded comments on projects (soft delete) |
+| `comments` | Threaded comments on projects (soft delete; retained if replies exist) |
 | `commentUpvotes` | Per-user upvotes on project comments |
 | `notifications` | Aggregated activity notifications |
-| `users` | User profiles; `onboardingCompleted` gates access |
+| `users` | User profiles; `onboardingCompleted` gates access; `department` from Cognito |
 | `userFocusAreas` | User ↔ focus area interest associations (follow/join) |
 | `teams` | Team/group records |
 | `focusAreas` | Taxonomy spaces (like subreddits); shown in sidebar |
@@ -208,6 +208,23 @@ All tables have relevant indexes — always use `.withIndex()` for queries, neve
 6. `useCurrentUser` hook (`app/useCurrentUser.ts`) provides `{ isAuthenticated, user }` throughout the app
 
 **Never bypass `OnboardingGuard`** — all authenticated app pages live under `app/(app)/`.
+
+### Cognito Attribute Sync
+
+`ensureUser` extracts attributes from the Cognito identity token using an internal helper:
+
+```ts
+function extractCognitoAttributes(identity: Record<string, unknown>) {
+  const department = identity["custom:department"] as string | undefined;
+  const avatarUrlId = identity["picture"] as string | undefined;
+  return {
+    ...(department !== undefined ? { department } : {}),
+    ...(avatarUrlId !== undefined ? { avatarUrlId } : {}),
+  };
+}
+```
+
+The `department` field comes from the `custom:department` Cognito attribute and is stored on the `users` table. It is displayed on the user profile page.
 
 ---
 
@@ -285,6 +302,19 @@ Add new shared types here rather than defining them inline or in component files
 - Do not edit `components/ui/` files directly unless patching a bug
 - Use `cn()` from `lib/utils.ts` for conditional Tailwind classes
 
+### Toast Notifications (Sonner)
+Use Sonner for all user-facing feedback. Never use `alert()` or silently swallow errors.
+
+```ts
+import { toast } from "sonner";
+
+toast.success("Project saved!");
+toast.error("Something went wrong.");
+toast.loading("Saving…");
+```
+
+The `<Toaster />` is mounted in `app/layout.tsx`. The custom wrapper at `components/ui/sonner.tsx` adds Lucide icons and theme awareness.
+
 ---
 
 ## Project Ranking / Hot Score
@@ -341,8 +371,8 @@ Key exported queries:
 ### Components
 - `ThreadRow` — compact thread card (title, upvote count, comment count, creator, timestamp)
 - `CreateThreadForm` — inline form for creating a thread within a space page
-- `ThreadCommentForm` — comment input for thread pages
-- `ThreadCommentThread` — recursive threaded comment display
+- `CommentForm` — shared comment input used for both projects and threads
+- `CommentThread` — shared recursive threaded comment display used for both projects and threads
 
 ---
 
@@ -421,4 +451,12 @@ Secrets required:
 
 10. **`SpacePicker`** is a controlled combobox component (`components/SpacePicker.tsx`) used on the standalone `/create-thread` page to let users pick which space a thread belongs to.
 
-11. **Thread comments are simpler than project comments** — they use the `threadComments` / `threadCommentUpvotes` tables instead of `comments` / `commentUpvotes`. Both support threaded replies via `parentCommentId`.
+11. **Thread comments share UI components with project comments** — `CommentForm` and `CommentThread` are used for both. The backend tables differ (`threadComments` / `threadCommentUpvotes` vs `comments` / `commentUpvotes`), but the frontend components are consolidated.
+
+12. **Deleted comments with replies are retained** — when a comment is soft-deleted, it remains visible as `[deleted]` if it has non-deleted replies, preventing orphaned reply threads. The filter logic lives on the project detail page.
+
+13. **Upvote icons use `ArrowBigUp`** from Lucide React — not thumbs-up or heart icons. Use `ArrowBigUp` consistently for all upvote affordances across projects, threads, and comments.
+
+14. **Department field on users** — populated automatically from the Cognito `custom:department` attribute during `ensureUser`. Displayed on the profile page. Do not prompt users to enter it manually.
+
+15. **User profile page** — shows `department` if populated; does not display `userIntent` labels to the user. The `userIntent` field (`"looking" | "sharing" | "both"`) is collected at onboarding and available in the backend but is not currently surfaced in the UI.
