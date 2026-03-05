@@ -72,9 +72,7 @@ project-hunt/
 │   ├── SpacePicker.tsx         # Combobox for selecting a focus area (space)
 │   ├── CreateThreadForm.tsx    # Inline form for creating a thread in a space
 │   ├── ThreadRow.tsx           # Thread list item card
-│   ├── ThreadCommentForm.tsx   # Comment form for threads
-│   ├── ThreadCommentThread.tsx # Threaded comment display for threads
-│   ├── CommentThread.tsx / CommentForm.tsx  # Comments for projects
+│   ├── CommentThread.tsx / CommentForm.tsx  # Shared comment UI for both projects and threads
 │   ├── ChatInterface.tsx / MessageList.tsx  # AI chat UI
 │   ├── LinksEditor.tsx         # Links editing UI for project forms
 │   ├── RichTextEditor.tsx / RichTextContent.tsx
@@ -373,8 +371,8 @@ Key exported queries:
 ### Components
 - `ThreadRow` — compact thread card (title, upvote count, comment count, creator, timestamp)
 - `CreateThreadForm` — inline form for creating a thread within a space page
-- `ThreadCommentForm` — comment input for thread pages
-- `ThreadCommentThread` — recursive threaded comment display
+- `CommentForm` — shared comment input used for both projects and threads
+- `CommentThread` — shared recursive threaded comment display used for both projects and threads
 
 ---
 
@@ -453,7 +451,7 @@ Secrets required:
 
 10. **`SpacePicker`** is a controlled combobox component (`components/SpacePicker.tsx`) used on the standalone `/create-thread` page to let users pick which space a thread belongs to.
 
-11. **Thread comments are simpler than project comments** — they use the `threadComments` / `threadCommentUpvotes` tables instead of `comments` / `commentUpvotes`. Both support threaded replies via `parentCommentId`.
+11. **Thread comments share UI components with project comments** — `CommentForm` and `CommentThread` are used for both. The backend tables differ (`threadComments` / `threadCommentUpvotes` vs `comments` / `commentUpvotes`), but the frontend components are consolidated.
 
 12. **Deleted comments with replies are retained** — when a comment is soft-deleted, it remains visible as `[deleted]` if it has non-deleted replies, preventing orphaned reply threads. The filter logic lives on the project detail page.
 
