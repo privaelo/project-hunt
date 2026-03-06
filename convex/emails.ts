@@ -1,4 +1,11 @@
-import { internalAction, mutation, query } from "./_generated/server";
+import {
+  internalAction,
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 import type { Doc } from "./_generated/dataModel";
@@ -37,6 +44,78 @@ export const sendEmail = internalAction({
     // TODO: Implement SES email sending
     console.log(
       `[sendEmail stub] Would send "${args.type}" email to user ${args.userId}`
+    );
+  },
+});
+
+// ─── Queue drainer ───────────────────────────────────────────────────────────
+
+const DRAIN_BATCH_SIZE = 50;
+
+export const getPendingEmails = internalQuery({
+  args: { limit: v.number() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("emailQueue")
+      .withIndex("by_status_createdAt", (q) => q.eq("status", "pending"))
+      .order("asc")
+      .take(args.limit);
+  },
+});
+
+export const markEmailSent = internalMutation({
+  args: { emailId: v.id("emailQueue") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.emailId, {
+      status: "sent",
+      sentAt: Date.now(),
+    });
+  },
+});
+
+export const markEmailFailed = internalMutation({
+  args: { emailId: v.id("emailQueue"), reason: v.string() },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.emailId, {
+      status: "failed",
+      failureReason: args.reason,
+    });
+  },
+});
+
+export const drainEmailQueue = internalAction({
+  handler: async (ctx) => {
+    const batch = await ctx.runQuery(internal.emails.getPendingEmails, {
+      limit: DRAIN_BATCH_SIZE,
+    });
+
+    if (batch.length === 0) return;
+
+    let sent = 0;
+    let failed = 0;
+
+    for (const email of batch) {
+      try {
+        await ctx.runAction(internal.emails.sendEmail, {
+          userId: email.userId,
+          type: email.type,
+          payload: email.payload,
+        });
+        await ctx.runMutation(internal.emails.markEmailSent, {
+          emailId: email._id,
+        });
+        sent++;
+      } catch (error) {
+        await ctx.runMutation(internal.emails.markEmailFailed, {
+          emailId: email._id,
+          reason: error instanceof Error ? error.message : String(error),
+        });
+        failed++;
+      }
+    }
+
+    console.log(
+      `[drainEmailQueue] Processed ${batch.length} emails: ${sent} sent, ${failed} failed`
     );
   },
 });

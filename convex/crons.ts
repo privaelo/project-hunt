@@ -17,4 +17,11 @@ crons.weekly(
   internal.digests.generateWeeklyDigests
 );
 
+// Drain pending emails from the queue every 5 minutes
+crons.interval(
+  "drain email queue",
+  { minutes: 5 },
+  internal.emails.drainEmailQueue
+);
+
 export default crons;
