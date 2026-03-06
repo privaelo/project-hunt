@@ -8,6 +8,7 @@ const BATCH_SIZE = 50;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_TOP_PROJECTS_PER_SPACE = 3;
 const MAX_NEW_THREADS_PER_SPACE = 5;
+const MAX_PLATFORM_HIGHLIGHTS = 5;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,6 +38,26 @@ interface SpaceActivity {
   }[];
 }
 
+interface PlatformHighlights {
+  topProjects: {
+    projectId: Id<"projects">;
+    projectName: string;
+    upvotes: number;
+    creatorName: string;
+    spaceName: string | null;
+    spaceIcon: string | null;
+  }[];
+  topThreads: {
+    threadId: Id<"threads">;
+    threadTitle: string;
+    upvoteCount: number;
+    commentCount: number;
+    creatorName: string;
+    spaceName: string | null;
+    spaceIcon: string | null;
+  }[];
+}
+
 interface DigestData {
   ownProjectActivity: OwnProjectActivity[];
   ownProjectTotals: {
@@ -46,18 +67,22 @@ interface DigestData {
     totalNewViews: number;
   };
   followedSpaceActivity: SpaceActivity[];
+  platformHighlights: PlatformHighlights;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function isDigestEmpty(data: DigestData): boolean {
-  const { ownProjectTotals, followedSpaceActivity } = data;
+  const { ownProjectTotals, followedSpaceActivity, platformHighlights } = data;
   const hasOwnActivity =
     ownProjectTotals.totalNewUpvotes > 0 ||
     ownProjectTotals.totalNewComments > 0 ||
     ownProjectTotals.totalNewAdoptions > 0 ||
     ownProjectTotals.totalNewViews > 0;
-  return !hasOwnActivity && followedSpaceActivity.length === 0;
+  const hasPlatformHighlights =
+    platformHighlights.topProjects.length > 0 ||
+    platformHighlights.topThreads.length > 0;
+  return !hasOwnActivity && followedSpaceActivity.length === 0 && !hasPlatformHighlights;
 }
 
 // ─── Internal: orchestrator action (cron entry point) ─────────────────────────
@@ -304,6 +329,53 @@ export const gatherUserDigestData = internalQuery({
       }
     }
 
+    // ── Section 3: Platform highlights ──
+
+    const trendingProjectDocs = await ctx.db
+      .query("projects")
+      .withIndex("by_status_hotScore", (q) => q.eq("status", "active"))
+      .order("desc")
+      .take(MAX_PLATFORM_HIGHLIGHTS);
+
+    const topProjects: PlatformHighlights["topProjects"] = [];
+    for (const project of trendingProjectDocs) {
+      const [creator, focusArea] = await Promise.all([
+        ctx.db.get(project.userId),
+        project.focusAreaId ? ctx.db.get(project.focusAreaId) : null,
+      ]);
+      topProjects.push({
+        projectId: project._id,
+        projectName: project.name,
+        upvotes: project.upvotes,
+        creatorName: creator?.name ?? "Unknown",
+        spaceName: focusArea?.name ?? null,
+        spaceIcon: focusArea?.icon ?? null,
+      });
+    }
+
+    const trendingThreadDocs = await ctx.db
+      .query("threads")
+      .withIndex("by_hotScore")
+      .order("desc")
+      .take(MAX_PLATFORM_HIGHLIGHTS);
+
+    const topThreads: PlatformHighlights["topThreads"] = [];
+    for (const thread of trendingThreadDocs) {
+      const [creator, focusArea] = await Promise.all([
+        ctx.db.get(thread.userId),
+        ctx.db.get(thread.focusAreaId),
+      ]);
+      topThreads.push({
+        threadId: thread._id,
+        threadTitle: thread.title,
+        upvoteCount: thread.upvoteCount,
+        commentCount: thread.commentCount,
+        creatorName: creator?.name ?? "Unknown",
+        spaceName: focusArea?.name ?? null,
+        spaceIcon: focusArea?.icon ?? null,
+      });
+    }
+
     return {
       ownProjectActivity,
       ownProjectTotals: {
@@ -313,6 +385,7 @@ export const gatherUserDigestData = internalQuery({
         totalNewViews,
       },
       followedSpaceActivity,
+      platformHighlights: { topProjects, topThreads },
     } satisfies DigestData;
   },
 });
