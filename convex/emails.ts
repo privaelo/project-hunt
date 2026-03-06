@@ -9,10 +9,40 @@ import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 import type { Doc } from "./_generated/dataModel";
+import { renderWeeklyDigestEmail, type WeeklyDigestPayload } from "./emailRenderer";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 type EmailCategory = "weeklyDigest" | "spaceActivity" | "projectActivity";
+type EmailRecipient = {
+  name: string;
+  email: string | null;
+};
+type PreparedEmail = {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+};
+
+function getAppBaseUrl(): string {
+  const explicitBaseUrl =
+    process.env.APP_URL ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    process.env.NEXT_PUBLIC_SITE_URL;
+  if (explicitBaseUrl) {
+    return explicitBaseUrl.endsWith("/")
+      ? explicitBaseUrl.slice(0, -1)
+      : explicitBaseUrl;
+  }
+
+  const redirectUri = process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI;
+  if (redirectUri) {
+    return new URL("/", redirectUri).origin;
+  }
+
+  return "http://localhost:3000";
+}
 
 /**
  * Checks whether a user has a specific email category enabled.
@@ -34,17 +64,52 @@ export function isEmailEnabled(
  * Placeholder for SES integration. Both the queue drainer and direct
  * ctx.scheduler.runAfter calls from real-time triggers will invoke this.
  */
-export const sendEmail = internalAction({
+export const sendEmail: ReturnType<typeof internalAction> = internalAction({
   args: {
     userId: v.id("users"),
     type: v.string(),
     payload: v.any(),
   },
-  handler: async (_ctx, args) => {
-    // TODO: Implement SES email sending
-    console.log(
-      `[sendEmail stub] Would send "${args.type}" email to user ${args.userId}`
+  handler: async (ctx, args): Promise<PreparedEmail | null> => {
+    const recipient: EmailRecipient | null = await ctx.runQuery(
+      internal.users.getEmailRecipient,
+      {
+      userId: args.userId,
+      }
     );
+
+    if (!recipient) {
+      throw new Error(`Cannot send email to missing user ${args.userId}`);
+    }
+
+    if (!recipient.email) {
+      throw new Error(`User ${args.userId} does not have an email address`);
+    }
+
+    if (args.type === "weekly_digest") {
+      const rendered = renderWeeklyDigestEmail({
+        recipientName: recipient.name,
+        payload: args.payload as WeeklyDigestPayload,
+        baseUrl: getAppBaseUrl(),
+      });
+
+      console.log(
+        `[sendEmail stub] Prepared "${args.type}" email for ${recipient.email} with subject "${rendered.subject}"`
+      );
+
+      return {
+        to: recipient.email,
+        subject: rendered.subject,
+        html: rendered.html,
+        text: rendered.text,
+      };
+    }
+
+    console.log(
+      `[sendEmail stub] No renderer implemented for "${args.type}" email to ${recipient.email}`
+    );
+
+    return null;
   },
 });
 

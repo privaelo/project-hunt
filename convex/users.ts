@@ -1,4 +1,4 @@
-import { query, QueryCtx, mutation, internalMutation } from "./_generated/server";
+import { query, QueryCtx, mutation, internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 
@@ -278,5 +278,20 @@ export const backfillEmailLower = internalMutation({
       }
     }
     return { updated };
+  },
+});
+
+export const getEmailRecipient = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      return null;
+    }
+
+    return {
+      name: user.name,
+      email: user.email ?? null,
+    };
   },
 });
