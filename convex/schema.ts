@@ -125,6 +125,11 @@ export default defineSchema({
     onboardingCompleted: v.boolean(),
     department: v.optional(v.string()),
     userIntent: v.optional(v.union(v.literal("looking"), v.literal("sharing"), v.literal("both"))),
+    emailPreferences: v.optional(v.object({
+      weeklyDigest: v.optional(v.boolean()),
+      spaceActivity: v.optional(v.boolean()),
+      projectActivity: v.optional(v.boolean()),
+    })),
   })
     .index("by_teamId", ["teamId"])
     .index("by_userIntent", ["userIntent"])
@@ -197,4 +202,57 @@ export default defineSchema({
   })
     .index("by_comment", ["commentId"])
     .index("by_comment_and_user", ["commentId", "userId"]),
+  weeklyDigests: defineTable({
+    userId: v.id("users"),
+    periodStart: v.number(),
+    periodEnd: v.number(),
+    status: v.union(v.literal("pending"), v.literal("sent"), v.literal("failed")),
+    ownProjectActivity: v.array(v.object({
+      projectId: v.id("projects"),
+      projectName: v.string(),
+      newUpvotes: v.number(),
+      newComments: v.number(),
+      newAdoptions: v.number(),
+      newViews: v.number(),
+    })),
+    ownProjectTotals: v.object({
+      totalNewUpvotes: v.number(),
+      totalNewComments: v.number(),
+      totalNewAdoptions: v.number(),
+      totalNewViews: v.number(),
+    }),
+    followedSpaceActivity: v.array(v.object({
+      focusAreaId: v.id("focusAreas"),
+      focusAreaName: v.string(),
+      focusAreaIcon: v.optional(v.string()),
+      topProjects: v.array(v.object({
+        projectId: v.id("projects"),
+        projectName: v.string(),
+        upvotes: v.number(),
+        creatorName: v.string(),
+      })),
+      newThreads: v.array(v.object({
+        threadId: v.id("threads"),
+        threadTitle: v.string(),
+        creatorName: v.string(),
+      })),
+    })),
+    createdAt: v.number(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_userId_periodEnd", ["userId", "periodEnd"])
+    .index("by_status", ["status"]),
+  emailQueue: defineTable({
+    userId: v.id("users"),
+    type: v.string(),
+    referenceId: v.optional(v.string()),
+    status: v.union(v.literal("pending"), v.literal("sent"), v.literal("failed")),
+    payload: v.any(),
+    createdAt: v.number(),
+    sentAt: v.optional(v.number()),
+    failureReason: v.optional(v.string()),
+  })
+    .index("by_status", ["status"])
+    .index("by_userId", ["userId"])
+    .index("by_status_createdAt", ["status", "createdAt"]),
 });
