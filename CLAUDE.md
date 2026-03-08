@@ -21,6 +21,7 @@ The app title in `app/layout.tsx` is "Garden"; the repo is named `project-hunt`.
 | Animation | Motion (Framer Motion v12) |
 | Rich Text | `react-quill-new` (editor), `dompurify` (sanitizer), `react-markdown` (renderer) |
 | Drag & Drop | `@dnd-kit/core`, `@dnd-kit/sortable` (media reordering) |
+| Email | AWS SES v2 (`@aws-sdk/client-sesv2`) for transactional email delivery |
 | Toasts | Sonner (replaces `alert()` and silent failures throughout) |
 
 ---
@@ -86,7 +87,7 @@ project-hunt/
 │   ├── auth.ts                 # Convex auth helpers
 │   ├── functions.ts            # Shared internal mutation helper
 │   ├── http.ts                 # HTTP router (currently empty)
-│   ├── crons.ts                # Scheduled jobs (hourly hot score refresh for projects)
+│   ├── crons.ts                # Scheduled jobs (hot scores, weekly digests, email queue drainer)
 │   ├── projects.ts             # Proxy re-exporter for convex/projects/*
 │   ├── projects/               # Project domain — split by responsibility
 │   │   ├── lifecycle.ts        # create, update, delete, confirm, backfill
@@ -96,11 +97,14 @@ project-hunt/
 │   │   ├── media.ts            # file/media upload/delete/reorder
 │   │   ├── migrations.ts       # data migrations
 │   │   └── helpers.ts          # calculateHotScore, enrichProjects
+│   ├── emails.ts               # Email sending (SES v2), queue drainer, user preferences
+│   ├── emailRenderer.ts        # HTML + plain-text email templates (weekly digest)
+│   ├── digests.ts              # Weekly digest orchestrator, per-user data gathering, enqueuing
 │   ├── threads.ts              # Threads feature: CRUD, upvotes, comments, hot score
 │   ├── ragbot.ts               # AI agent (ProjectFinder) + thread management
 │   ├── rag.ts                  # RAG component init
 │   ├── tools.ts                # Agent tools: searchProjects, showProjects
-│   ├── users.ts                # User management (ensureUser, getCurrentUser, department sync)
+│   ├── users.ts                # User management (ensureUser, getCurrentUser, getEmailRecipient, department sync)
 │   ├── teams.ts
 │   ├── comments.ts             # Project comments
 │   ├── notifications.ts
@@ -166,6 +170,10 @@ NEXT_PUBLIC_POSTHOG_KEY=         # PostHog project API key
 COGNITO_REGION=
 COGNITO_USER_POOL_ID=
 COGNITO_CLIENT_ID=
+AWS_SES_REGION=                 # AWS region for SES (e.g., us-east-1)
+AWS_SES_ACCESS_KEY_ID=          # IAM access key with SES send permissions
+AWS_SES_SECRET_ACCESS_KEY=      # IAM secret key for SES
+SES_FROM_EMAIL=                 # Verified SES sender address (e.g., garden@company.com)
 ```
 
 ---
@@ -184,6 +192,7 @@ Key tables and their purpose:
 | `projectViews` | Unique view tracking per viewer ID |
 | `comments` | Threaded comments on projects (soft delete; retained if replies exist) |
 | `commentUpvotes` | Per-user upvotes on project comments |
+| `emailQueue` | Outbound email queue (pending → sent/failed); drained by cron |
 | `notifications` | Aggregated activity notifications |
 | `users` | User profiles; `onboardingCompleted` gates access; `department` from Cognito |
 | `userFocusAreas` | User ↔ focus area interest associations (follow/join) |
@@ -407,6 +416,55 @@ When a project is created or updated, `rag.add()` is called to upsert its embedd
 
 ---
 
+## Weekly Digest & Email Pipeline
+
+The app sends weekly digest emails summarizing platform activity. The pipeline uses a **3-tier architecture** with a cron-based queue drainer for delivery.
+
+### Pipeline Flow
+
+```
+Cron (Monday 9am) → generateWeeklyDigests (action, convex/digests.ts)
+  └─ loop: getEligibleUserBatch (50 users/batch, cursor-based)
+       └─ generateDigestBatch (action)
+            └─ per user: gatherUserDigestData (query) → enqueueDigestEmail (mutation)
+                 └─ inserts into emailQueue { status: "pending" }
+
+Cron (every 5 min) → drainEmailQueue (action, convex/emails.ts)
+  └─ fetches up to 14 pending emails (matching SES rate limits)
+  └─ per email: sendEmail → renders HTML via emailRenderer.ts → sends via SES v2
+  └─ marks each row "sent" or "failed" with reason
+```
+
+### Key Files
+
+| File | Responsibility |
+|---|---|
+| `convex/digests.ts` | Orchestrator action, per-user data gathering, email enqueuing with deduplication |
+| `convex/emails.ts` | `sendEmail` (SES v2 integration), queue drainer, email preference queries/mutations |
+| `convex/emailRenderer.ts` | `renderWeeklyDigestEmail` — typed HTML + plain-text templates with `escapeHtml` |
+| `convex/users.ts` | `getEmailRecipient` — internal query returning `{ name, email }` for a user |
+
+### Digest Data Shape
+
+Each digest email payload contains:
+- `ownProjectActivity` — per-project stats (new upvotes, comments, adoptions, views)
+- `ownProjectTotals` — aggregated totals across all owned projects
+- `followedSpaceActivity` — top projects and new threads in followed spaces
+- `platformHighlights` — trending projects and threads across all spaces
+- `periodStart` / `periodEnd` — timestamps defining the digest window
+
+### Email Queue
+
+The `emailQueue` table tracks every outbound email with status transitions: `pending → sent | failed`. Key indexes:
+- `by_status_createdAt` — used by the queue drainer to fetch oldest pending emails first
+- `by_userId_type_createdAt` — used for deduplication (1-hour window prevents duplicate digests)
+
+### Email Preferences
+
+Users can opt out of email categories via `emailPreferences` on the `users` table. Categories: `weeklyDigest`, `spaceActivity`, `projectActivity`. All default to opt-in (enabled if undefined). Preferences are checked during digest generation, not at send time.
+
+---
+
 ## Notifications
 
 Notifications are aggregated (upserted) per `(recipient, project, type)` tuple. Types:
@@ -460,3 +518,9 @@ Secrets required:
 14. **Department field on users** — populated automatically from the Cognito `custom:department` attribute during `ensureUser`. Displayed on the profile page. Do not prompt users to enter it manually.
 
 15. **User profile page** — shows `department` if populated; does not display `userIntent` labels to the user. The `userIntent` field (`"looking" | "sharing" | "both"`) is collected at onboarding and available in the backend but is not currently surfaced in the UI.
+
+16. **Email sending uses a queue pattern** — never call SES directly from mutations. Always insert into `emailQueue` and let the cron-based drainer handle delivery. This provides rate limiting (14 emails/batch, matching SES limits), automatic retry, and full audit trail.
+
+17. **Email templates live in `convex/emailRenderer.ts`** — all HTML must use `escapeHtml()` for user-generated content. Templates include both HTML and plain-text versions. Add new email types by adding a renderer function and a case in `sendEmail`'s type dispatch.
+
+18. **SES env vars are required for email delivery** — `AWS_SES_REGION`, `AWS_SES_ACCESS_KEY_ID`, `AWS_SES_SECRET_ACCESS_KEY`, and `SES_FROM_EMAIL` must be set in the Convex environment. The sender address must be verified in SES.
