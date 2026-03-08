@@ -9,6 +9,7 @@ import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 import type { Doc } from "./_generated/dataModel";
+import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import { renderWeeklyDigestEmail, type WeeklyDigestPayload } from "./emailRenderer";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -17,12 +18,6 @@ type EmailCategory = "weeklyDigest" | "spaceActivity" | "projectActivity";
 type EmailRecipient = {
   name: string;
   email: string | null;
-};
-type PreparedEmail = {
-  to: string;
-  subject: string;
-  html: string;
-  text: string;
 };
 
 function getAppBaseUrl(): string {
@@ -58,23 +53,30 @@ export function isEmailEnabled(
   return value !== false;
 }
 
-// ─── Internal: sendEmail stub ─────────────────────────────────────────────────
+// ─── Internal: getUserEmail ───────────────────────────────────────────────────
 
-/**
- * Placeholder for SES integration. Both the queue drainer and direct
- * ctx.scheduler.runAfter calls from real-time triggers will invoke this.
- */
-export const sendEmail: ReturnType<typeof internalAction> = internalAction({
+export const getUserEmail = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) return null;
+    return { email: user.email, name: user.name };
+  },
+});
+
+// ─── Internal: sendEmail (SES v2) ────────────────────────────────────────────
+
+export const sendEmail = internalAction({
   args: {
     userId: v.id("users"),
     type: v.string(),
     payload: v.any(),
   },
-  handler: async (ctx, args): Promise<PreparedEmail | null> => {
+  handler: async (ctx, args) => {
     const recipient: EmailRecipient | null = await ctx.runQuery(
       internal.users.getEmailRecipient,
       {
-      userId: args.userId,
+        userId: args.userId,
       }
     );
 
@@ -86,30 +88,53 @@ export const sendEmail: ReturnType<typeof internalAction> = internalAction({
       throw new Error(`User ${args.userId} does not have an email address`);
     }
 
+    let subject: string;
+    let html: string;
+    let text: string | undefined;
+
     if (args.type === "weekly_digest") {
       const rendered = renderWeeklyDigestEmail({
         recipientName: recipient.name,
         payload: args.payload as WeeklyDigestPayload,
         baseUrl: getAppBaseUrl(),
       });
-
-      console.log(
-        `[sendEmail stub] Prepared "${args.type}" email for ${recipient.email} with subject "${rendered.subject}"`
+      subject = rendered.subject;
+      html = rendered.html;
+      text = rendered.text;
+    } else {
+      console.warn(
+        `[sendEmail] No renderer for type "${args.type}", skipping`
       );
-
-      return {
-        to: recipient.email,
-        subject: rendered.subject,
-        html: rendered.html,
-        text: rendered.text,
-      };
+      return;
     }
 
-    console.log(
-      `[sendEmail stub] No renderer implemented for "${args.type}" email to ${recipient.email}`
-    );
+    const client = new SESv2Client({
+      region: process.env.AWS_SES_REGION!,
+      credentials: {
+        accessKeyId: process.env.AWS_SES_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SES_SECRET_ACCESS_KEY!,
+      },
+    });
 
-    return null;
+    try {
+      await client.send(
+        new SendEmailCommand({
+          FromEmailAddress: process.env.SES_FROM_EMAIL!,
+          Destination: { ToAddresses: [recipient.email] },
+          Content: {
+            Simple: {
+              Subject: { Data: subject, Charset: "UTF-8" },
+              Body: {
+                Html: { Data: html, Charset: "UTF-8" },
+                ...(text ? { Text: { Data: text, Charset: "UTF-8" } } : {}),
+              },
+            },
+          },
+        })
+      );
+    } finally {
+      client.destroy();
+    }
   },
 });
 
