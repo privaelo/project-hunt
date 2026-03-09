@@ -170,9 +170,9 @@ NEXT_PUBLIC_POSTHOG_KEY=         # PostHog project API key
 COGNITO_REGION=
 COGNITO_USER_POOL_ID=
 COGNITO_CLIENT_ID=
-AWS_SES_REGION=                 # AWS region for SES (e.g., us-east-1)
-AWS_SES_ACCESS_KEY_ID=          # IAM access key with SES send permissions
-AWS_SES_SECRET_ACCESS_KEY=      # IAM secret key for SES
+AWS_REGION=                     # AWS region (shared by Bedrock, SES, etc.)
+AWS_ACCESS_KEY_ID=              # IAM access key (shared by Bedrock, SES, etc.)
+AWS_SECRET_ACCESS_KEY=          # IAM secret key (shared by Bedrock, SES, etc.)
 SES_FROM_EMAIL=                 # Verified SES sender address (e.g., garden@company.com)
 ```
 
@@ -523,4 +523,4 @@ Secrets required:
 
 17. **Email templates live in `convex/emailRenderer.ts`** — all HTML must use `escapeHtml()` for user-generated content. Templates include both HTML and plain-text versions. Add new email types by adding a renderer function and a case in `sendEmail`'s type dispatch.
 
-18. **SES env vars are required for email delivery** — `AWS_SES_REGION`, `AWS_SES_ACCESS_KEY_ID`, `AWS_SES_SECRET_ACCESS_KEY`, and `SES_FROM_EMAIL` must be set in the Convex environment. The sender address must be verified in SES.
+18. **SES shares AWS credentials with Bedrock** — `AWS_REGION`, `AWS_ACCESS_KEY_ID`, and `AWS_SECRET_ACCESS_KEY` are shared across all AWS services (Bedrock, SES). The IAM role must have both Bedrock and SES permissions. `SES_FROM_EMAIL` must also be set and the sender address verified in SES.
