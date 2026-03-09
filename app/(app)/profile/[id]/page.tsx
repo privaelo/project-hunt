@@ -14,6 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
+import { EmailPreferencesSection } from "@/components/EmailPreferencesSection";
 import { ArrowBigUp, Eye, MessageSquare, Pencil, Users } from "lucide-react";
 import { stripHtml } from "@/lib/utils";
 import {
@@ -297,6 +298,13 @@ export default function ProfilePage({
             )}
           </TabsContent>
         </Tabs>
+
+        {isOwner && (
+          <>
+            <Separator className="bg-zinc-200" />
+            <EmailPreferencesSection />
+          </>
+        )}
       </main>
     </div>
   );
