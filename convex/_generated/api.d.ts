@@ -30,6 +30,7 @@ import type * as projects_search from "../projects/search.js";
 import type * as rag from "../rag.js";
 import type * as ragbot from "../ragbot.js";
 import type * as seed from "../seed.js";
+import type * as spaceNotifications from "../spaceNotifications.js";
 import type * as teams from "../teams.js";
 import type * as threads from "../threads.js";
 import type * as tools from "../tools.js";
@@ -64,6 +65,7 @@ declare const fullApi: ApiFromModules<{
   rag: typeof rag;
   ragbot: typeof ragbot;
   seed: typeof seed;
+  spaceNotifications: typeof spaceNotifications;
   teams: typeof teams;
   threads: typeof threads;
   tools: typeof tools;
