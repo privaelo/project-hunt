@@ -75,11 +75,15 @@ export const sendEmail = internalAction({
     let html: string;
     let text: string | undefined;
 
+    const baseUrl = getAppBaseUrl();
+    const profileUrl = `${baseUrl}/profile/${args.userId}`;
+
     if (args.type === "weekly_digest") {
       const rendered = renderWeeklyDigestEmail({
         recipientName: recipient.name,
         payload: args.payload as WeeklyDigestPayload,
-        baseUrl: getAppBaseUrl(),
+        baseUrl,
+        profileUrl,
       });
       subject = rendered.subject;
       html = rendered.html;
@@ -88,7 +92,8 @@ export const sendEmail = internalAction({
       const rendered = renderSpaceActivityEmail({
         recipientName: recipient.name,
         payload: args.payload as SpaceActivityPayload,
-        baseUrl: getAppBaseUrl(),
+        baseUrl,
+        profileUrl,
       });
       subject = rendered.subject;
       html = rendered.html;

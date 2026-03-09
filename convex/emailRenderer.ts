@@ -297,7 +297,8 @@ function renderPlatformHighlights(payload: WeeklyDigestPayload, baseUrl: string)
 function renderTextVersion(
   recipientName: string,
   payload: WeeklyDigestPayload,
-  baseUrl: string
+  baseUrl: string,
+  profileUrl: string
 ): string {
   const sections: string[] = [];
   const dateRange = formatDateRange(payload.periodStart, payload.periodEnd);
@@ -381,7 +382,8 @@ function renderTextVersion(
 
   sections.push("");
   sections.push(`Open Garden: ${joinUrl(baseUrl, "/")}`);
-  sections.push("You're receiving this weekly digest from Garden.");
+  sections.push("You're receiving this weekly digest from Garden. This is an automated email.");
+  sections.push(`Manage your email preferences: ${profileUrl}`);
 
   return sections.join("\n");
 }
@@ -390,8 +392,9 @@ export function renderWeeklyDigestEmail(args: {
   recipientName: string;
   payload: WeeklyDigestPayload;
   baseUrl: string;
+  profileUrl: string;
 }): RenderedEmail {
-  const { recipientName, payload, baseUrl } = args;
+  const { recipientName, payload, baseUrl, profileUrl } = args;
   const dateRange = formatDateRange(payload.periodStart, payload.periodEnd);
   const subject = getSubject(payload);
   const preheader =
@@ -485,7 +488,8 @@ export function renderWeeklyDigestEmail(args: {
                 </tr>
                 <tr>
                   <td style="padding: 0 28px 28px; font-size: 12px; line-height: 1.6; color: #71717a;">
-                    You're receiving this weekly digest from Garden.
+                    This is an automated email from Garden.
+                    <a href="${escapeHtml(profileUrl)}" style="color: #71717a;">Manage your email preferences</a>
                   </td>
                 </tr>
               </table>
@@ -496,7 +500,7 @@ export function renderWeeklyDigestEmail(args: {
     </html>
   `.trim();
 
-  const text = renderTextVersion(recipientName, payload, baseUrl);
+  const text = renderTextVersion(recipientName, payload, baseUrl, profileUrl);
 
   return {
     subject,
@@ -511,8 +515,9 @@ export function renderSpaceActivityEmail(args: {
   recipientName: string;
   payload: SpaceActivityPayload;
   baseUrl: string;
+  profileUrl: string;
 }): RenderedEmail {
-  const { recipientName, payload, baseUrl } = args;
+  const { recipientName, payload, baseUrl, profileUrl } = args;
   const contentLabel = payload.contentType === "project" ? "project" : "thread";
   const spaceName = payload.focusAreaIcon
     ? `${payload.focusAreaIcon} ${payload.focusAreaName}`
@@ -576,7 +581,8 @@ export function renderSpaceActivityEmail(args: {
                 </tr>
                 <tr>
                   <td style="padding: 0 28px 28px; font-size: 12px; line-height: 1.6; color: #71717a;">
-                    You're receiving this because you follow g/${escapeHtml(payload.focusAreaName)}.
+                    You're receiving this because you follow g/${escapeHtml(payload.focusAreaName)}. This is an automated email.
+                    <a href="${escapeHtml(profileUrl)}" style="color: #71717a;">Manage your email preferences</a>
                   </td>
                 </tr>
               </table>
@@ -596,7 +602,8 @@ export function renderSpaceActivityEmail(args: {
     "",
     `View it here: ${contentUrl}`,
     "",
-    `You're receiving this because you follow g/${payload.focusAreaName}.`,
+    `You're receiving this because you follow g/${payload.focusAreaName}. This is an automated email.`,
+    `Manage your email preferences: ${profileUrl}`,
   ].join("\n");
 
   return { subject, html, text };
