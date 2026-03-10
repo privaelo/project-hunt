@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ArrowBigUp, Users2, Sparkles, Share2, Zap } from "lucide-react";
+import { ArrowBigUp, Users2 } from "lucide-react";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { ReadinessStatus } from "@/lib/types";
@@ -65,36 +64,38 @@ export function LandingPage() {
       <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white">
         {/* Hero */}
         <section className="flex flex-col items-center px-6 pb-16 pt-20 text-center sm:pt-28">
-          <div className="mb-6 flex flex-col items-center gap-3">
-            <span
-              className="text-4xl font-semibold text-emerald-700 sm:text-5xl"
-              style={{ fontFamily: "var(--font-chonburi)" }}
-            >
-              Garden
-            </span>
-            <Image
-              src="/TTGFullLogo.png"
-              alt="Tech Tribes Global"
-              width={140}
-              height={28}
-              priority
-              className="opacity-75"
-            />
-          </div>
-
           <h1 className="max-w-2xl text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
-            Share your solutions
+            Sign in to peruse
           </h1>
           <p className="mt-4 max-w-xl text-base text-zinc-500 sm:text-lg">
-          Garden helps you discover and share the tools and solutions being made across teams, because great work shouldn't stay hidden.
+            See what other people are working on
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg">
-              <Link href="/sign-in">Sign In</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/sign-up">Sign Up</Link>
+          <div className="mt-8 flex w-full flex-wrap items-center justify-center gap-3">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-12 w-full max-w-sm justify-center rounded-xl border border-zinc-200 bg-zinc-50 px-4 text-zinc-900 shadow-sm transition-all hover:border-zinc-300 hover:bg-zinc-100 hover:text-zinc-900 hover:shadow-md focus-visible:border-zinc-400 focus-visible:text-zinc-900 sm:w-auto sm:min-w-[300px]"
+            >
+              <Link
+                href="/sign-in"
+                aria-label="Continue with Microsoft"
+                className="flex w-full items-center justify-center gap-2.5"
+              >
+                <span
+                  aria-hidden="true"
+                  className="grid h-5 w-5 grid-cols-2 gap-[2px] rounded-[2px]"
+                >
+                  <span className="bg-[#f25022]" />
+                  <span className="bg-[#7fba00]" />
+                  <span className="bg-[#00a4ef]" />
+                  <span className="bg-[#ffb900]" />
+                </span>
+                <span className="truncate font-medium">
+                  Continue with Microsoft
+                </span>
+              </Link>
             </Button>
           </div>
         </section>
@@ -146,7 +147,6 @@ export function LandingPage() {
             ))}
           </div>
         </section>
-
       </div>
     </TooltipProvider>
   );

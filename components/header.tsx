@@ -230,21 +230,6 @@ export function Header() {
               )}
             </NavigationMenuList>
           </NavigationMenu>
-          {!userLoading && !isAuthenticated && (
-            <>
-              <Button size="sm" asChild>
-                <Link href="/sign-in" prefetch={false}>
-                  Sign In
-                </Link>
-              </Button>
-              <Button size="sm" asChild>
-                <Link href="/sign-up" prefetch={false}>
-                  Sign Up
-                </Link>
-              </Button>
-            </>
-          )}
-
           {userLoading && (
             <div className="h-9 w-9 animate-pulse rounded-full bg-zinc-200" />
           )}
