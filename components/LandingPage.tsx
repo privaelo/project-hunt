@@ -65,10 +65,10 @@ export function LandingPage() {
         {/* Hero */}
         <section className="flex flex-col items-center px-6 pb-16 pt-20 text-center sm:pt-28">
           <h1 className="max-w-2xl text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
-            Sign in to peruse
+            See what other people are working on
           </h1>
           <p className="mt-4 max-w-xl text-base text-zinc-500 sm:text-lg">
-            See what other people are working on
+            Sign in to peruse
           </p>
 
           <div className="mt-8 flex w-full flex-wrap items-center justify-center gap-3">
