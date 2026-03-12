@@ -13,8 +13,10 @@ import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import {
   renderWeeklyDigestEmail,
   renderSpaceActivityEmail,
+  renderCommentActivityEmail,
   type WeeklyDigestPayload,
   type SpaceActivityPayload,
+  type CommentActivityPayload,
 } from "./emailRenderer";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -92,6 +94,16 @@ export const sendEmail = internalAction({
       const rendered = renderSpaceActivityEmail({
         recipientName: recipient.name,
         payload: args.payload as SpaceActivityPayload,
+        baseUrl,
+        profileUrl,
+      });
+      subject = rendered.subject;
+      html = rendered.html;
+      text = rendered.text;
+    } else if (args.type === "comment_activity") {
+      const rendered = renderCommentActivityEmail({
+        recipientName: recipient.name,
+        payload: args.payload as CommentActivityPayload,
         baseUrl,
         profileUrl,
       });

@@ -4,6 +4,7 @@ import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 import { calculateHotScore } from "./projects/helpers";
+import { enqueueCommentEmail } from "./commentNotifications";
 
 // ─── Creation ────────────────────────────────────────────────────────────────
 
@@ -386,6 +387,18 @@ export const addComment = mutation({
         engagementScore: newEngagementScore,
         hotScore: calculateHotScore(newEngagementScore, thread.createdAt, now),
       });
+
+      if (thread.userId !== user._id) {
+        await enqueueCommentEmail(ctx, {
+          contentType: "thread",
+          contentId: args.threadId,
+          contentTitle: thread.title,
+          contentOwnerUserId: thread.userId,
+          commenterUserId: user._id,
+          commenterName: user.name,
+          commentSnippet: args.content.slice(0, 200),
+        });
+      }
     }
 
     return commentId;

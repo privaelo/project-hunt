@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserOrThrow, getCurrentUser } from "./users";
 import { createProjectNotification } from "./notifications";
+import { enqueueCommentEmail } from "./commentNotifications";
 import { calculateHotScore } from "./projects";
 
 export const addComment = mutation({
@@ -40,6 +41,16 @@ export const addComment = mutation({
         projectId: project._id,
         type: "comment",
         commentId,
+      });
+
+      await enqueueCommentEmail(ctx, {
+        contentType: "project",
+        contentId: args.projectId,
+        contentTitle: project.name,
+        contentOwnerUserId: project.userId,
+        commenterUserId: user._id,
+        commenterName: user.name,
+        commentSnippet: args.content.slice(0, 200),
       });
     }
 
