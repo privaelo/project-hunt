@@ -198,7 +198,8 @@ export const refreshHotScores = internalMutationFromFunctions({
       const hotScore = calculateHotScore(
         project.engagementScore ?? 0,
         project._creationTime,
-        now
+        now,
+        project.lastVersionAt ?? undefined
       );
       await ctx.db.patch(project._id, { hotScore });
     }

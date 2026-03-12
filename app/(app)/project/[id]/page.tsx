@@ -2,7 +2,7 @@
 
 import { use, useEffect, useRef, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -19,6 +19,7 @@ import { Facepile } from "@/components/Facepile";
 import Link from "next/link";
 import { ArrowBigUp, Eye, Forward, Link2, Pencil } from "lucide-react";
 import { SpaceIcon } from "@/components/SpaceIcon";
+import { VersionsList } from "@/components/VersionsList";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -99,6 +100,7 @@ export default function ProjectPage({
   params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { id } = use(params);
   const { isAuthenticated, user } = useCurrentUser();
   const projectId = id as Id<"projects">;
@@ -116,6 +118,10 @@ export default function ProjectPage({
 
   const isOwner = user && project && project.userId === user._id;
   const [shareOpen, setShareOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"overview" | "versions">(
+    searchParams.get("tab") === "versions" ? "versions" : "overview"
+  );
+  const showVersionsTab = isOwner || (project && (project.versionCount ?? 0) > 0);
 
   // Get top-level comments (no parent); keep deleted ones that have non-deleted replies
   const topLevelComments =
@@ -286,48 +292,85 @@ export default function ProjectPage({
                   <ReadinessBadge status={project.readinessStatus} />
                 </div>
               </div>
-              {projectMedia && projectMedia.length > 0 && (
-                <div className="mt-2">
-                  <ProjectMediaCarousel media={projectMedia} />
+              {showVersionsTab && (
+                <div className="flex gap-4 border-b border-zinc-200 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("overview")}
+                    className={`text-sm font-semibold pb-2 border-b-2 transition-colors ${
+                      activeTab === "overview"
+                        ? "border-zinc-900 text-zinc-900"
+                        : "border-transparent text-zinc-400 hover:text-zinc-600"
+                    }`}
+                  >
+                    Overview
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("versions")}
+                    className={`text-sm font-semibold pb-2 border-b-2 transition-colors ${
+                      activeTab === "versions"
+                        ? "border-zinc-900 text-zinc-900"
+                        : "border-transparent text-zinc-400 hover:text-zinc-600"
+                    }`}
+                  >
+                    Versions{(project.versionCount ?? 0) > 0 && ` (${project.versionCount})`}
+                  </button>
                 </div>
               )}
 
-              {project.summary && (
-                <RichTextContent html={project.summary} />
+              {activeTab === "overview" && (
+                <>
+                  {projectMedia && projectMedia.length > 0 && (
+                    <div className="mt-2">
+                      <ProjectMediaCarousel media={projectMedia} />
+                    </div>
+                  )}
+
+                  {project.summary && (
+                    <RichTextContent html={project.summary} />
+                  )}
+                </>
               )}
             </div>
 
-            <div id="discussion" className="space-y-6">
-              <div className="space-y-4">
-                <CommentForm
-                  onSubmit={(content) => addComment({ projectId, content })}
-                />
-                {comments === undefined ? (
-                  <div className="py-8 text-center text-sm text-zinc-500">
-                    Loading comments...
-                  </div>
-                ) : topLevelComments.length === 0 ? (
-                  <div className="py-12 text-center">
-                    <p className="text-sm text-zinc-500">
-                      No comments yet. Start the conversation?
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {topLevelComments.map((comment) => (
-                      <CommentThread
-                        key={comment._id}
-                        comment={comment}
-                        allComments={comments}
-                        onDelete={(id) => deleteComment({ commentId: id as Id<"comments"> })}
-                        onToggleUpvote={(id) => toggleCommentUpvote({ commentId: id as Id<"comments"> })}
-                        onSubmitReply={(content, parentId) => addComment({ projectId, content, parentCommentId: parentId as Id<"comments"> })}
-                      />
-                    ))}
-                  </div>
-                )}
+            {activeTab === "overview" && (
+              <div id="discussion" className="space-y-6">
+                <div className="space-y-4">
+                  <CommentForm
+                    onSubmit={(content) => addComment({ projectId, content })}
+                  />
+                  {comments === undefined ? (
+                    <div className="py-8 text-center text-sm text-zinc-500">
+                      Loading comments...
+                    </div>
+                  ) : topLevelComments.length === 0 ? (
+                    <div className="py-12 text-center">
+                      <p className="text-sm text-zinc-500">
+                        No comments yet. Start the conversation?
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {topLevelComments.map((comment) => (
+                        <CommentThread
+                          key={comment._id}
+                          comment={comment}
+                          allComments={comments}
+                          onDelete={(id) => deleteComment({ commentId: id as Id<"comments"> })}
+                          onToggleUpvote={(id) => toggleCommentUpvote({ commentId: id as Id<"comments"> })}
+                          onSubmitReply={(content, parentId) => addComment({ projectId, content, parentCommentId: parentId as Id<"comments"> })}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+
+            {activeTab === "versions" && (
+              <VersionsList projectId={projectId} isOwner={!!isOwner} />
+            )}
           </section>
 
           <aside className="w-full lg:w-72 xl:w-80">

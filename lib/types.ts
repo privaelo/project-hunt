@@ -54,6 +54,20 @@ export type ProjectRowData = {
   hasAdopted: boolean;
 };
 
+// --- Project Versions ---
+
+export type ProjectVersionData = {
+  _id: Id<"projectVersions">;
+  projectId: Id<"projects">;
+  tag: string;
+  title: string;
+  body?: string;
+  creatorName: string;
+  creatorAvatar: string;
+  createdAt: number;
+  fileCount: number;
+};
+
 // --- Threads ---
 
 export type ThreadRowData = {

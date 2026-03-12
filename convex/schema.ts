@@ -24,6 +24,8 @@ export default defineSchema({
     pinned: v.optional(v.boolean()),
     engagementScore: v.optional(v.number()),
     hotScore: v.optional(v.number()),
+    versionCount: v.optional(v.number()),
+    lastVersionAt: v.optional(v.number()),
   })
     .searchIndex("allFields", { searchField: "allFields" })
     .index("by_entryId", ["entryId"])
@@ -215,4 +217,23 @@ export default defineSchema({
     .index("by_userId", ["userId"])
     .index("by_status_createdAt", ["status", "createdAt"])
     .index("by_userId_type_createdAt", ["userId", "type", "createdAt"]),
+  projectVersions: defineTable({
+    projectId: v.id("projects"),
+    tag: v.string(),
+    title: v.string(),
+    body: v.optional(v.string()),
+    userId: v.id("users"),
+    createdAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_project_createdAt", ["projectId", "createdAt"]),
+  versionFiles: defineTable({
+    versionId: v.id("projectVersions"),
+    storageId: v.id("_storage"),
+    filename: v.string(),
+    contentType: v.string(),
+    fileSize: v.number(),
+    uploadedAt: v.number(),
+  })
+    .index("by_version", ["versionId"]),
 });
