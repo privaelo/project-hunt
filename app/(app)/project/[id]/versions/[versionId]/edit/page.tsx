@@ -113,45 +113,34 @@ export default function EditVersionPage({
         links: cleanedLinks.length > 0 ? cleanedLinks : undefined,
       });
 
-      // Upload new files — skip individual failures gracefully
-      const failedFiles: string[] = [];
+      // Upload new files — abort if any fail
       for (const fileItem of newFiles) {
-        try {
-          const uploadUrl = await generateUploadUrl();
-          const uploadResult = await fetch(uploadUrl, {
-            method: "POST",
-            headers: { "Content-Type": fileItem.file.type },
-            body: fileItem.file,
-          });
-          if (!uploadResult.ok) {
-            failedFiles.push(fileItem.file.name);
-            continue;
-          }
-          const { storageId } = await uploadResult.json();
-          if (!storageId) {
-            failedFiles.push(fileItem.file.name);
-            continue;
-          }
-          await addFileToVersion({
-            versionId,
-            storageId,
-            filename: fileItem.file.name,
-            contentType: fileItem.file.type,
-            fileSize: fileItem.file.size,
-          });
-        } catch {
-          failedFiles.push(fileItem.file.name);
+        const uploadUrl = await generateUploadUrl();
+        const uploadResult = await fetch(uploadUrl, {
+          method: "POST",
+          headers: { "Content-Type": fileItem.file.type },
+          body: fileItem.file,
+        });
+        if (!uploadResult.ok) {
+          throw new Error(`Failed to upload "${fileItem.file.name}". Remove it and try again.`);
         }
+        const { storageId } = await uploadResult.json();
+        if (!storageId) {
+          throw new Error(`Failed to upload "${fileItem.file.name}". This file type may not be supported.`);
+        }
+        await addFileToVersion({
+          versionId,
+          storageId,
+          filename: fileItem.file.name,
+          contentType: fileItem.file.type,
+          fileSize: fileItem.file.size,
+        });
       }
 
-      if (failedFiles.length > 0) {
-        toast.warning(`Version updated, but ${failedFiles.length} file(s) failed to upload: ${failedFiles.join(", ")}`);
-      } else {
-        toast.success("Version updated!");
-      }
+      toast.success("Version updated!");
       router.push(`/project/${id}/versions`);
-    } catch {
-      toast.error("Failed to update version");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update version");
     } finally {
       setIsSubmitting(false);
     }
