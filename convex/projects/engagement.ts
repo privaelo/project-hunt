@@ -62,7 +62,7 @@ export const toggleUpvote = mutation({
       const newEngagementScore = Math.max(0, (project.engagementScore ?? 0) - 1);
       await ctx.db.patch(args.projectId, {
         engagementScore: newEngagementScore,
-        hotScore: calculateHotScore(newEngagementScore, project._creationTime, now),
+        hotScore: calculateHotScore(newEngagementScore, project._creationTime, now, project.lastVersionAt ?? undefined),
       });
       if (project.userId !== user._id) {
         await syncUpvoteNotification(ctx, {
@@ -80,7 +80,7 @@ export const toggleUpvote = mutation({
       const newEngagementScore = (project.engagementScore ?? 0) + 1;
       await ctx.db.patch(args.projectId, {
         engagementScore: newEngagementScore,
-        hotScore: calculateHotScore(newEngagementScore, project._creationTime, now),
+        hotScore: calculateHotScore(newEngagementScore, project._creationTime, now, project.lastVersionAt ?? undefined),
       });
       if (project.userId !== user._id) {
         await upsertUpvoteNotification(ctx, {
@@ -198,7 +198,8 @@ export const refreshHotScores = internalMutationFromFunctions({
       const hotScore = calculateHotScore(
         project.engagementScore ?? 0,
         project._creationTime,
-        now
+        now,
+        project.lastVersionAt ?? undefined
       );
       await ctx.db.patch(project._id, { hotScore });
     }

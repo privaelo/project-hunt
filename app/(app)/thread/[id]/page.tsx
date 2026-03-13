@@ -364,10 +364,10 @@ export default function ThreadPage({
                         <Button
                           variant="ghost"
                           onClick={handleUpvote}
-                          className={`group h-9 rounded-md px-3 text-sm font-semibold flex items-center gap-1.5 border shadow-sm ${thread.hasUpvoted ? "!bg-amber-100 border-orange-300/70 hover:!bg-amber-200 active:!bg-amber-300 text-orange-500 hover:text-orange-600" : "!bg-zinc-200 border-zinc-300/80 hover:!bg-zinc-300 active:!bg-zinc-400 text-zinc-700 hover:text-orange-500"}`}
+                          className={`group h-9 rounded-md px-3 text-sm font-semibold flex items-center gap-1.5 border shadow-sm ${thread.hasUpvoted ? "!bg-emerald-100 border-emerald-300/70 hover:!bg-emerald-200 active:!bg-emerald-300 text-emerald-700 hover:text-emerald-800" : "!bg-zinc-200 border-zinc-300/80 hover:!bg-zinc-300 active:!bg-zinc-400 text-zinc-700 hover:text-emerald-700"}`}
                         >
                           <ArrowBigUp
-                            className={`h-4 w-4 transition-colors ${thread.hasUpvoted ? "" : "text-zinc-700 group-hover:text-orange-500"}`}
+                            className={`h-4 w-4 transition-colors ${thread.hasUpvoted ? "" : "text-zinc-700 group-hover:text-emerald-700"}`}
                             fill={thread.hasUpvoted ? "currentColor" : "none"}
                             aria-hidden="true"
                           />

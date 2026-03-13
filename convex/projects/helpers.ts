@@ -11,9 +11,11 @@ const HOT_SCORE_AGE_OFFSET = 2;
 export function calculateHotScore(
   engagementScore: number,
   creationTime: number,
-  now: number = Date.now()
+  now: number = Date.now(),
+  lastVersionAt?: number
 ): number {
-  const ageHours = (now - creationTime) / (1000 * 60 * 60);
+  const effectiveTime = lastVersionAt ? Math.max(creationTime, lastVersionAt) : creationTime;
+  const ageHours = (now - effectiveTime) / (1000 * 60 * 60);
   return (engagementScore + 1) / Math.pow(ageHours + HOT_SCORE_AGE_OFFSET, HOT_SCORE_GRAVITY);
 }
 

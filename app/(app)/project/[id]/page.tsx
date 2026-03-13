@@ -17,8 +17,9 @@ import { RichTextContent } from "@/components/RichTextContent";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Facepile } from "@/components/Facepile";
 import Link from "next/link";
-import { ArrowBigUp, Eye, Forward, Link2, Pencil } from "lucide-react";
+import { ArrowBigUp, Eye, Forward, Link2, Pencil, Plus, Tag } from "lucide-react";
 import { SpaceIcon } from "@/components/SpaceIcon";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -114,6 +115,17 @@ export default function ProjectPage({
   const toggleCommentUpvote = useMutation(api.comments.toggleCommentUpvote);
   const trackedProjectId = useRef<Id<"projects"> | null>(null);
 
+  const versions = useQuery(api.projects.listVersionsByProject, { projectId });
+  const [selectedVersionId, setSelectedVersionId] = useState<string>("");
+  const activeVersionId =
+    versions?.some((version) => version._id === selectedVersionId)
+      ? selectedVersionId
+      : (versions?.[0]?._id ?? "");
+  const selectedVersionFiles = useQuery(
+    api.projects.getVersionFiles,
+    activeVersionId ? { versionId: activeVersionId as Id<"projectVersions"> } : "skip"
+  );
+
   const isOwner = user && project && project.userId === user._id;
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -196,6 +208,10 @@ export default function ProjectPage({
   }
 
   const projectLinks = getProjectLinks(project);
+  const selectedVersion = versions?.find((v) => v._id === activeVersionId);
+  const activeLinks = selectedVersion
+    ? getProjectLinks({ links: selectedVersion.links ?? [] })
+    : projectLinks;
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -368,10 +384,10 @@ export default function ProjectPage({
                           <Button
                             variant="ghost"
                             onClick={handleUpvote}
-                            className={`group h-9 rounded-md px-3 text-sm font-semibold flex items-center gap-1.5 border shadow-sm ${project.hasUpvoted ? "!bg-amber-100 border-orange-300/70 hover:!bg-amber-200 active:!bg-amber-300 text-orange-500 hover:text-orange-600" : "!bg-zinc-200 border-zinc-300/80 hover:!bg-zinc-300 active:!bg-zinc-400 text-zinc-700 hover:text-orange-500"}`}
+                            className={`group h-9 rounded-md px-3 text-sm font-semibold flex items-center gap-1.5 border shadow-sm ${project.hasUpvoted ? "!bg-emerald-100 border-emerald-300/70 hover:!bg-emerald-200 active:!bg-emerald-300 text-emerald-700 hover:text-emerald-800" : "!bg-zinc-200 border-zinc-300/80 hover:!bg-zinc-300 active:!bg-zinc-400 text-zinc-700 hover:text-emerald-700"}`}
                           >
                             <ArrowBigUp
-                              className={`h-4 w-4 transition-colors ${project.hasUpvoted ? "" : "text-zinc-700 group-hover:text-orange-500"}`}
+                              className={`h-4 w-4 transition-colors ${project.hasUpvoted ? "" : "text-zinc-700 group-hover:text-emerald-700"}`}
                               fill={project.hasUpvoted ? "currentColor" : "none"}
                               aria-hidden="true"
                             />
@@ -414,30 +430,72 @@ export default function ProjectPage({
                   </Button>
                 </div>
 
-                {(projectLinks.length > 0 || (projectFiles && projectFiles.length > 0)) && (
-                  <div className="space-y-3 border-t border-zinc-300 pt-5">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                      Links &amp; Downloads
-                    </p>
-                    <div className="space-y-2">
-                      {projectFiles && projectFiles.length > 0 && (
-                        <ProjectFileDownload files={projectFiles} />
-                      )}
-                      {projectLinks.map((pl, i) => (
-                        <a
-                          key={i}
-                          href={pl.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-m font-medium text-zinc-700 hover:text-zinc-900 hover:underline"
+                {((versions && versions.length > 0) || isOwner) && (
+                  <div className="min-w-0 space-y-3 border-t border-zinc-300 pt-5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                        Versions
+                      </p>
+                      {isOwner && (
+                        <Link
+                          href={`/project/${id}/versions/new`}
+                          className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-800"
                         >
-                          <Link2 className="h-5 w-5 text-zinc-400" aria-hidden="true" />
-                          {pl.label}
-                        </a>
-                      ))}
+                          <Plus className="h-3 w-3" />
+                          New
+                        </Link>
+                      )}
                     </div>
+                    {versions && versions.length > 0 && (
+                      <>
+                        <Tabs value={activeVersionId} onValueChange={setSelectedVersionId}>
+                          <TabsList variant="line" className="h-auto max-w-full justify-start overflow-x-auto flex-nowrap gap-1 bg-transparent p-0 pb-1">
+                            {versions.map((version) => (
+                              <TabsTrigger key={version._id} value={version._id} className="text-xs px-2.5 py-0.5 shrink-0">
+                                <Tag className="h-3 w-3 mr-1" />
+                                {version.tag}
+                              </TabsTrigger>
+                            ))}
+                          </TabsList>
+                        </Tabs>
+                        <Link
+                          href={`/project/${id}/versions`}
+                          className="text-xs text-zinc-400 hover:text-zinc-700"
+                        >
+                          View all releases →
+                        </Link>
+                      </>
+                    )}
                   </div>
                 )}
+
+                {(() => {
+                  const filesToShow = activeVersionId ? (selectedVersionFiles ?? []) : (projectFiles ?? []);
+                  return (activeLinks.length > 0 || filesToShow.length > 0) && (
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                        Links &amp; Downloads
+                      </p>
+                      <div className="space-y-2">
+                        {filesToShow.length > 0 && (
+                          <ProjectFileDownload files={filesToShow} />
+                        )}
+                        {activeLinks.map((pl, i) => (
+                          <a
+                            key={i}
+                            href={pl.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-m font-medium text-zinc-700 hover:text-zinc-900 hover:underline"
+                          >
+                            <Link2 className="h-5 w-5 text-zinc-400" aria-hidden="true" />
+                            {pl.label}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </aside>

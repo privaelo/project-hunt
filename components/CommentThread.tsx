@@ -292,10 +292,10 @@ export function CommentThread({
                 size="xs"
                 onClick={handleToggleUpvote}
                 disabled={isTogglingUpvote}
-                className={`group gap-0.5 text-xs !bg-transparent hover:!bg-transparent active:!bg-transparent ${hasUpvoted ? "text-orange-500 hover:text-orange-600" : "text-zinc-400 hover:text-orange-500"}`}
+                className={`group gap-0.5 text-xs !bg-transparent hover:!bg-zinc-200 active:!bg-zinc-300 ${hasUpvoted ? "text-emerald-700 hover:text-emerald-800" : "text-zinc-400 hover:text-emerald-700"}`}
               >
                 <ArrowBigUp
-                  className={`h-4 w-4 transition-colors ${hasUpvoted ? "" : "text-zinc-400 group-hover:text-orange-500"}`}
+                  className={`h-4 w-4 transition-colors ${hasUpvoted ? "" : "text-zinc-400 group-hover:text-emerald-700"}`}
                   fill={hasUpvoted ? "currentColor" : "none"}
                 />
                 {currentUpvotes > 0 && (
@@ -307,7 +307,7 @@ export function CommentThread({
                   variant="ghost"
                   size="xs"
                   onClick={() => setShowReplyForm(!showReplyForm)}
-                  className="gap-1 text-xs text-zinc-400 hover:text-zinc-600"
+                  className="gap-1 text-xs text-zinc-400 hover:!bg-zinc-200 active:!bg-zinc-300 hover:text-zinc-600"
                 >
                   <MessageSquare className="h-3.5 w-3.5" />
                   Reply
@@ -319,7 +319,7 @@ export function CommentThread({
                   size="xs"
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="gap-1 text-xs text-zinc-400 hover:text-red-600"
+                  className="gap-1 text-xs text-zinc-400 hover:!bg-zinc-200 active:!bg-zinc-300 hover:text-red-600"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   Delete

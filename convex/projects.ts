@@ -68,3 +68,14 @@ export {
   migrateReadinessStatusAction,
   migrateReadinessStatus,
 } from "./projects/migrations";
+
+export {
+  listByProject as listVersionsByProject,
+  getVersionById,
+  getVersionFiles,
+  createVersion,
+  updateVersion,
+  deleteVersion,
+  addFileToVersion,
+  deleteFileFromVersion,
+} from "./projects/versions";

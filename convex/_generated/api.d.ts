@@ -27,6 +27,7 @@ import type * as projects_listing from "../projects/listing.js";
 import type * as projects_media from "../projects/media.js";
 import type * as projects_migrations from "../projects/migrations.js";
 import type * as projects_search from "../projects/search.js";
+import type * as projects_versions from "../projects/versions.js";
 import type * as rag from "../rag.js";
 import type * as ragbot from "../ragbot.js";
 import type * as seed from "../seed.js";
@@ -62,6 +63,7 @@ declare const fullApi: ApiFromModules<{
   "projects/media": typeof projects_media;
   "projects/migrations": typeof projects_migrations;
   "projects/search": typeof projects_search;
+  "projects/versions": typeof projects_versions;
   rag: typeof rag;
   ragbot: typeof ragbot;
   seed: typeof seed;

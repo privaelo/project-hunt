@@ -54,6 +54,20 @@ export type ProjectRowData = {
   hasAdopted: boolean;
 };
 
+// --- Project Versions ---
+
+export type ProjectVersionData = {
+  _id: Id<"projectVersions">;
+  projectId: Id<"projects">;
+  tag: string;
+  title: string;
+  body?: string;
+  creatorName: string;
+  creatorAvatar: string;
+  createdAt: number;
+  fileCount: number;
+};
+
 // --- Threads ---
 
 export type ThreadRowData = {
@@ -91,6 +105,12 @@ export type LinkItem = {
 
 export type ExistingFileItem = {
   _id: Id<"projectFiles">;
+  filename: string;
+  fileSize: number;
+};
+
+export type ExistingVersionFileItem = {
+  _id: Id<"versionFiles">;
   filename: string;
   fileSize: number;
 };

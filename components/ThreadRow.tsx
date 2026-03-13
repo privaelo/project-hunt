@@ -86,10 +86,10 @@ export function ThreadRow({
               variant="ghost"
               size="sm"
               onClick={handleUpvoteClick}
-              className={`group flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium !bg-zinc-200 hover:!bg-zinc-300 active:!bg-zinc-400 ${thread.hasUpvoted ? "text-orange-500 hover:text-orange-600" : "text-zinc-700 hover:text-orange-500"}`}
+              className={`group flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium !bg-zinc-200 hover:!bg-zinc-300 active:!bg-zinc-400 ${thread.hasUpvoted ? "text-emerald-700 hover:text-emerald-800" : "text-zinc-700 hover:text-emerald-700"}`}
             >
               <ArrowBigUp
-                className={`h-4 w-4 transition-colors ${thread.hasUpvoted ? "" : "text-zinc-700 group-hover:text-orange-500"}`}
+                className={`h-4 w-4 transition-colors ${thread.hasUpvoted ? "" : "text-zinc-700 group-hover:text-emerald-700"}`}
                 fill={thread.hasUpvoted ? "currentColor" : "none"}
                 aria-hidden="true"
               />
