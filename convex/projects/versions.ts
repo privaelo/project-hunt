@@ -216,6 +216,30 @@ export const updateVersion = mutation({
       throw new Error("You can only edit your own project versions");
     }
 
+    // Prevent non-v0 versions from being retagged as "v0",
+    // which would make them undeletable via deleteVersion.
+    if (version.tag !== "v0" && args.tag === "v0") {
+      throw new Error('Only the initial release can use the "v0" tag');
+    }
+
+    // Enforce per-project tag uniqueness: no two versions of the same project
+    // may share the same tag.
+    if (args.tag !== version.tag) {
+      const conflictingVersion = await ctx.db
+        .query("projectVersions")
+        .filter((q) =>
+          q.and(
+            q.eq("projectId", version.projectId),
+            q.eq("tag", args.tag)
+          )
+        )
+        .first();
+
+      if (conflictingVersion && conflictingVersion._id !== args.versionId) {
+        throw new Error("Tag must be unique within a project");
+      }
+    }
+
     await ctx.db.patch(args.versionId, {
       tag: args.tag,
       title: args.title,
