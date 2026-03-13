@@ -142,6 +142,23 @@ export const createVersion = mutation({
       }
     }
 
+    // Enforce tag invariants:
+    // - "v0" is reserved for the auto-generated initial release.
+    // - Tags must be unique per project.
+    if (args.tag === "v0") {
+      throw new Error("Tag 'v0' is reserved for the initial release and cannot be used for manual versions.");
+    }
+
+    const existingTagForProject = await ctx.db
+      .query("projectVersions")
+      .withIndex("by_project_createdAt", (q) => q.eq("projectId", args.projectId))
+      .filter((q) => q.eq(q.field("tag"), args.tag))
+      .first();
+
+    if (existingTagForProject) {
+      throw new Error(`Tag '${args.tag}' is already used for this project. Tags must be unique per project.`);
+    }
+
     const versionId = await ctx.db.insert("projectVersions", {
       projectId: args.projectId,
       tag: args.tag,
