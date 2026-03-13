@@ -9,6 +9,7 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as commentNotifications from "../commentNotifications.js";
 import type * as comments from "../comments.js";
 import type * as crons from "../crons.js";
 import type * as digests from "../digests.js";
@@ -45,6 +46,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  commentNotifications: typeof commentNotifications;
   comments: typeof comments;
   crons: typeof crons;
   digests: typeof digests;

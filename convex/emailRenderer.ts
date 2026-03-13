@@ -402,7 +402,121 @@ export function renderWeeklyDigestEmail(args: {
   baseUrl: string;
   profileUrl: string;
 }): RenderedEmail {
-  const { recipientName, payload, baseUrl, profileUrl } = args;
+  const { recipientName, baseUrl, profileUrl } = args;
+
+  // ── TEMPORARY ANNOUNCEMENT EMAIL ──────────────────────────────────────────
+  // Swap back to the full digest by removing this block and uncommenting
+  // the implementation below.
+
+  const subject = "A couple of Garden updates 🌱";
+  const homeUrl = joinUrl(baseUrl, "/");
+  const preheader = "New versioning feature + Garden at I-Con day";
+
+  const html = `
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${escapeHtml(subject)}</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f4f4f5; color: #18181b; font-family: Arial, sans-serif;">
+        <div style="display: none; max-height: 0; overflow: hidden; opacity: 0;">
+          ${escapeHtml(preheader)}
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: collapse; background-color: #f4f4f5;">
+          <tr>
+            <td align="center" style="padding: 24px 12px;">
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 640px; border-collapse: collapse; background-color: #ffffff; border-radius: 18px;">
+
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 28px 28px 24px; border-bottom: 1px solid #e4e4e7;">
+                    <div style="font-size: 28px; font-weight: 700; color: #166534; margin: 0 0 16px;">Garden</div>
+                    <div style="font-size: 24px; font-weight: 700; line-height: 1.3; color: #18181b;">Hi ${escapeHtml(recipientName)},</div>
+                  </td>
+                </tr>
+
+                <!-- Update 1: Versioning -->
+                <tr>
+                  <td style="padding: 28px 28px 0;">
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: collapse; border: 1px solid #d4d4d8; border-radius: 12px;">
+                      <tr>
+                        <td style="padding: 20px 22px;">
+                          <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #166534; margin: 0 0 10px;">New Feature</div>
+                          <div style="font-size: 18px; font-weight: 700; color: #18181b; margin: 0 0 12px;">Projects now support versions</div>
+                          <div style="font-size: 14px; line-height: 1.7; color: #52525b;">
+                            You can now publish versioned releases on your project page — each with a version number, release notes, and updated files. It works like a changelog: people who already use your tool can see what changed, and new visitors get a sense of how the project has evolved over time. If you've shared something on Garden, open your project and look for the <strong>Versions</strong> tab.
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Update 2: I-Con Day -->
+                <tr>
+                  <td style="padding: 20px 28px 0;">
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: collapse; border: 1px solid #d4d4d8; border-radius: 12px;">
+                      <tr>
+                        <td style="padding: 20px 22px;">
+                          <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #166534; margin: 0 0 10px;">Coming Up</div>
+                          <div style="font-size: 18px; font-weight: 700; color: #18181b; margin: 0 0 12px;">Garden at I-Con Day</div>
+                          <div style="font-size: 14px; line-height: 1.7; color: #52525b;">
+                            Garden will be used at Honda's upcoming I-Con Day hackathon. Participants will be able to post their projects, find teammates to collaborate with, and browse what others are building during the event. More details to come.
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- CTA -->
+                <tr>
+                  <td style="padding: 28px 28px 16px;">
+                    <a href="${escapeHtml(homeUrl)}" style="display: inline-block; background-color: #166534; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 12px 18px; border-radius: 999px;">Open Garden</a>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 0 28px 28px; font-size: 12px; line-height: 1.6; color: #71717a;">
+                    This is an automated email from Garden.
+                    <a href="${escapeHtml(profileUrl)}" style="color: #71717a;">Manage your email preferences</a>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `.trim();
+
+  const text = [
+    `Garden`,
+    ``,
+    `Hi ${recipientName},`,
+    ``,
+    `── New Feature: Projects now support versions ──`,
+    ``,
+    `You can now publish versioned releases on your project page — each with a version number, release notes, and updated files. It works like a changelog: people who already use your tool can see what changed, and new visitors get a sense of how the project has evolved. If you've shared something on Garden, open your project and look for the Versions tab.`,
+    ``,
+    `── Coming Up: Garden at I-Con Day ──`,
+    ``,
+    `Garden will be used at Honda's upcoming I-Con Day hackathon. Participants will be able to post their projects, find teammates to collaborate with, and browse what others are building during the event. More details to come.`,
+    ``,
+    `Open Garden: ${homeUrl}`,
+    ``,
+    `This is an automated email from Garden.`,
+    `Manage your email preferences: ${profileUrl}`,
+  ].join("\n");
+
+  return { subject, html, text };
+
+  // ── ORIGINAL WEEKLY DIGEST (restore when done with announcement) ───────────
+  /*
   const dateRange = formatDateRange(payload.periodStart, payload.periodEnd);
   const subject = getSubject(payload);
   const preheader =
@@ -515,6 +629,7 @@ export function renderWeeklyDigestEmail(args: {
     html,
     text,
   };
+  */
 }
 
 // ─── Space Activity Email ────────────────────────────────────────────────────
