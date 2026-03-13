@@ -200,7 +200,7 @@ export default function SpacePage({
                 <p className="text-sm text-zinc-500">{focusArea.description}</p>
               )}
             </div>
-            <div className="hidden lg:flex lg:w-72 xl:w-80 lg:items-center lg:justify-between">
+            <div className="hidden lg:flex lg:w-72 xl:w-80 lg:items-center lg:justify-end lg:gap-4">
               <div className="flex items-center gap-1.5 text-sm text-zinc-500">
                 <Users className="h-4 w-4" />
                 <span>{memberCount ?? 0} members</span>
