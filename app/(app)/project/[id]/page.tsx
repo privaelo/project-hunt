@@ -446,9 +446,9 @@ export default function ProjectPage({
                     </div>
                     {versions && versions.length > 0 && (
                       <Tabs value={activeVersionId} onValueChange={setSelectedVersionId}>
-                        <TabsList variant="line" className="h-auto flex-wrap gap-1 bg-transparent p-0">
+                        <TabsList variant="line" className="h-auto w-full overflow-x-auto flex-nowrap gap-1 bg-transparent p-0 pb-1">
                           {versions.map((version) => (
-                            <TabsTrigger key={version._id} value={version._id} className="text-xs px-2.5 py-0.5">
+                            <TabsTrigger key={version._id} value={version._id} className="text-xs px-2.5 py-0.5 shrink-0">
                               <Tag className="h-3 w-3 mr-1" />
                               {version.tag}
                             </TabsTrigger>

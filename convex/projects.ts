@@ -67,10 +67,13 @@ export {
   migrateClearFocusAreas,
   migrateReadinessStatusAction,
   migrateReadinessStatus,
+  migrateBackfillV0Action,
+  migrateBackfillV0,
 } from "./projects/migrations";
 
 export {
   listByProject as listVersionsByProject,
+  getVersionById,
   getVersionFiles,
   createVersion,
   updateVersion,

@@ -96,9 +96,9 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
     }
   };
 
-  const handleExistingFileDelete = async (fileId: Id<"projectFiles">) => {
+  const handleExistingFileDelete = async (fileId: string) => {
     try {
-      await deleteFileFromProject({ projectId, fileId });
+      await deleteFileFromProject({ projectId, fileId: fileId as Id<"projectFiles"> });
     } catch (error) {
       console.error("Failed to delete file:", error);
       toast.error("Failed to delete file. Please try again.");
@@ -354,17 +354,28 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
                   disabled={isSubmitting}
                 />
 
-                <FileUploadField
-                  existingFiles={projectFiles?.map((f) => ({
-                    _id: f._id,
-                    filename: f.filename,
-                    fileSize: f.fileSize,
-                  }))}
-                  onExistingFileDelete={handleExistingFileDelete}
-                  newFiles={newProjectFiles}
-                  onNewFilesChange={setNewProjectFiles}
-                  disabled={isSubmitting}
-                />
+                {(project.versionCount ?? 0) > 0 ? (
+                  <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+                    <p className="text-sm text-zinc-600">
+                      Files are now managed through versions.{" "}
+                      <Link href={`/project/${id}?tab=versions`} className="text-zinc-900 font-medium hover:underline">
+                        View versions
+                      </Link>
+                    </p>
+                  </div>
+                ) : (
+                  <FileUploadField
+                    existingFiles={projectFiles?.map((f) => ({
+                      _id: f._id,
+                      filename: f.filename,
+                      fileSize: f.fileSize,
+                    }))}
+                    onExistingFileDelete={handleExistingFileDelete}
+                    newFiles={newProjectFiles}
+                    onNewFilesChange={setNewProjectFiles}
+                    disabled={isSubmitting}
+                  />
+                )}
               </div>
 
               <div className="flex items-center gap-3 pt-4">
@@ -383,7 +394,18 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
             </section>
 
             <section className="w-full lg:sticky lg:top-10 lg:self-start space-y-4">
-              <LinksEditor links={links} onChange={setLinks} disabled={isSubmitting} />
+              {(project.versionCount ?? 0) > 0 ? (
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+                  <p className="text-sm text-zinc-600">
+                    Links are now managed through versions.{" "}
+                    <Link href={`/project/${id}?tab=versions`} className="text-zinc-900 font-medium hover:underline">
+                      View versions
+                    </Link>
+                  </p>
+                </div>
+              ) : (
+                <LinksEditor links={links} onChange={setLinks} disabled={isSubmitting} />
+              )}
 
               <div className="space-y-2">
                 <div className="flex items-center gap-2">

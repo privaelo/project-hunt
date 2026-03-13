@@ -109,6 +109,12 @@ export type ExistingFileItem = {
   fileSize: number;
 };
 
+export type ExistingVersionFileItem = {
+  _id: Id<"versionFiles">;
+  filename: string;
+  fileSize: number;
+};
+
 export type NewProjectFileItem = {
   file: File;
   id: string;

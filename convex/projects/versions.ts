@@ -4,6 +4,29 @@ import { internal } from "../_generated/api";
 import { getCurrentUserOrThrow } from "../users";
 import { calculateHotScore } from "./helpers";
 
+export const getVersionById = query({
+  args: { versionId: v.id("projectVersions") },
+  handler: async (ctx, args) => {
+    const version = await ctx.db.get(args.versionId);
+    if (!version) return null;
+    const files = await ctx.db
+      .query("versionFiles")
+      .withIndex("by_version", (q) => q.eq("versionId", args.versionId))
+      .collect();
+    const enrichedFiles = await Promise.all(
+      files.map(async (file) => ({
+        _id: file._id,
+        filename: file.filename,
+        contentType: file.contentType,
+        fileSize: file.fileSize,
+        uploadedAt: file.uploadedAt,
+        url: await ctx.storage.getUrl(file.storageId),
+      }))
+    );
+    return { ...version, files: enrichedFiles };
+  },
+});
+
 export const listByProject = query({
   args: {
     projectId: v.id("projects"),
@@ -83,6 +106,42 @@ export const createVersion = mutation({
 
     const now = Date.now();
 
+    // Auto-create v0 from project's current files/links if this is the first version
+    const existingVersion = await ctx.db
+      .query("projectVersions")
+      .withIndex("by_project_createdAt", (q) => q.eq("projectId", args.projectId))
+      .first();
+
+    const isFirstVersion = !existingVersion;
+
+    if (isFirstVersion) {
+      const projectFiles = await ctx.db
+        .query("projectFiles")
+        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+        .collect();
+
+      const v0Id = await ctx.db.insert("projectVersions", {
+        projectId: args.projectId,
+        tag: "v0",
+        title: "Initial Release",
+        body: undefined,
+        links: project.links,
+        userId: user._id,
+        createdAt: now - 1,
+      });
+
+      for (const pf of projectFiles) {
+        await ctx.db.insert("versionFiles", {
+          versionId: v0Id,
+          storageId: pf.storageId,
+          filename: pf.filename,
+          contentType: pf.contentType,
+          fileSize: pf.fileSize,
+          uploadedAt: pf.uploadedAt,
+        });
+      }
+    }
+
     const versionId = await ctx.db.insert("projectVersions", {
       projectId: args.projectId,
       tag: args.tag,
@@ -95,7 +154,7 @@ export const createVersion = mutation({
 
     // Update project: bump hot score, increment version count, optionally update readiness
     const patchFields: Record<string, unknown> = {
-      versionCount: (project.versionCount ?? 0) + 1,
+      versionCount: (project.versionCount ?? 0) + (isFirstVersion ? 2 : 1),
       lastVersionAt: now,
       hotScore: calculateHotScore(
         project.engagementScore ?? 0,
@@ -158,6 +217,9 @@ export const deleteVersion = mutation({
     const version = await ctx.db.get(args.versionId);
     if (!version) {
       throw new Error("Version not found");
+    }
+    if (version.tag === "v0") {
+      throw new Error("The initial release (v0) cannot be deleted");
     }
     const project = await ctx.db.get(version.projectId);
     if (!project || project.userId !== user._id) {

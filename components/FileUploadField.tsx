@@ -3,12 +3,11 @@
 import { useDropzone } from "react-dropzone";
 import { File as FileIcon, X } from "lucide-react";
 import { formatFileSize, MAX_FILE_SIZE, MAX_PROJECT_FILES } from "@/lib/fileSize";
-import { Id } from "@/convex/_generated/dataModel";
-import type { ExistingFileItem, NewProjectFileItem } from "@/lib/types";
+import type { NewProjectFileItem } from "@/lib/types";
 
 interface FileUploadFieldProps {
-  existingFiles?: ExistingFileItem[];
-  onExistingFileDelete?: (fileId: Id<"projectFiles">) => void;
+  existingFiles?: Array<{ _id: string; filename: string; fileSize: number }>;
+  onExistingFileDelete?: (fileId: string) => void;
   newFiles: NewProjectFileItem[];
   onNewFilesChange: (files: NewProjectFileItem[]) => void;
   disabled?: boolean;

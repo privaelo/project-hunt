@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ProjectFileDownload } from "@/components/ProjectFileDownload";
 import ReactMarkdown from "react-markdown";
 import Link from "next/link";
-import { Plus, ChevronDown, ChevronRight, Tag, Trash2 } from "lucide-react";
+import { Plus, ChevronDown, ChevronRight, Tag, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -120,18 +120,26 @@ function VersionCard({
 
               {isOwner && (
                 <div className="flex items-center gap-2 pt-2 border-t border-zinc-100">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteOpen(true);
-                    }}
-                  >
-                    <Trash2 className="h-3 w-3 mr-1" />
-                    Delete
+                  <Button variant="ghost" size="sm" className="text-xs" asChild>
+                    <Link href={`/project/${projectId}/versions/${version._id}/edit`}>
+                      <Pencil className="h-3 w-3 mr-1" />
+                      Edit
+                    </Link>
                   </Button>
+                  {version.tag !== "v0" && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteOpen(true);
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Delete
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
