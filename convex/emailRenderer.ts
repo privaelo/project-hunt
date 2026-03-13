@@ -462,9 +462,13 @@ export function renderWeeklyDigestEmail(args: {
                         <td style="padding: 20px 22px;">
                           <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #166534; margin: 0 0 10px;">Coming Up</div>
                           <div style="font-size: 18px; font-weight: 700; color: #18181b; margin: 0 0 12px;">Garden at I-Con Day</div>
-                          <div style="font-size: 14px; line-height: 1.7; color: #52525b;">
-                            Garden will be used at Honda's upcoming I-Con Day hackathon. Participants will be able to post their projects, find teammates to collaborate with, and browse what others are building during the event. More details to come.
+                          <div style="font-size: 14px; line-height: 1.7; color: #52525b; margin: 0 0 12px;">
+                            Garden will be used at Honda's upcoming I-Con Day hackathon. During the event, participants can post their projects here, browse what others are building, and connect with people to collaborate with.
                           </div>
+                          <div style="font-size: 14px; line-height: 1.7; color: #52525b; margin: 0 0 16px;">
+                            If you're interested in signing up or want to find a team ahead of time, the I-Con Day site has all the details — Garden is listed under the <strong>Collaboration Space / Find a Team</strong> tab.
+                          </div>
+                          <a href="https://globalhonda.sharepoint.com/sites/nahdma1904" style="display: inline-block; border: 1px solid #166534; color: #166534; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 16px; border-radius: 999px;">View I-Con Day site</a>
                         </td>
                       </tr>
                     </table>
@@ -505,7 +509,11 @@ export function renderWeeklyDigestEmail(args: {
     ``,
     `── Coming Up: Garden at I-Con Day ──`,
     ``,
-    `Garden will be used at Honda's upcoming I-Con Day hackathon. Participants will be able to post their projects, find teammates to collaborate with, and browse what others are building during the event. More details to come.`,
+    `Garden will be used at Honda's upcoming I-Con Day hackathon. During the event, participants can post their projects here, browse what others are building, and connect with people to collaborate with.`,
+    ``,
+    `If you're interested in signing up or want to find a team ahead of time, the I-Con Day site has all the details — Garden is listed under the "Collaboration Space / Find a Team" tab.`,
+    ``,
+    `I-Con Day site: https://globalhonda.sharepoint.com/sites/nahdma1904`,
     ``,
     `Open Garden: ${homeUrl}`,
     ``,
