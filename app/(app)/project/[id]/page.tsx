@@ -209,7 +209,9 @@ export default function ProjectPage({
 
   const projectLinks = getProjectLinks(project);
   const selectedVersion = versions?.find((v) => v._id === activeVersionId);
-  const activeLinks = selectedVersion?.links ? getProjectLinks({ links: selectedVersion.links }) : projectLinks;
+  const activeLinks = selectedVersion
+    ? getProjectLinks({ links: selectedVersion.links ?? [] })
+    : projectLinks;
 
   return (
     <div className="min-h-screen bg-zinc-50">
