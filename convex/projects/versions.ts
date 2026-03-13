@@ -227,12 +227,8 @@ export const updateVersion = mutation({
     if (args.tag !== version.tag) {
       const conflictingVersion = await ctx.db
         .query("projectVersions")
-        .filter((q) =>
-          q.and(
-            q.eq("projectId", version.projectId),
-            q.eq("tag", args.tag)
-          )
-        )
+        .withIndex("by_project_createdAt", (q) => q.eq("projectId", version.projectId))
+        .filter((q) => q.eq(q.field("tag"), args.tag))
         .first();
 
       if (conflictingVersion && conflictingVersion._id !== args.versionId) {
