@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ProjectFileDownload } from "@/components/ProjectFileDownload";
 import ReactMarkdown from "react-markdown";
 import Link from "next/link";
-import { Plus, ChevronDown, ChevronRight, Tag, Trash2, Pencil } from "lucide-react";
+import { Plus, ChevronDown, ChevronRight, Tag, Trash2, Pencil, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -43,6 +43,7 @@ function VersionCard({
     tag: string;
     title: string;
     body?: string;
+    links?: { url: string; label?: string }[];
     creatorName: string;
     createdAt: number;
     fileCount: number;
@@ -106,6 +107,29 @@ function VersionCard({
               {version.body && (
                 <div className="prose prose-sm prose-zinc max-w-none">
                   <ReactMarkdown>{version.body}</ReactMarkdown>
+                </div>
+              )}
+
+              {version.links && version.links.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                    Links
+                  </p>
+                  <ul className="space-y-1">
+                    {version.links.map((link, i) => (
+                      <li key={i}>
+                        <a
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-sm text-zinc-700 hover:text-zinc-900 hover:underline"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                          {link.label || link.url}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 
