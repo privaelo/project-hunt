@@ -447,7 +447,7 @@ export default function ProjectPage({
                     {versions && versions.length > 0 && (
                       <>
                         <Tabs value={activeVersionId} onValueChange={setSelectedVersionId}>
-                          <TabsList variant="line" className="h-auto max-w-full overflow-x-auto flex-nowrap gap-1 bg-transparent p-0 pb-1">
+                          <TabsList variant="line" className="h-auto max-w-full justify-start overflow-x-auto flex-nowrap gap-1 bg-transparent p-0 pb-1">
                             {versions.map((version) => (
                               <TabsTrigger key={version._id} value={version._id} className="text-xs px-2.5 py-0.5 shrink-0">
                                 <Tag className="h-3 w-3 mr-1" />
@@ -470,7 +470,7 @@ export default function ProjectPage({
                 {(() => {
                   const filesToShow = activeVersionId ? (selectedVersionFiles ?? []) : (projectFiles ?? []);
                   return (activeLinks.length > 0 || filesToShow.length > 0) && (
-                    <div className="space-y-3 border-t border-zinc-300 pt-5">
+                    <div className="space-y-3">
                       <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
                         Links &amp; Downloads
                       </p>
