@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/app/useCurrentUser";
@@ -40,7 +40,7 @@ export default function NewVersionPage({
 }) {
   const router = useRouter();
   const { id } = use(params);
-  const { user } = useCurrentUser();
+  const { user, isLoading: isUserLoading } = useCurrentUser();
   const projectId = id as Id<"projects">;
   const project = useQuery(api.projects.getById, { projectId });
 
@@ -57,16 +57,24 @@ export default function NewVersionPage({
   const [readinessInitialized, setReadinessInitialized] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize readiness from project once loaded
-  if (project && !readinessInitialized) {
+  useEffect(() => {
+    if (!project || readinessInitialized) return;
+
     const status = project.readinessStatus === "in_progress" ? "early_prototype" : project.readinessStatus ?? "just_an_idea";
     setSelectedReadinessStatus(status as typeof readinessSliderValues[number]);
     setReadinessInitialized(true);
-  }
+  }, [project, readinessInitialized]);
 
-  const isOwner = user && project && project.userId === user._id;
+  const isOwner = !!(user && project && project.userId === user._id);
 
-  if (project === undefined) {
+  useEffect(() => {
+    if (project === undefined || isUserLoading) return;
+    if (project === null || !isOwner) {
+      router.push(project ? `/project/${id}` : "/");
+    }
+  }, [id, isOwner, isUserLoading, project, router]);
+
+  if (project === undefined || isUserLoading) {
     return (
       <div className="min-h-screen bg-zinc-50">
         <div className="mx-auto max-w-3xl px-6 py-16">
@@ -77,7 +85,6 @@ export default function NewVersionPage({
   }
 
   if (project === null || !isOwner) {
-    router.push(project ? `/project/${id}` : "/");
     return null;
   }
 
