@@ -8,10 +8,10 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { FileUploadField } from "@/components/FileUploadField";
 import { LinksEditor } from "@/components/LinksEditor";
+import { RichTextEditor } from "@/components/RichTextEditor";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Info } from "lucide-react";
@@ -216,16 +216,13 @@ export default function NewVersionPage({
           <div className="space-y-2">
             <label htmlFor="body" className="text-sm font-medium text-zinc-900">
               Describe this release{" "}
-              <span className="text-xs text-zinc-500">(optional, markdown supported)</span>
+              <span className="text-xs text-zinc-500">(optional)</span>
             </label>
-            <Textarea
-              id="body"
-              placeholder={"## What's new\n\n- Added new dashboard layout\n- Fixed search performance\n- Updated documentation"}
+            <RichTextEditor
               value={body}
-              onChange={(e) => setBody(e.target.value)}
+              onChange={setBody}
+              placeholder="What's new in this release?"
               disabled={isSubmitting}
-              rows={10}
-              className="font-mono text-sm"
             />
           </div>
 

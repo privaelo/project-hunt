@@ -7,7 +7,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { ProjectFileDownload } from "@/components/ProjectFileDownload";
-import ReactMarkdown from "react-markdown";
+import { RichTextContent } from "@/components/RichTextContent";
 import Link from "next/link";
 import { Plus, ChevronDown, ChevronRight, Tag, Trash2, Pencil, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
@@ -106,7 +106,7 @@ function VersionCard({
             <div className="border-t border-zinc-100 px-4 pb-4 pt-3 space-y-4">
               {version.body && (
                 <div className="prose prose-sm prose-zinc max-w-none">
-                  <ReactMarkdown>{version.body}</ReactMarkdown>
+                  <RichTextContent html={version.body} />
                 </div>
               )}
 
