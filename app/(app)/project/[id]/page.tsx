@@ -2,7 +2,7 @@
 
 import { use, useEffect, useRef, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/app/useCurrentUser";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -17,9 +17,9 @@ import { RichTextContent } from "@/components/RichTextContent";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Facepile } from "@/components/Facepile";
 import Link from "next/link";
-import { ArrowBigUp, Eye, Forward, Link2, Pencil } from "lucide-react";
+import { ArrowBigUp, Eye, Forward, Link2, Pencil, Plus, Tag } from "lucide-react";
 import { SpaceIcon } from "@/components/SpaceIcon";
-import { VersionsList } from "@/components/VersionsList";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -100,7 +100,6 @@ export default function ProjectPage({
   params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { id } = use(params);
   const { isAuthenticated, user } = useCurrentUser();
   const projectId = id as Id<"projects">;
@@ -116,12 +115,19 @@ export default function ProjectPage({
   const toggleCommentUpvote = useMutation(api.comments.toggleCommentUpvote);
   const trackedProjectId = useRef<Id<"projects"> | null>(null);
 
+  const versions = useQuery(api.projects.listVersionsByProject, { projectId });
+  const [selectedVersionId, setSelectedVersionId] = useState<string>("");
+  const activeVersionId =
+    versions?.some((version) => version._id === selectedVersionId)
+      ? selectedVersionId
+      : (versions?.[0]?._id ?? "");
+  const selectedVersionFiles = useQuery(
+    api.projects.getVersionFiles,
+    activeVersionId ? { versionId: activeVersionId as Id<"projectVersions"> } : "skip"
+  );
+
   const isOwner = user && project && project.userId === user._id;
   const [shareOpen, setShareOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "versions">(
-    searchParams.get("tab") === "versions" ? "versions" : "overview"
-  );
-  const showVersionsTab = isOwner || (project && (project.versionCount ?? 0) > 0);
 
   // Get top-level comments (no parent); keep deleted ones that have non-deleted replies
   const topLevelComments =
@@ -202,6 +208,8 @@ export default function ProjectPage({
   }
 
   const projectLinks = getProjectLinks(project);
+  const selectedVersion = versions?.find((v) => v._id === activeVersionId);
+  const activeLinks = selectedVersion?.links ? getProjectLinks({ links: selectedVersion.links }) : projectLinks;
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -292,85 +300,48 @@ export default function ProjectPage({
                   <ReadinessBadge status={project.readinessStatus} />
                 </div>
               </div>
-              {showVersionsTab && (
-                <div className="flex gap-4 border-b border-zinc-200 mt-2">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("overview")}
-                    className={`text-sm font-semibold pb-2 border-b-2 transition-colors ${
-                      activeTab === "overview"
-                        ? "border-zinc-900 text-zinc-900"
-                        : "border-transparent text-zinc-400 hover:text-zinc-600"
-                    }`}
-                  >
-                    Overview
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("versions")}
-                    className={`text-sm font-semibold pb-2 border-b-2 transition-colors ${
-                      activeTab === "versions"
-                        ? "border-zinc-900 text-zinc-900"
-                        : "border-transparent text-zinc-400 hover:text-zinc-600"
-                    }`}
-                  >
-                    Versions{(project.versionCount ?? 0) > 0 && ` (${project.versionCount})`}
-                  </button>
+              {projectMedia && projectMedia.length > 0 && (
+                <div className="mt-2">
+                  <ProjectMediaCarousel media={projectMedia} />
                 </div>
               )}
 
-              {activeTab === "overview" && (
-                <>
-                  {projectMedia && projectMedia.length > 0 && (
-                    <div className="mt-2">
-                      <ProjectMediaCarousel media={projectMedia} />
-                    </div>
-                  )}
-
-                  {project.summary && (
-                    <RichTextContent html={project.summary} />
-                  )}
-                </>
+              {project.summary && (
+                <RichTextContent html={project.summary} />
               )}
             </div>
 
-            {activeTab === "overview" && (
-              <div id="discussion" className="space-y-6">
-                <div className="space-y-4">
-                  <CommentForm
-                    onSubmit={(content) => addComment({ projectId, content })}
-                  />
-                  {comments === undefined ? (
-                    <div className="py-8 text-center text-sm text-zinc-500">
-                      Loading comments...
-                    </div>
-                  ) : topLevelComments.length === 0 ? (
-                    <div className="py-12 text-center">
-                      <p className="text-sm text-zinc-500">
-                        No comments yet. Start the conversation?
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {topLevelComments.map((comment) => (
-                        <CommentThread
-                          key={comment._id}
-                          comment={comment}
-                          allComments={comments}
-                          onDelete={(id) => deleteComment({ commentId: id as Id<"comments"> })}
-                          onToggleUpvote={(id) => toggleCommentUpvote({ commentId: id as Id<"comments"> })}
-                          onSubmitReply={(content, parentId) => addComment({ projectId, content, parentCommentId: parentId as Id<"comments"> })}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
+            <div id="discussion" className="space-y-6">
+              <div className="space-y-4">
+                <CommentForm
+                  onSubmit={(content) => addComment({ projectId, content })}
+                />
+                {comments === undefined ? (
+                  <div className="py-8 text-center text-sm text-zinc-500">
+                    Loading comments...
+                  </div>
+                ) : topLevelComments.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <p className="text-sm text-zinc-500">
+                      No comments yet. Start the conversation?
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {topLevelComments.map((comment) => (
+                      <CommentThread
+                        key={comment._id}
+                        comment={comment}
+                        allComments={comments}
+                        onDelete={(id) => deleteComment({ commentId: id as Id<"comments"> })}
+                        onToggleUpvote={(id) => toggleCommentUpvote({ commentId: id as Id<"comments"> })}
+                        onSubmitReply={(content, parentId) => addComment({ projectId, content, parentCommentId: parentId as Id<"comments"> })}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-
-            {activeTab === "versions" && (
-              <VersionsList projectId={projectId} isOwner={!!isOwner} />
-            )}
+            </div>
           </section>
 
           <aside className="w-full lg:w-72 xl:w-80">
@@ -457,30 +428,64 @@ export default function ProjectPage({
                   </Button>
                 </div>
 
-                {(projectLinks.length > 0 || (projectFiles && projectFiles.length > 0)) && (
+                {((versions && versions.length > 0) || isOwner) && (
                   <div className="space-y-3 border-t border-zinc-300 pt-5">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                      Links &amp; Downloads
-                    </p>
-                    <div className="space-y-2">
-                      {projectFiles && projectFiles.length > 0 && (
-                        <ProjectFileDownload files={projectFiles} />
-                      )}
-                      {projectLinks.map((pl, i) => (
-                        <a
-                          key={i}
-                          href={pl.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-m font-medium text-zinc-700 hover:text-zinc-900 hover:underline"
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                        Versions
+                      </p>
+                      {isOwner && (
+                        <Link
+                          href={`/project/${id}/versions/new`}
+                          className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-800"
                         >
-                          <Link2 className="h-5 w-5 text-zinc-400" aria-hidden="true" />
-                          {pl.label}
-                        </a>
-                      ))}
+                          <Plus className="h-3 w-3" />
+                          New
+                        </Link>
+                      )}
                     </div>
+                    {versions && versions.length > 0 && (
+                      <Tabs value={activeVersionId} onValueChange={setSelectedVersionId}>
+                        <TabsList variant="line" className="h-auto flex-wrap gap-1 bg-transparent p-0">
+                          {versions.map((version) => (
+                            <TabsTrigger key={version._id} value={version._id} className="text-xs px-2.5 py-0.5">
+                              <Tag className="h-3 w-3 mr-1" />
+                              {version.tag}
+                            </TabsTrigger>
+                          ))}
+                        </TabsList>
+                      </Tabs>
+                    )}
                   </div>
                 )}
+
+                {(() => {
+                  const filesToShow = activeVersionId ? (selectedVersionFiles ?? []) : (projectFiles ?? []);
+                  return (activeLinks.length > 0 || filesToShow.length > 0) && (
+                    <div className="space-y-3 border-t border-zinc-300 pt-5">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                        Links &amp; Downloads
+                      </p>
+                      <div className="space-y-2">
+                        {filesToShow.length > 0 && (
+                          <ProjectFileDownload files={filesToShow} />
+                        )}
+                        {activeLinks.map((pl, i) => (
+                          <a
+                            key={i}
+                            href={pl.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-m font-medium text-zinc-700 hover:text-zinc-900 hover:underline"
+                          >
+                            <Link2 className="h-5 w-5 text-zinc-400" aria-hidden="true" />
+                            {pl.label}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </aside>

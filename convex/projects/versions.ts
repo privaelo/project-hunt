@@ -61,6 +61,7 @@ export const createVersion = mutation({
     tag: v.string(),
     title: v.string(),
     body: v.optional(v.string()),
+    links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
     readinessStatus: v.optional(
       v.union(
         v.literal("just_an_idea"),
@@ -87,6 +88,7 @@ export const createVersion = mutation({
       tag: args.tag,
       title: args.title,
       body: args.body,
+      links: args.links,
       userId: user._id,
       createdAt: now,
     });
@@ -125,6 +127,7 @@ export const updateVersion = mutation({
     tag: v.string(),
     title: v.string(),
     body: v.optional(v.string()),
+    links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
@@ -141,6 +144,7 @@ export const updateVersion = mutation({
       tag: args.tag,
       title: args.title,
       body: args.body,
+      links: args.links,
     });
   },
 });

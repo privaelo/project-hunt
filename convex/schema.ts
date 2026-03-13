@@ -222,6 +222,7 @@ export default defineSchema({
     tag: v.string(),
     title: v.string(),
     body: v.optional(v.string()),
+    links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
     userId: v.id("users"),
     createdAt: v.number(),
   })

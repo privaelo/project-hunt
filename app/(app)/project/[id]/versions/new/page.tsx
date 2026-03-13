@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { FileUploadField } from "@/components/FileUploadField";
+import { LinksEditor } from "@/components/LinksEditor";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Info } from "lucide-react";
@@ -27,7 +28,7 @@ import {
   BreadcrumbSeparator,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
-import type { NewProjectFileItem } from "@/lib/types";
+import type { NewProjectFileItem, LinkItem } from "@/lib/types";
 
 const readinessSliderValues = ["just_an_idea", "early_prototype", "mostly_working", "ready_to_use"] as const;
 const readinessSliderLabels = ["Just an idea", "Early prototype", "Mostly working", "Ready to use"];
@@ -51,6 +52,7 @@ export default function NewVersionPage({
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [newFiles, setNewFiles] = useState<NewProjectFileItem[]>([]);
+  const [links, setLinks] = useState<LinkItem[]>([{ url: "", label: "" }]);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<typeof readinessSliderValues[number]>("just_an_idea");
   const [readinessInitialized, setReadinessInitialized] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,11 +90,13 @@ export default function NewVersionPage({
 
     setIsSubmitting(true);
     try {
+      const cleanedLinks = links.filter((l) => l.url.trim());
       const versionId = await createVersion({
         projectId,
         tag: tag.trim(),
         title: title.trim(),
         body: body.trim() || undefined,
+        links: cleanedLinks.length > 0 ? cleanedLinks : undefined,
         readinessStatus: readinessChanged ? selectedReadinessStatus : undefined,
       });
 
@@ -213,6 +217,14 @@ export default function NewVersionPage({
             onNewFilesChange={setNewFiles}
             disabled={isSubmitting}
           />
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-zinc-900">
+              Links{" "}
+              <span className="text-xs text-zinc-500">(optional)</span>
+            </label>
+            <LinksEditor links={links} onChange={setLinks} disabled={isSubmitting} />
+          </div>
 
           <div className="space-y-2">
             <div className="flex items-center gap-2">
