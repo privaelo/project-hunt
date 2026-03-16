@@ -61,6 +61,7 @@ export type CommentActivityPayload = {
   contentTitle: string;
   commenterName: string;
   commentSnippet: string;
+  isReply?: boolean;
 };
 
 export type WeeklyDigestPayload = {
@@ -750,20 +751,25 @@ export function renderCommentActivityEmail(args: {
 }): RenderedEmail {
   const { recipientName, payload, baseUrl, profileUrl } = args;
   const contentLabel = payload.contentType === "project" ? "project" : "thread";
+  const isReply = payload.isReply === true;
 
   const truncatedTitle =
     payload.contentTitle.length > 60
       ? `${payload.contentTitle.slice(0, 57)}...`
       : payload.contentTitle;
 
-  const subject = `New comment on your ${contentLabel}: "${truncatedTitle}"`;
+  const subject = isReply
+    ? `New reply on ${contentLabel}: "${truncatedTitle}"`
+    : `New comment on your ${contentLabel}: "${truncatedTitle}"`;
 
   const contentPath =
     payload.contentType === "project"
       ? `/project/${payload.contentId}`
       : `/thread/${payload.contentId}`;
   const contentUrl = joinUrl(baseUrl, contentPath);
-  const preheader = `${escapeHtml(payload.commenterName)} commented on your ${contentLabel}`;
+  const preheader = isReply
+    ? `${escapeHtml(payload.commenterName)} replied to your comment`
+    : `${escapeHtml(payload.commenterName)} commented on your ${contentLabel}`;
 
   const truncatedSnippet =
     payload.commentSnippet.length > 200
@@ -789,7 +795,7 @@ export function renderCommentActivityEmail(args: {
                 <tr>
                   <td style="padding: 28px 28px 24px; border-bottom: 1px solid #e4e4e7;">
                     <div style="font-size: 28px; font-weight: 700; color: #166534; margin: 0 0 16px;">Garden</div>
-                    <div style="font-size: 14px; color: #71717a; margin: 0 0 6px;">New comment on your ${escapeHtml(contentLabel)}</div>
+                    <div style="font-size: 14px; color: #71717a; margin: 0 0 6px;">${isReply ? "New reply to your comment" : `New comment on your ${escapeHtml(contentLabel)}`}</div>
                     <div style="font-size: 20px; font-weight: 700; color: #18181b; margin: 0 0 16px;">
                       <a href="${escapeHtml(contentUrl)}" style="color: #18181b; text-decoration: none;">${escapeHtml(payload.contentTitle)}</a>
                     </div>
@@ -801,7 +807,7 @@ export function renderCommentActivityEmail(args: {
                       <tr>
                         <td style="padding: 18px;">
                           <div style="font-size: 14px; font-weight: 600; color: #18181b; margin: 0 0 8px;">
-                            ${escapeHtml(payload.commenterName)} commented:
+                            ${escapeHtml(payload.commenterName)} ${isReply ? "replied:" : "commented:"}
                           </div>
                           <div style="font-size: 14px; line-height: 1.6; color: #52525b; margin: 0 0 16px;">
                             "${escapeHtml(truncatedSnippet)}"
@@ -814,7 +820,7 @@ export function renderCommentActivityEmail(args: {
                 </tr>
                 <tr>
                   <td style="padding: 0 28px 28px; font-size: 12px; line-height: 1.6; color: #71717a;">
-                    You're receiving this because someone commented on your ${escapeHtml(contentLabel)}. This is an automated email.
+                    You're receiving this because someone ${isReply ? "replied to your comment" : `commented on your ${escapeHtml(contentLabel)}`}. This is an automated email.
                     <a href="${escapeHtml(profileUrl)}" style="color: #71717a;">Manage your email preferences</a>
                   </td>
                 </tr>
@@ -827,17 +833,23 @@ export function renderCommentActivityEmail(args: {
   `.trim();
 
   const text = [
-    `Garden — New comment on your ${contentLabel}`,
+    isReply
+      ? `Garden — New reply on ${contentLabel}`
+      : `Garden — New comment on your ${contentLabel}`,
     "",
     `Hi ${recipientName},`,
     "",
-    `${payload.commenterName} commented on your ${contentLabel} "${payload.contentTitle}":`,
+    isReply
+      ? `${payload.commenterName} replied to your comment on "${payload.contentTitle}":`
+      : `${payload.commenterName} commented on your ${contentLabel} "${payload.contentTitle}":`,
     "",
     `"${truncatedSnippet}"`,
     "",
     `View it here: ${contentUrl}`,
     "",
-    `You're receiving this because someone commented on your ${contentLabel}. This is an automated email.`,
+    isReply
+      ? `You're receiving this because someone replied to your comment. This is an automated email.`
+      : `You're receiving this because someone commented on your ${contentLabel}. This is an automated email.`,
     `Manage your email preferences: ${profileUrl}`,
   ].join("\n");
 
