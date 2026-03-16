@@ -2,7 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserOrThrow, getCurrentUser } from "./users";
 import { createProjectNotification } from "./notifications";
-import { enqueueCommentEmail } from "./commentNotifications";
+import { enqueueCommentEmail, enqueueReplyEmail } from "./commentNotifications";
 import { calculateHotScore } from "./projects";
 
 export const addComment = mutation({
@@ -52,6 +52,27 @@ export const addComment = mutation({
         commenterName: user.name,
         commentSnippet: args.content.slice(0, 200),
       });
+    }
+
+    // Notify the parent comment author when someone replies to their comment
+    if (args.parentCommentId && project) {
+      const parentComment = await ctx.db.get(args.parentCommentId);
+      if (
+        parentComment &&
+        !parentComment.isDeleted &&
+        parentComment.userId !== user._id &&
+        parentComment.userId !== project.userId
+      ) {
+        await enqueueReplyEmail(ctx, {
+          contentType: "project",
+          contentId: args.projectId,
+          contentTitle: project.name,
+          parentCommentUserId: parentComment.userId,
+          replierUserId: user._id,
+          replierName: user.name,
+          commentSnippet: args.content.slice(0, 200),
+        });
+      }
     }
 
     return commentId;
