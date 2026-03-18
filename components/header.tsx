@@ -97,15 +97,15 @@ export function Header() {
               <DialogTrigger asChild>
                 <button
                   className="inline-flex h-9 w-80 items-center justify-center gap-2 rounded-full border border-emerald-200 bg-zinc-50 px-3 text-sm font-normal text-zinc-500 shadow-sm hover:bg-zinc-100 hover:text-zinc-900 transition-all ring-2 ring-emerald-500/20"
-                  aria-label="Search tools"
+                  aria-label="Search the tools catalog"
                 >
                   <Sparkles className="h-4 w-4 text-emerald-600" />
-                  <span>Find a tool</span>
+                  <span>Search the catalog</span>
                 </button>
               </DialogTrigger>
               <DialogContent className="p-0 border-0 bg-transparent shadow-none sm:max-w-3xl w-[90vw]">
                 <VisuallyHidden>
-                  <DialogTitle>Find Tools</DialogTitle>
+                  <DialogTitle>Search the Tools Catalog</DialogTitle>
                 </VisuallyHidden>
                 <ChatInterface />
               </DialogContent>
@@ -121,7 +121,7 @@ export function Header() {
                   <Link
                     href="/submit"
                     className="inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 px-4 py-2 text-sm font-medium text-white shadow-md shadow-emerald-500/25 transition-all hover:shadow-lg hover:shadow-emerald-500/40 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2"
-                    aria-label="Share a tool"
+                    aria-label="Register a tool"
                   >
                     <PlusCircle className="h-4 w-4" />
                     <span>Share</span>

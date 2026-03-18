@@ -11,7 +11,7 @@ import type { OptimisticMessage } from "@/lib/types";
 const EXAMPLE_PROMPTS = [
   "Power Automate flows for approvals",
   "Scripts to clean up Excel data",
-  "Copilot prompts for writing emails",
+  "Is there already a tool for invoice processing?",
 ];
 
 export function ChatInterface() {
@@ -64,16 +64,16 @@ export function ChatInterface() {
   return (
     <div className="flex flex-col h-[70vh] max-h-[700px] border rounded-xl overflow-hidden bg-background shadow-sm">
       <div className="px-4 py-3 border-b bg-white">
-        <h2 className="text-sm font-semibold text-zinc-900">Explore Garden</h2>
+        <h2 className="text-sm font-semibold text-zinc-900">Search the catalog</h2>
       </div>
       {threadId ? (
         <MessageList threadId={threadId} optimisticMessages={optimisticMessages} />
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center p-6 gap-6">
           <div className="text-center space-y-2">
-            <h3 className="text-lg font-medium text-foreground">What are you trying to do?</h3>
+            <h3 className="text-lg font-medium text-foreground">What do you need?</h3>
             <p className="text-sm text-muted-foreground">
-              Describe what you need and I&apos;ll help you find it
+              Describe the problem or tool type and I&apos;ll search the catalog for you
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-2">
@@ -95,7 +95,7 @@ export function ChatInterface() {
         <form className="flex gap-2" onSubmit={handleSendMessage}>
           <Input
             className="flex-1 bg-white"
-            placeholder="e.g., Power Automate flows for approvals..."
+            placeholder="Describe a problem or tool type to search the catalog…"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
           />

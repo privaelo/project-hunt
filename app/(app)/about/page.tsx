@@ -13,13 +13,13 @@ export default function AboutPage() {
             Why I built Garden
           </h1>
           <p className="text-xl text-zinc-600 leading-relaxed">
-            Garden started as a (slightly selfish) attempt to give my work a better spotlight than the endless void of giant Teams channels, but it didn&apos;t take long to realize I wasn&apos;t the only one who could benefit from a platform like this. 
+            Garden started as a (slightly selfish) attempt to give my work a better spotlight than the endless void of giant Teams channels, but it didn&apos;t take long to realize I wasn&apos;t the only one who could benefit from a platform like this.
           </p>
           <p className="text-xl text-zinc-600 leading-relaxed">
             Across Honda, people were building useful tools *often in parallel*, yet those scripts, dashboards, and automations rarely made it beyond a small circle.
           </p>
           <p className="text-xl text-zinc-600 leading-relaxed">
-            Garden is my attempt to fix that, even if just a little. It’s a step toward making internal tools easier to discover, surfacing work that might be useful beyond the team it was built for, and bringing good ideas closer to the people who didn’t even know they were looking for them.
+            Garden is my attempt to fix that, even if just a little. It&apos;s a step toward making internal tools easier to discover, surfacing work that might be useful beyond the team it was built for, and bringing good ideas closer to the people who didn&apos;t even know they were looking for them.
           </p>
           <p className="text-xl text-zinc-600 leading-relaxed">
             But for me personally, I just want Garden to make creating things feel more fun, exciting, and worth sharing.
@@ -35,9 +35,9 @@ export default function AboutPage() {
 
         {/* CTA */}
         <section className="flex flex-col items-center gap-4 pt-8 text-center">
-          <h3 className="text-2xl font-semibold text-zinc-900">Have something to share?</h3>
+          <h3 className="text-2xl font-semibold text-zinc-900">Have a tool to register?</h3>
           <Button size="lg" asChild className="mt-2">
-            <Link href="/submit">Share what you built</Link>
+            <Link href="/submit">Register a tool</Link>
           </Button>
         </section>
       </main>

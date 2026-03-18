@@ -86,7 +86,7 @@ export default function Home() {
         <section className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold text-zinc-900">
-              What people are working on
+              Tools catalog
             </h1>
             <LayoutGroup>
               <div className="space-y-0">
@@ -141,13 +141,13 @@ export default function Home() {
 function EmptyState() {
   return (
     <div className="rounded-3xl bg-zinc-100/60 p-6 text-center text-sm text-zinc-500 space-y-3">
-      <p className="font-medium text-zinc-900">Quiet right now.</p>
+      <p className="font-medium text-zinc-900">The catalog is empty.</p>
       <p className="text-zinc-600">
-        Plant something?
+        Be the first to register a tool.
       </p>
       <Link href="/submit">
         <Button size="sm" className="whitespace-nowrap">
-          Share what you&apos;re working on
+          Register the first tool
         </Button>
       </Link>
     </div>

@@ -93,7 +93,7 @@ export function AppSidebar() {
             <SidebarMenuButton asChild size="lg">
               <Link href="/create-thread">
                 <MessageSquarePlus className="h-4 w-4" />
-                <span>Start a Thread</span>
+                <span>Start a Discussion</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -110,7 +110,7 @@ export function AppSidebar() {
             <SidebarMenuButton asChild>
               <Link href="/about">
                 <Info className="h-4 w-4" />
-                <span>Why I Built Garden</span>
+                <span>About Garden</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

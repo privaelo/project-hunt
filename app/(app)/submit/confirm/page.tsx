@@ -36,12 +36,12 @@ type Project = {
 };
 
 const thingsThatBelong = [
-  "a script you wrote for yourself",
-  "a tool your manager asked you to build",
-  "a department dashboard",
-  "a deadline workaround",
-  "a prototype that never shipped",
-  "a compliance/reporting solution",
+  "an automation or script used by your team",
+  "a dashboard built for a department or project",
+  "a tool requested by leadership or a business need",
+  "a prototype that could save others the same effort",
+  "a compliance or reporting solution",
+  "a prompt pack or reusable template",
 ];
 
 function ConfirmSubmissionContent() {
@@ -136,7 +136,7 @@ function ConfirmSubmissionContent() {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href="/submit">Share a Tool</Link>
+                <Link href="/submit">Register a Tool</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
@@ -146,11 +146,11 @@ function ConfirmSubmissionContent() {
           </BreadcrumbList>
         </Breadcrumb>
         <div className="mb-2 space-y-2">
-          <h2 className="text-3xl font-semibold tracking-tight">Share what you&apos;re working on</h2>
+          <h2 className="text-3xl font-semibold tracking-tight">Register a tool in the catalog</h2>
           <Accordion type="single" collapsible>
             <AccordionItem value="things" className="border-b-0">
               <AccordionTrigger className="py-1 text-sm font-medium text-zinc-700">
-                If you built something, it belongs here — rough and unfinished.
+                Not sure if it belongs? It probably does.
               </AccordionTrigger>
               <AccordionContent className="pt-2">
                 <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600">
@@ -167,9 +167,9 @@ function ConfirmSubmissionContent() {
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
             <div className="space-y-6">
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold text-zinc-900">Your project</h3>
+                <h3 className="text-lg font-semibold text-zinc-900">Your entry</h3>
                 <p className="text-sm text-zinc-500">
-                  Quick look before it&apos;s live.
+                  Review before it&apos;s added to the catalog.
                 </p>
               </div>
               <div className="space-y-4">
@@ -234,9 +234,9 @@ function ConfirmSubmissionContent() {
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold text-zinc-900">Similar projects</h3>
+                <h3 className="text-lg font-semibold text-zinc-900">Already in the catalog</h3>
                 <p className="text-sm text-zinc-500">
-                  See something similar? Might be worth connecting.
+                  Check if a similar tool already exists before adding yours.
                 </p>
               </div>
 
@@ -273,12 +273,12 @@ function ConfirmSubmissionContent() {
               disabled={isProcessing}
               className="flex-1 whitespace-nowrap"
             >
-              Not yet
+              Discard
             </Button>
           </div>
 
           <p className="text-center text-xs text-zinc-400">
-            Rough is fine. You can always edit later.
+            You can update the details at any time after registering.
           </p>
         </section>
       </main>

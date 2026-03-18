@@ -104,12 +104,12 @@ export function LandingPage() {
           <div className="relative">
             {/* Headline — kept exactly as-is */}
             <h1 className="mx-auto max-w-2xl text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              See what people are working on
+              Honda&apos;s catalog of internal digital tools
             </h1>
 
-            {/* Sub-headline — kept exactly as-is */}
+            {/* Sub-headline */}
             <p className="mx-auto mt-5 max-w-lg text-lg text-zinc-400 sm:text-xl">
-              Share your own work too!
+              Find what already exists. Share what you&apos;ve built.
             </p>
 
             {/* CTA */}
@@ -142,15 +142,15 @@ export function LandingPage() {
             <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-zinc-500">
               <span className="flex items-center gap-2">
                 <Share2 className="h-4 w-4 text-emerald-500" />
-                Share scripts &amp; automations
+                Register tools your team has built
               </span>
               <span className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-emerald-500" />
-                Upvote what&apos;s useful
+                Surface what&apos;s worth adopting
               </span>
               <span className="flex items-center gap-2">
                 <BookMarked className="h-4 w-4 text-emerald-500" />
-                Follow topics you care about
+                Browse by category across the org
               </span>
             </div>
           </div>
@@ -173,7 +173,7 @@ export function LandingPage() {
           `}</style>
 
           <h2 className="mb-10 text-center text-xs font-semibold uppercase tracking-widest text-zinc-400">
-            Example of what&apos;s inside (not real projects)
+            Examples of what&apos;s in the catalog (not real entries)
           </h2>
 
           <div className="relative">

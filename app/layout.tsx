@@ -25,7 +25,7 @@ const chonburi = Chonburi({
 export const metadata: Metadata = {
   title: "Garden",
   description:
-    "Discover the scripts, dashboards, and automations your Honda colleagues have built — and share what you're working on.",
+    "Garden is Honda's catalog of internal digital tools — scripts, dashboards, automations, and more. Find what exists, adopt what works, and register what you've built.",
 };
 
 export default function RootLayout({

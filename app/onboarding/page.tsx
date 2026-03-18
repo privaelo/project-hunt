@@ -77,42 +77,42 @@ export default function OnboardingPage() {
         <CardHeader className="border-b border-zinc-100 pr-16 sm:pr-20">
           <CardTitle className="text-2xl text-zinc-900">Welcome to Garden</CardTitle>
           <CardDescription className="mt-2 text-base space-y-1">
-            <p className="pt-2">Quick questions to get you started.</p>
+            <p className="pt-2">Help us personalize your experience in the catalog.</p>
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
           {/* User Intent Section */}
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-zinc-900">What brings you to Garden?</h3>
+            <h3 className="text-sm font-medium text-zinc-900">How do you plan to use Garden?</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Button
                 onClick={() => setUserIntent('looking')}
                 variant={userIntent === 'looking' ? 'default' : 'outline'}
                 className="h-auto py-3"
               >
-                See what others built
+                Find tools to use
               </Button>
               <Button
                 onClick={() => setUserIntent('sharing')}
                 variant={userIntent === 'sharing' ? 'default' : 'outline'}
                 className="h-auto py-3"
               >
-                Share what I&apos;m building
+                Share tools I&apos;ve built
               </Button>
               <Button
                 onClick={() => setUserIntent('both')}
                 variant={userIntent === 'both' ? 'default' : 'outline'}
                 className="h-auto py-3"
               >
-                Both
+                Both — find and share
               </Button>
             </div>
           </div>
 
           {!canProceed && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              Please select what brings you to Garden.
+              Please select how you plan to use Garden.
             </div>
           )}
         </CardContent>

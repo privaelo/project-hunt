@@ -209,12 +209,12 @@ export default function SubmitProject() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Share a Tool</BreadcrumbPage>
+              <BreadcrumbPage>Register a Tool</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
         <div className="mb-2 space-y-2">
-          <h2 className="text-3xl font-semibold tracking-tight">Share what you&apos;re working on</h2>
+          <h2 className="text-3xl font-semibold tracking-tight">Register a tool in the catalog</h2>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -232,7 +232,7 @@ export default function SubmitProject() {
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       <p className="text-xs">
-                        Spaces help categorize your project and make it easier for teammates to discover relevant work.
+                        Spaces organize the catalog by technology or topic, helping colleagues find tools relevant to their area.
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -280,7 +280,7 @@ export default function SubmitProject() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <label htmlFor="readinessStatus" className="text-sm font-medium text-zinc-900">
-                        How rough is it?
+                        Maturity level
                       </label>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -288,10 +288,10 @@ export default function SubmitProject() {
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
                           <div className="space-y-1.5 text-xs">
-                            <p><strong>Just an idea:</strong> Haven&apos;t started building yet.</p>
-                            <p><strong>Early prototype:</strong> First attempt. It&apos;s rough but shows the concept.</p>
-                            <p><strong>Mostly working:</strong> Core functionality works, still has rough edges.</p>
-                            <p><strong>Ready to use:</strong> Works reliably. Someone else could pick it up now.</p>
+                            <p><strong>Just an idea:</strong> Concept stage — not yet built.</p>
+                            <p><strong>Early prototype:</strong> Initial build. Shows the concept but not production-ready.</p>
+                            <p><strong>Mostly working:</strong> Core functionality is solid; some rough edges remain.</p>
+                            <p><strong>Ready to use:</strong> Reliable enough for others to adopt without guidance.</p>
                           </div>
                         </TooltipContent>
                       </Tooltip>
