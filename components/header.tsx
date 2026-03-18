@@ -124,7 +124,7 @@ export function Header() {
                     aria-label="Register a tool"
                   >
                     <PlusCircle className="h-4 w-4" />
-                    <span>Add Tool</span>
+                    <span>Share</span>
                   </Link>
                 </NavigationMenuItem>
               )}

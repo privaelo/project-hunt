@@ -109,7 +109,7 @@ export function LandingPage() {
 
             {/* Sub-headline */}
             <p className="mx-auto mt-5 max-w-lg text-lg text-zinc-400 sm:text-xl">
-              Find what already exists. Use it. Add what&apos;s missing.
+              Find what already exists. Share what you&apos;ve built.
             </p>
 
             {/* CTA */}

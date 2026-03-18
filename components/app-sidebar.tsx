@@ -85,7 +85,7 @@ export function AppSidebar() {
             <SidebarMenuButton asChild size="lg">
               <Link href="/submit">
                 <PlusCircle className="h-4 w-4" />
-                <span>Register a Tool</span>
+                <span>Share a Tool</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -98,14 +98,14 @@ export default function OnboardingPage() {
                 variant={userIntent === 'sharing' ? 'default' : 'outline'}
                 className="h-auto py-3"
               >
-                Register tools I&apos;ve built
+                Share tools I&apos;ve built
               </Button>
               <Button
                 onClick={() => setUserIntent('both')}
                 variant={userIntent === 'both' ? 'default' : 'outline'}
                 className="h-auto py-3"
               >
-                Both — find and register
+                Both — find and share
               </Button>
             </div>
           </div>

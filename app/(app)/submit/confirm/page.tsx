@@ -265,7 +265,7 @@ function ConfirmSubmissionContent() {
               disabled={isProcessing}
               className="flex-1 whitespace-nowrap"
             >
-              {isProcessing ? "Registering..." : "Add to catalog"}
+              {isProcessing ? "Sharing..." : "Share this"}
             </Button>
             <Button
               variant="outline"

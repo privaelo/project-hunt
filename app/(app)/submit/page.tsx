@@ -340,7 +340,7 @@ export default function SubmitProject() {
 
               <div className="flex items-center pt-4">
                 <Button type="submit" className="whitespace-nowrap" disabled={isSubmitting}>
-                  {isSubmitting ? "Registering..." : "Register this"}
+                  {isSubmitting ? "Sharing..." : "Share this"}
                 </Button>
               </div>
             </section>
