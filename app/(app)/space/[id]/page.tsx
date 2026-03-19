@@ -273,7 +273,6 @@ export default function SpacePage({
                               project={project as ProjectRowData}
                               onUpvote={handleUpvote}
                               onFollow={handleProjectFollow}
-                              currentUser={currentUser}
                               isAuthenticated={isAuthenticated}
                               hideSpaceLabel
                             />

@@ -108,7 +108,6 @@ export default function Home() {
                             project={project as ProjectRowData}
                             onUpvote={handleUpvote}
                             onFollow={handleFollow}
-                            currentUser={currentUser}
                             isAuthenticated={isAuthenticated}
                           />
                         </motion.div>
