@@ -57,14 +57,14 @@ const MOCK_PROJECTS: {
       "A Power BI template for tracking team OKRs with drill-down by quarter. Adapt the data model to your department.",
   },
   {
-    name: "Slack Bot for IT Ticket Triage",
-    space: "Integrations",
-    spaceIcon: "🔗",
+    name: "Formula: Flag Overdue Purchase Orders",
+    space: "Excel Scripts",
+    spaceIcon: "📊",
     readiness: "ready_to_use",
-    upvotes: 22,
-    followers: 15,
+    upvotes: 7,
+    followers: 4,
     summary:
-      "Posts new ServiceNow tickets to the right Slack channel and pings the on-call engineer automatically.",
+      "A single XLOOKUP formula that highlights POs past their due date in red. Took 10 minutes to write, saves the team a manual check every week.",
   },
   {
     name: "Onboarding Checklist Automation",
@@ -142,7 +142,7 @@ export function LandingPage() {
             <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-zinc-500">
               <span className="flex items-center gap-2">
                 <Share2 className="h-4 w-4 text-emerald-500" />
-                Register tools your team has built
+                Register scripts, tools, and templates you&apos;ve built
               </span>
               <span className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-emerald-500" />

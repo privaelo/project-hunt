@@ -39,15 +39,6 @@ import {
 const readinessSliderValues = ["just_an_idea", "early_prototype", "mostly_working", "ready_to_use"] as const;
 const readinessSliderLabels = ["Just an idea", "Early prototype", "Mostly working", "Ready to use"];
 
-const thingsThatBelong = [
-  "a script you wrote for yourself",
-  "a tool your manager asked you to build",
-  "a department dashboard",
-  "a deadline workaround",
-  "a prototype that never shipped",
-  "a compliance/reporting solution",
-];
-
 export default function SubmitProject() {
   const router = useRouter();
   const createProject = useAction(api.projects.create);
@@ -233,71 +224,73 @@ export default function SubmitProject() {
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-            <section className="w-full space-y-6">
-              {/* Space Selector - Required field */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <label className="text-base font-semibold text-zinc-900">
-                    Choose a space
-                  </label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-xs">
-                        Spaces organize the catalog by technology or topic, helping colleagues find tools relevant to their area.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
+            <section className="w-full">
+              {/* Space Selectors — grouped */}
+              <div className="space-y-3 mb-8">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-base font-semibold text-zinc-900">
+                      Choose a space
+                    </label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-xs">
+                          Spaces organize the catalog by technology or topic, helping colleagues find tools relevant to their area.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <SpacePicker
+                    spaces={focusAreas}
+                    selectedSpace={selectedFocusArea}
+                    onSelectionChange={handlePrimarySpaceChange}
+                    currentUserName={currentUser?.name}
+                  />
                 </div>
-                <SpacePicker
-                  spaces={focusAreas}
-                  selectedSpace={selectedFocusArea}
-                  onSelectionChange={handlePrimarySpaceChange}
-                  currentUserName={currentUser?.name}
-                />
-              </div>
-
-              {/* Additional Spaces */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-zinc-600">
-                    Additional spaces
-                  </label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-xs">
-                        Only your primary space appears on project cards. Add additional spaces to reach other communities where your project is also relevant.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-zinc-600">
+                      Additional spaces
+                    </label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-xs">
+                          Only your primary space appears on project cards. Add additional spaces to reach other communities where your project is also relevant.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <AdditionalSpacesPicker
+                    spaces={focusAreas}
+                    selectedSpaces={additionalSpaces}
+                    onSelectionChange={setAdditionalSpaces}
+                    excludeSpaceId={selectedFocusArea === "personal" ? null : selectedFocusArea}
+                  />
                 </div>
-                <AdditionalSpacesPicker
-                  spaces={focusAreas}
-                  selectedSpaces={additionalSpaces}
-                  onSelectionChange={setAdditionalSpaces}
-                  excludeSpaceId={selectedFocusArea === "personal" ? null : selectedFocusArea}
-                />
               </div>
 
-              {/* Title - Required field */}
-              <div className="space-y-2">
-                <Input
-                  id="workingTitle"
-                  className="h-11 border border-zinc-300 focus-visible:border-zinc-400"
-                  value={formData.workingTitle}
-                  onChange={(e) => setFormData({ ...formData, workingTitle: e.target.value })}
-                  placeholder="Title"
-                  aria-label="Title"
-                  required
-                />
-              </div>
+              {/* Title and form tabs — grouped */}
+              <div className="space-y-6">
+                {/* Title - Required field */}
+                <div className="space-y-2">
+                  <Input
+                    id="workingTitle"
+                    className="h-11 border border-zinc-300 focus-visible:border-zinc-400"
+                    value={formData.workingTitle}
+                    onChange={(e) => setFormData({ ...formData, workingTitle: e.target.value })}
+                    placeholder="Title"
+                    aria-label="Title"
+                    required
+                  />
+                </div>
 
-              <Tabs defaultValue="details" className="!mt-10">
+                <Tabs defaultValue="details">
                 <TabsList variant="line">
                   <TabsTrigger value="details" className="px-5">Details</TabsTrigger>
                   <TabsTrigger value="media" className="px-5">Files & media</TabsTrigger>
@@ -376,6 +369,7 @@ export default function SubmitProject() {
                   <LinksEditor links={links} onChange={setLinks} disabled={isSubmitting} />
                 </TabsContent>
               </Tabs>
+              </div>
 
               <div className="flex items-center pt-4">
                 <Button type="submit" className="whitespace-nowrap" disabled={isSubmitting}>
