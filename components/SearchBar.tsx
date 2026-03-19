@@ -131,11 +131,11 @@ export function SearchBar() {
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverAnchor asChild>
         <div className="relative flex items-center w-80">
-          <Search className="absolute left-3 h-4 w-4 text-stone-400 pointer-events-none" />
+          <Search className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
           <input
             ref={inputRef}
             type="text"
-            className="h-9 w-full rounded-full border border-stone-300 bg-stone-50 pl-9 pr-14 text-sm text-stone-900 placeholder:text-stone-400 shadow-sm ring-2 ring-amber-500/15 transition-all hover:bg-stone-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-600/25"
+            className="h-9 w-full rounded-full border border-border bg-background pl-9 pr-14 text-sm text-foreground placeholder:text-muted-foreground shadow-sm ring-2 ring-ring/15 transition-all hover:bg-muted focus:bg-background focus:outline-none focus:ring-2 focus:ring-ring/30"
             placeholder="Search tools..."
             value={query}
             onChange={(e) => {
@@ -160,7 +160,7 @@ export function SearchBar() {
           <Dialog>
             <DialogTrigger asChild>
               <button
-                className="absolute right-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-stone-300 bg-amber-50 text-amber-700 shadow-sm transition-colors hover:bg-amber-100"
+                className="absolute right-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-muted text-primary shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
                 aria-label="AI Search Assistant"
                 onClick={(e) => e.stopPropagation()}
               >
