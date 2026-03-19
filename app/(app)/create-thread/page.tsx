@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { isRichTextEmpty } from "@/lib/utils";
 import { SpacePicker } from "@/components/SpacePicker";
+import Link from "next/link";
 
 export default function CreateThreadPage() {
   const router = useRouter();
@@ -50,9 +51,14 @@ export default function CreateThreadPage() {
   return (
     <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto max-w-xl px-6 pt-10 pb-16">
-        <h1 className="text-2xl font-semibold text-zinc-900 mb-6">
-          Start a Thread
-        </h1>
+        <div className="flex items-center gap-3 mb-6">
+          <h1 className="text-2xl font-semibold text-zinc-900">
+            Start a Thread
+          </h1>
+          <Link href="/guidelines" className="text-sm text-zinc-500 underline underline-offset-4 hover:text-zinc-700">
+            What can I post?
+          </Link>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
