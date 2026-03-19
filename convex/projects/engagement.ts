@@ -97,13 +97,13 @@ export const toggleUpvote = mutation({
   },
 });
 
-export const toggleAdoption = mutation({
+export const toggleFollow = mutation({
   args: {
     projectId: v.id("projects"),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
-    const existingAdoption = await ctx.db
+    const existingFollow = await ctx.db
       .query("adoptions")
       .withIndex("by_project_and_user", (q) =>
         q.eq("projectId", args.projectId).eq("userId", user._id)
@@ -113,9 +113,9 @@ export const toggleAdoption = mutation({
     if (!project) {
       throw new Error("Project not found");
     }
-    if (existingAdoption) {
-      await ctx.db.delete(existingAdoption._id);
-      return { adopted: false };
+    if (existingFollow) {
+      await ctx.db.delete(existingFollow._id);
+      return { followed: false };
     } else {
       await ctx.db.insert("adoptions", {
         projectId: args.projectId,
@@ -127,10 +127,10 @@ export const toggleAdoption = mutation({
           recipientUserId: project.userId,
           actorUserId: user._id,
           projectId: project._id,
-          type: "adoption",
+          type: "follow",
         });
       }
-      return { adopted: true };
+      return { followed: true };
     }
   },
 });
@@ -167,27 +167,27 @@ export const getUpvoteCount = query({
   },
 });
 
-export const getAdopters = query({
+export const getFollowers = query({
   args: {
     projectId: v.id("projects"),
   },
   handler: async (ctx, args) => {
-    const adoptions = await ctx.db
+    const follows = await ctx.db
       .query("adoptions")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
       .order("desc")
       .collect();
-    const adoptersWithInfo = await Promise.all(
-      adoptions.map(async (adoption) => {
-        const user = await ctx.db.get(adoption.userId);
+    const followersWithInfo = await Promise.all(
+      follows.map(async (follow) => {
+        const user = await ctx.db.get(follow.userId);
         return {
-          _id: adoption.userId,
+          _id: follow.userId,
           name: user?.name ?? "Unknown User",
           avatarUrl: user?.avatarUrlId ?? "",
         };
       })
     );
-    return adoptersWithInfo;
+    return followersWithInfo;
   },
 });
 

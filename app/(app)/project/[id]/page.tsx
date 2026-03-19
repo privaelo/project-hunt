@@ -108,7 +108,7 @@ export default function ProjectPage({
   const projectFiles = useQuery(api.projects.getProjectFiles, { projectId });
   const comments = useQuery(api.comments.getComments, { projectId });
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
-  const toggleAdoption = useMutation(api.projects.toggleAdoption);
+  const toggleFollow = useMutation(api.projects.toggleFollow);
   const trackView = useMutation(api.projects.trackView);
   const addComment = useMutation(api.comments.addComment);
   const deleteComment = useMutation(api.comments.deleteComment);
@@ -168,11 +168,11 @@ export default function ProjectPage({
     setShareOpen(true);
   };
 
-  const handleAdopt = async () => {
+  const handleFollow = async () => {
     try {
-      await toggleAdoption({ projectId });
+      await toggleFollow({ projectId });
     } catch (error) {
-      console.error("Failed to toggle adoption:", error);
+      console.error("Failed to toggle follow:", error);
     }
   };
 
@@ -367,11 +367,11 @@ export default function ProjectPage({
                   <div>
                     <div className="flex items-center justify-between gap-3">
                       <Facepile
-                        adopters={project.adopters}
-                        totalCount={project.adoptionCount}
+                        followers={project.followers}
+                        totalCount={project.followerCount}
                         maxVisible={3}
                         size="sm"
-                        hasAdopted={project.hasAdopted}
+                        hasFollowed={project.hasFollowed}
                         showLabel={true}
                         currentUser={
                           user
@@ -383,7 +383,7 @@ export default function ProjectPage({
                             : null
                         }
                         isAuthenticated={isAuthenticated}
-                        onToggle={handleAdopt}
+                        onToggle={handleFollow}
                         projectId={projectId}
                       />
                       {isAuthenticated ? (

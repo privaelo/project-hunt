@@ -327,7 +327,7 @@ export default function SubmitProject() {
                             <p><strong>Just an idea:</strong> Concept stage — not yet built.</p>
                             <p><strong>Early prototype:</strong> Initial build. Shows the concept but not production-ready.</p>
                             <p><strong>Mostly working:</strong> Core functionality is solid; some rough edges remain.</p>
-                            <p><strong>Ready to use:</strong> Reliable enough for others to adopt without guidance.</p>
+                            <p><strong>Ready to use:</strong> Reliable enough for others to use without guidance.</p>
                           </div>
                         </TooltipContent>
                       </Tooltip>

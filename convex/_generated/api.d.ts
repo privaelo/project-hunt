@@ -16,6 +16,7 @@ import type * as digests from "../digests.js";
 import type * as emailRenderer from "../emailRenderer.js";
 import type * as emails from "../emails.js";
 import type * as focusAreas from "../focusAreas.js";
+import type * as followNotifications from "../followNotifications.js";
 import type * as functions from "../functions.js";
 import type * as http from "../http.js";
 import type * as notifications from "../notifications.js";
@@ -54,6 +55,7 @@ declare const fullApi: ApiFromModules<{
   emailRenderer: typeof emailRenderer;
   emails: typeof emails;
   focusAreas: typeof focusAreas;
+  followNotifications: typeof followNotifications;
   functions: typeof functions;
   http: typeof http;
   notifications: typeof notifications;

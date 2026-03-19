@@ -24,12 +24,12 @@ import Link from "next/link";
 import type { UserRef } from "@/lib/types";
 
 interface FacepileProps {
-  adopters: UserRef[];
+  followers: UserRef[];
   totalCount: number;
   maxVisible?: number;
   size?: "sm" | "md";
   // Interactive props
-  hasAdopted?: boolean;
+  hasFollowed?: boolean;
   currentUser?: UserRef | null;
   isAuthenticated?: boolean;
   onToggle?: () => void;
@@ -38,11 +38,11 @@ interface FacepileProps {
 }
 
 export function Facepile({
-  adopters,
+  followers,
   totalCount,
   maxVisible = 3,
   size = "sm",
-  hasAdopted = false,
+  hasFollowed = false,
   currentUser = null,
   isAuthenticated = false,
   onToggle,
@@ -54,28 +54,28 @@ export function Facepile({
   const sizeClasses = size === "sm" ? "h-6 w-6 text-xs" : "h-8 w-8 text-sm";
   const iconSize = size === "sm" ? "h-3 w-3" : "h-4 w-4";
 
-  // Fetch all adopters if dialog is open and projectId is available
-  const allAdopters = useQuery(
-    api.projects.getAdopters,
+  // Fetch all followers if dialog is open and projectId is available
+  const allFollowers = useQuery(
+    api.projects.getFollowers,
     isOpen && projectId ? { projectId } : "skip"
   );
 
-  // Filter out current user from adopters to avoid duplicate display
-  const otherAdopters = currentUser
-    ? adopters.filter((a) => a._id !== currentUser._id)
-    : adopters;
+  // Filter out current user from followers to avoid duplicate display
+  const otherFollowers = currentUser
+    ? followers.filter((a) => a._id !== currentUser._id)
+    : followers;
 
-  // Calculate how many "other" adopters to show
-  // If user has adopted, their avatar takes one slot
-  const showPlusButton = isInteractive && (!isAuthenticated || !hasAdopted);
-  const slotsForOthersBase = hasAdopted ? maxVisible - 1 : maxVisible;
+  // Calculate how many "other" followers to show
+  // If user has followed, their avatar takes one slot
+  const showPlusButton = isInteractive && (!isAuthenticated || !hasFollowed);
+  const slotsForOthersBase = hasFollowed ? maxVisible - 1 : maxVisible;
   const slotsForOthers = showPlusButton
     ? Math.max(0, slotsForOthersBase - 1)
     : slotsForOthersBase;
-  const visibleOthers = otherAdopters.slice(0, Math.max(0, slotsForOthers));
+  const visibleOthers = otherFollowers.slice(0, Math.max(0, slotsForOthers));
 
-  // Remaining count excludes visible others and current user (if adopted)
-  const displayedCount = visibleOthers.length + (hasAdopted ? 1 : 0);
+  // Remaining count excludes visible others and current user (if followed)
+  const displayedCount = visibleOthers.length + (hasFollowed ? 1 : 0);
   const remainingCount = totalCount - displayedCount;
 
   // Empty state: show only the +You button if interactive
@@ -106,12 +106,12 @@ export function Facepile({
               <Plus className={iconSize} />
             </Link>
           </TooltipTrigger>
-          <TooltipContent>Sign in to mark as using</TooltipContent>
+          <TooltipContent>Sign in to follow</TooltipContent>
         </Tooltip>
       );
     }
 
-    if (hasAdopted && currentUser) {
+    if (hasFollowed && currentUser) {
       // Show user's avatar with checkmark overlay
       return (
         <Tooltip>
@@ -135,7 +135,7 @@ export function Facepile({
               </div>
           </motion.button>
         </TooltipTrigger>
-          <TooltipContent>You&apos;re using this. Click to remove</TooltipContent>
+          <TooltipContent>Following. Click to unfollow</TooltipContent>
         </Tooltip>
       );
     }
@@ -153,7 +153,7 @@ export function Facepile({
             <Plus className={iconSize} />
           </motion.button>
         </TooltipTrigger>
-        <TooltipContent>I&apos;m using this</TooltipContent>
+        <TooltipContent>Follow this</TooltipContent>
       </Tooltip>
     );
   };
@@ -161,15 +161,15 @@ export function Facepile({
   const content = (
     <div className="flex items-center gap-2">
       <div className="flex -space-x-2 [&_[data-slot=avatar]]:ring-2 [&_[data-slot=avatar]]:ring-white">
-        {/* Other adopters */}
-        {visibleOthers.map((adopter) => (
+        {/* Other followers */}
+        {visibleOthers.map((follower) => (
           <Avatar
-            key={adopter._id}
+            key={follower._id}
             className={`${sizeClasses} bg-zinc-100 cursor-pointer`}
           >
-            <AvatarImage src={adopter.avatarUrl} alt={adopter.name} />
+            <AvatarImage src={follower.avatarUrl} alt={follower.name} />
             <AvatarFallback className="font-semibold text-zinc-600">
-              {(adopter.name || "U").slice(0, 2).toUpperCase()}
+              {(follower.name || "U").slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         ))}
@@ -182,7 +182,7 @@ export function Facepile({
           {remainingCount > 0 && (
             <>and {remainingCount} {remainingCount === 1 ? "other" : "others"} </>
           )}
-          {showLabel && (totalCount === 1 ? "uses this" : "use this")}
+          {showLabel && "following"}
         </span>
       )}
     </div>
@@ -203,29 +203,29 @@ export function Facepile({
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Used by {totalCount} people</DialogTitle>
+              <DialogTitle>{totalCount} {totalCount === 1 ? "follower" : "followers"}</DialogTitle>
             </DialogHeader>
             <ScrollArea className="h-[300px] w-full rounded-md border p-4">
               <div className="space-y-4">
-                {allAdopters === undefined ? (
+                {allFollowers === undefined ? (
                   <div className="flex items-center justify-center py-4 text-zinc-500">
                     Loading...
                   </div>
                 ) : (
-                  (allAdopters || []).map((adopter) => (
+                  (allFollowers || []).map((follower) => (
                     <Link
-                      key={adopter._id}
-                      href={`/profile/${adopter._id}`}
+                      key={follower._id}
+                      href={`/profile/${follower._id}`}
                       className="flex items-center gap-3"
                     >
                       <Avatar className="h-8 w-8 bg-zinc-100">
-                        <AvatarImage src={adopter.avatarUrl} alt={adopter.name} />
+                        <AvatarImage src={follower.avatarUrl} alt={follower.name} />
                         <AvatarFallback className="font-semibold text-zinc-600">
-                          {(adopter.name || "U").slice(0, 2).toUpperCase()}
+                          {(follower.name || "U").slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="text-sm font-medium text-zinc-900 hover:underline">
-                        {adopter.name}
+                        {follower.name}
                       </div>
                     </Link>
                   ))

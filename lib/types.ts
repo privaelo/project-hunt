@@ -50,9 +50,9 @@ export type ProjectRowData = {
     type: string;
     url: string | null;
   }>;
-  adoptionCount: number;
-  adopters: UserRef[];
-  hasAdopted: boolean;
+  followerCount: number;
+  followers: UserRef[];
+  hasFollowed: boolean;
 };
 
 // --- Project Versions ---

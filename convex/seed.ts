@@ -270,9 +270,9 @@ export const seed = internalMutation({
       }
     }
 
-    // 9. Adoptions
-    let adoptionCount = 0;
-    const adoptionMappings = [
+    // 9. Follows (project follows)
+    let followCount = 0;
+    const followMappings = [
       {
         projectId: projectIds[0],
         userIds: [
@@ -303,14 +303,14 @@ export const seed = internalMutation({
       { projectId: projectIds[4], userIds: [userIds[8]] },
     ];
 
-    for (const mapping of adoptionMappings) {
+    for (const mapping of followMappings) {
       for (const userId of mapping.userIds) {
         await ctx.db.insert("adoptions", {
           projectId: mapping.projectId,
           userId,
           createdAt: at(5200),
         });
-        adoptionCount += 1;
+        followCount += 1;
       }
     }
 
@@ -369,7 +369,7 @@ export const seed = internalMutation({
         recipientUserId: userIds[2],
         actorUserId: userIds[3],
         projectId: projectIds[2],
-        type: "adoption" as const,
+        type: "follow" as const,
         commentId: undefined,
         count: 2,
       },
@@ -415,7 +415,7 @@ export const seed = internalMutation({
         mediaFiles: mediaFilesInserted,
         comments: commentIds.length + 1, // includes deleted comment
         projectUpvotes: projectUpvoteCount,
-        adoptions: adoptionCount,
+        follows: followCount,
         commentUpvotes: commentUpvoteCount,
         projectViews: projectViews.length,
         notifications: notifications.length,

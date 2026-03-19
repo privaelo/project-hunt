@@ -101,8 +101,10 @@ export default defineSchema({
     type: v.union(
       v.literal("comment"),
       v.literal("upvote"),
-      v.literal("adoption"),
-      v.literal("project_update")
+      v.literal("adoption"),    // legacy — kept for migration compatibility
+      v.literal("follow"),
+      v.literal("project_update"),
+      v.literal("followed_project_comment"),
     ),
     commentId: v.optional(v.id("comments")),
     count: v.optional(v.number()),
@@ -129,6 +131,8 @@ export default defineSchema({
       weeklyDigest: v.optional(v.boolean()),
       spaceActivity: v.optional(v.boolean()),
       projectActivity: v.optional(v.boolean()),
+      followedProjectComment: v.optional(v.boolean()),
+      followedProjectUpdate: v.optional(v.boolean()),
     })),
   })
     .index("by_teamId", ["teamId"])

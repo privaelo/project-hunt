@@ -24,7 +24,8 @@
       "Bash(git commit:*)",
       "Bash(git add \"app/\\(app\\)/create-thread/page.tsx\")",
       "Bash(brew list gh)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(gh pr:*)"
     ]
   }
 }

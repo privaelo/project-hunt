@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { ArrowBigUp, Forward, MessageCircle } from "lucide-react";
+import { ArrowBigUp, Forward, MessageCircle, Users, UserPlus, UserCheck } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,16 +17,14 @@ import {
 } from "@/components/ui/dialog";
 import { ProjectMediaCarousel } from "@/components/ProjectMediaCarousel";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
-import { Facepile } from "@/components/Facepile";
 import { SpaceIcon } from "@/components/SpaceIcon";
 import { stripHtml, getRelativeTime } from "@/lib/utils";
-import type { FocusArea, ProjectRowData, UserRef } from "@/lib/types";
+import type { ProjectRowData, UserRef } from "@/lib/types";
 
 interface ProjectRowProps {
   project: ProjectRowData;
   onUpvote: (projectId: Id<"projects">) => void;
-  onAdopt: (projectId: Id<"projects">) => void;
-  currentUser: UserRef | null;
+  onFollow: (projectId: Id<"projects">) => void;
   isAuthenticated: boolean;
   hideSpaceLabel?: boolean;
 }
@@ -35,8 +33,7 @@ interface ProjectRowProps {
 export function ProjectRow({
   project,
   onUpvote,
-  onAdopt,
-  currentUser,
+  onFollow,
   isAuthenticated,
   hideSpaceLabel,
 }: ProjectRowProps) {
@@ -63,8 +60,8 @@ export function ProjectRow({
     setShareOpen(true);
   };
 
-  const handleAdoptClick = () => {
-    onAdopt(project._id);
+  const handleFollowClick = () => {
+    onFollow(project._id);
   };
 
   const hasMedia = project.previewMedia.length > 0;
@@ -98,17 +95,10 @@ export function ProjectRow({
           <span className="text-zinc-300">•</span>
           <span>{getRelativeTime(project._creationTime)}</span>
         </div>
-        <Facepile
-          adopters={project.adopters}
-          totalCount={project.adoptionCount}
-          maxVisible={3}
-          size="sm"
-          hasAdopted={project.hasAdopted}
-          currentUser={currentUser}
-          isAuthenticated={isAuthenticated}
-          onToggle={handleAdoptClick}
-          projectId={project._id}
-        />
+        <div className="flex items-center gap-1 text-zinc-500">
+          <Users className="h-3.5 w-3.5" />
+          <span>{project.followerCount}</span>
+        </div>
       </div>
 
       {/* Title */}
@@ -174,6 +164,39 @@ export function ProjectRow({
             <span>{project.commentCount}</span>
           </Button>
         </motion.div>
+        {isAuthenticated ? (
+          <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => { e.stopPropagation(); handleFollowClick(); }}
+              className={`flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium !bg-zinc-200 hover:!bg-zinc-300 active:!bg-zinc-400 ${project.hasFollowed ? "text-emerald-700 hover:text-emerald-800" : "text-zinc-700"}`}
+              aria-label={project.hasFollowed ? "Unfollow project" : "Follow project"}
+            >
+              {project.hasFollowed ? (
+                <UserCheck className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <UserPlus className="h-4 w-4" aria-hidden="true" />
+              )}
+              <span>{project.hasFollowed ? "Following" : "Follow"}</span>
+            </Button>
+          </motion.div>
+        ) : (
+          <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium !bg-zinc-200 hover:!bg-zinc-300 active:!bg-zinc-400 !text-zinc-700"
+              asChild
+            >
+              <Link href="/sign-in" prefetch={false}>
+                <UserPlus className="h-4 w-4" aria-hidden="true" />
+                <span>Follow</span>
+              </Link>
+            </Button>
+          </motion.div>
+        )}
         <motion.div whileTap={{ scale: 1.15, rotate: -3 }} transition={{ type: "spring", stiffness: 800, damping: 20 }}>
           <Button
             variant="outline"

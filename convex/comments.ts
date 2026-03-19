@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserOrThrow, getCurrentUser } from "./users";
 import { createProjectNotification } from "./notifications";
+import { internal } from "./_generated/api";
 import { enqueueCommentEmail, enqueueReplyEmail } from "./commentNotifications";
 import { calculateHotScore, propagateHotScoreToMemberships } from "./projects";
 
@@ -55,6 +56,13 @@ export const addComment = mutation({
         commentSnippet: args.content.slice(0, 200),
       });
     }
+
+    // Notify followers of the project about the new comment
+    await ctx.scheduler.runAfter(0, internal.notifications.notifyFollowersOfComment, {
+      projectId: args.projectId,
+      actorUserId: user._id,
+      commentId,
+    });
 
     // Notify the parent comment author when someone replies to their comment
     if (args.parentCommentId && project) {

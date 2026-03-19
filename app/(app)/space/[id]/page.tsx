@@ -41,7 +41,7 @@ export default function SpacePage({
   const memberCount = useQuery(api.focusAreas.getMemberCount, { focusAreaId });
   const toggleFollowSpace = useMutation(api.focusAreas.toggleFollowSpace);
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
-  const toggleAdoption = useMutation(api.projects.toggleAdoption);
+  const toggleProjectFollow = useMutation(api.projects.toggleFollow);
   const toggleThreadUpvote = useMutation(api.threads.toggleUpvote);
   const topThreads = useQuery(api.threads.getTopThreadsBySpace, { focusAreaId });
   const topProjects = useQuery(api.projects.getTopProjectsBySpace, { focusAreaId });
@@ -150,12 +150,12 @@ export default function SpacePage({
     }
   };
 
-  const handleAdopt = async (projectId: Id<"projects">) => {
+  const handleProjectFollow = async (projectId: Id<"projects">) => {
     try {
-      await toggleAdoption({ projectId });
+      await toggleProjectFollow({ projectId });
     } catch (error) {
-      console.error("Failed to toggle adoption:", error);
-      toast.error("Failed to update adoption. Please try again.");
+      console.error("Failed to toggle follow:", error);
+      toast.error("Failed to update follow. Please try again.");
     }
   };
 
@@ -272,8 +272,7 @@ export default function SpacePage({
                             <ProjectRow
                               project={project as ProjectRowData}
                               onUpvote={handleUpvote}
-                              onAdopt={handleAdopt}
-                              currentUser={currentUser}
+                              onFollow={handleProjectFollow}
                               isAuthenticated={isAuthenticated}
                               hideSpaceLabel
                             />

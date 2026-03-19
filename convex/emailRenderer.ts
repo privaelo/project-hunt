@@ -5,7 +5,7 @@ type OwnProjectActivity = {
   projectName: string;
   newUpvotes: number;
   newComments: number;
-  newAdoptions: number;
+  newFollows: number;
   newViews: number;
 };
 
@@ -69,7 +69,7 @@ export type WeeklyDigestPayload = {
   ownProjectTotals: {
     totalNewUpvotes: number;
     totalNewComments: number;
-    totalNewAdoptions: number;
+    totalNewFollows: number;
     totalNewViews: number;
   };
   followedSpaceActivity: SpaceActivity[];
@@ -110,7 +110,7 @@ function getTotalInteractions(payload: WeeklyDigestPayload): number {
   return (
     totals.totalNewUpvotes +
     totals.totalNewComments +
-    totals.totalNewAdoptions +
+    totals.totalNewFollows +
     totals.totalNewViews
   );
 }
@@ -138,7 +138,7 @@ function renderOwnProjectSummary(payload: WeeklyDigestPayload): string {
   const summaryParts = [
     formatCount(totals.totalNewUpvotes, "upvote"),
     formatCount(totals.totalNewComments, "comment"),
-    formatCount(totals.totalNewAdoptions, "adoption"),
+    formatCount(totals.totalNewFollows, "new follower"),
     formatCount(totals.totalNewViews, "view"),
   ];
   return summaryParts.join(" | ");
@@ -158,7 +158,7 @@ function renderOwnProjectRows(payload: WeeklyDigestPayload, baseUrl: string): st
                     ${escapeHtml(project.projectName)}
                   </div>
                   <div style="font-size: 14px; line-height: 1.6; color: #52525b; margin: 0 0 12px;">
-                    ${formatCount(project.newUpvotes, "upvote")} | ${formatCount(project.newComments, "comment")} | ${formatCount(project.newAdoptions, "adoption")} | ${formatCount(project.newViews, "view")}
+                    ${formatCount(project.newUpvotes, "upvote")} | ${formatCount(project.newComments, "comment")} | ${formatCount(project.newFollows, "new follower")} | ${formatCount(project.newViews, "view")}
                   </div>
                   <a href="${escapeHtml(projectUrl)}" style="color: #166534; font-size: 14px; font-weight: 600; text-decoration: none;">View project</a>
                 </td>
@@ -323,7 +323,7 @@ function renderTextVersion(
 
     for (const project of payload.ownProjectActivity) {
       sections.push(
-        `- ${project.projectName}: ${formatCount(project.newUpvotes, "upvote")}, ${formatCount(project.newComments, "comment")}, ${formatCount(project.newAdoptions, "adoption")}, ${formatCount(project.newViews, "view")}`
+        `- ${project.projectName}: ${formatCount(project.newUpvotes, "upvote")}, ${formatCount(project.newComments, "comment")}, ${formatCount(project.newFollows, "new follower")}, ${formatCount(project.newViews, "view")}`
       );
       sections.push(`  ${joinUrl(baseUrl, `/project/${project.projectId}`)}`);
     }
@@ -850,6 +850,203 @@ export function renderCommentActivityEmail(args: {
     isReply
       ? `You're receiving this because someone replied to your comment. This is an automated email.`
       : `You're receiving this because someone commented on your ${contentLabel}. This is an automated email.`,
+    `Manage your email preferences: ${profileUrl}`,
+  ].join("\n");
+
+  return { subject, html, text };
+}
+
+// ─── Followed Project Comment Email ──────────────────────────────────────────
+
+export type FollowedCommentPayload = {
+  projectId: string;
+  projectName: string;
+  commenterName: string;
+  commentSnippet: string;
+};
+
+export function renderFollowedCommentEmail(args: {
+  recipientName: string;
+  payload: FollowedCommentPayload;
+  baseUrl: string;
+  profileUrl: string;
+}): RenderedEmail {
+  const { recipientName, payload, baseUrl, profileUrl } = args;
+  const projectUrl = joinUrl(baseUrl, `/project/${payload.projectId}#discussion`);
+
+  const truncatedTitle =
+    payload.projectName.length > 60
+      ? `${payload.projectName.slice(0, 57)}...`
+      : payload.projectName;
+
+  const subject = `New comment on "${truncatedTitle}"`;
+  const preheader = `${escapeHtml(payload.commenterName)} commented on a project you follow`;
+
+  const truncatedSnippet =
+    payload.commentSnippet.length > 200
+      ? `${payload.commentSnippet.slice(0, 197)}...`
+      : payload.commentSnippet;
+
+  const html = `
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${escapeHtml(subject)}</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f4f4f5; color: #18181b; font-family: Arial, sans-serif;">
+        <div style="display: none; max-height: 0; overflow: hidden; opacity: 0;">
+          ${preheader}
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: collapse; background-color: #f4f4f5;">
+          <tr>
+            <td align="center" style="padding: 24px 12px;">
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 640px; border-collapse: collapse; background-color: #ffffff; border-radius: 18px;">
+                <tr>
+                  <td style="padding: 28px 28px 24px; border-bottom: 1px solid #e4e4e7;">
+                    <div style="font-size: 28px; font-weight: 700; color: #166534; margin: 0 0 16px;">Garden</div>
+                    <div style="font-size: 14px; color: #71717a; margin: 0 0 6px;">New comment on a project you follow</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #18181b; margin: 0 0 16px;">
+                      <a href="${escapeHtml(projectUrl)}" style="color: #18181b; text-decoration: none;">${escapeHtml(payload.projectName)}</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 24px 28px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: collapse; border: 1px solid #d4d4d8; border-radius: 12px;">
+                      <tr>
+                        <td style="padding: 18px;">
+                          <div style="font-size: 14px; font-weight: 600; color: #18181b; margin: 0 0 8px;">
+                            ${escapeHtml(payload.commenterName)} commented:
+                          </div>
+                          <div style="font-size: 14px; line-height: 1.6; color: #52525b; margin: 0 0 16px;">
+                            "${escapeHtml(truncatedSnippet)}"
+                          </div>
+                          <a href="${escapeHtml(projectUrl)}" style="display: inline-block; background-color: #166534; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 10px 18px; border-radius: 999px;">View discussion</a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 0 28px 28px; font-size: 12px; line-height: 1.6; color: #71717a;">
+                    You're receiving this because you follow this project. <a href="${escapeHtml(profileUrl)}" style="color: #71717a;">Manage your email preferences</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `.trim();
+
+  const text = [
+    "Garden — New comment on a project you follow",
+    "",
+    `Hi ${recipientName},`,
+    "",
+    `${payload.commenterName} commented on "${payload.projectName}":`,
+    "",
+    `"${truncatedSnippet}"`,
+    "",
+    `View the discussion: ${projectUrl}`,
+    "",
+    "You're receiving this because you follow this project. This is an automated email.",
+    `Manage your email preferences: ${profileUrl}`,
+  ].join("\n");
+
+  return { subject, html, text };
+}
+
+// ─── Followed Project Update Email ───────────────────────────────────────────
+
+export type FollowedProjectUpdatePayload = {
+  projectId: string;
+  projectName: string;
+  actorName: string;
+};
+
+export function renderFollowedProjectUpdateEmail(args: {
+  recipientName: string;
+  payload: FollowedProjectUpdatePayload;
+  baseUrl: string;
+  profileUrl: string;
+}): RenderedEmail {
+  const { recipientName, payload, baseUrl, profileUrl } = args;
+  const projectUrl = joinUrl(baseUrl, `/project/${payload.projectId}`);
+
+  const truncatedTitle =
+    payload.projectName.length > 60
+      ? `${payload.projectName.slice(0, 57)}...`
+      : payload.projectName;
+
+  const subject = `"${truncatedTitle}" was updated`;
+  const preheader = `${escapeHtml(payload.actorName)} made updates to a project you follow`;
+
+  const html = `
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${escapeHtml(subject)}</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f4f4f5; color: #18181b; font-family: Arial, sans-serif;">
+        <div style="display: none; max-height: 0; overflow: hidden; opacity: 0;">
+          ${preheader}
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: collapse; background-color: #f4f4f5;">
+          <tr>
+            <td align="center" style="padding: 24px 12px;">
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 640px; border-collapse: collapse; background-color: #ffffff; border-radius: 18px;">
+                <tr>
+                  <td style="padding: 28px 28px 24px; border-bottom: 1px solid #e4e4e7;">
+                    <div style="font-size: 28px; font-weight: 700; color: #166534; margin: 0 0 16px;">Garden</div>
+                    <div style="font-size: 14px; color: #71717a; margin: 0 0 6px;">A project you follow was updated</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #18181b; margin: 0 0 16px;">
+                      <a href="${escapeHtml(projectUrl)}" style="color: #18181b; text-decoration: none;">${escapeHtml(payload.projectName)}</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 24px 28px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: collapse; border: 1px solid #d4d4d8; border-radius: 12px;">
+                      <tr>
+                        <td style="padding: 18px;">
+                          <div style="font-size: 14px; color: #52525b; margin: 0 0 16px;">
+                            ${escapeHtml(payload.actorName)} made updates to <strong>${escapeHtml(payload.projectName)}</strong>.
+                          </div>
+                          <a href="${escapeHtml(projectUrl)}" style="display: inline-block; background-color: #166534; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 10px 18px; border-radius: 999px;">See what changed</a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 0 28px 28px; font-size: 12px; line-height: 1.6; color: #71717a;">
+                    You're receiving this because you follow this project. <a href="${escapeHtml(profileUrl)}" style="color: #71717a;">Manage your email preferences</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `.trim();
+
+  const text = [
+    "Garden — A project you follow was updated",
+    "",
+    `Hi ${recipientName},`,
+    "",
+    `${payload.actorName} made updates to "${payload.projectName}".`,
+    "",
+    `See what changed: ${projectUrl}`,
+    "",
+    "You're receiving this because you follow this project. This is an automated email.",
     `Manage your email preferences: ${profileUrl}`,
   ].join("\n");
 

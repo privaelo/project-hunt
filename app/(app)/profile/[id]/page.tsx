@@ -37,7 +37,7 @@ type Profile = {
   userIntent: "looking" | "sharing" | "both" | null;
   focusAreas: Array<{ _id: Id<"focusAreas">; name: string; group: string }>;
   projectCount: number;
-  adoptionCount: number;
+  followingCount: number;
 };
 
 type Project = {
@@ -48,12 +48,12 @@ type Project = {
   upvotes: number;
   viewCount: number;
   commentCount: number;
-  adoptionCount: number;
+  followerCount: number;
   status: "pending" | "active";
   readinessStatus?: "in_progress" | "just_an_idea" | "early_prototype" | "mostly_working" | "ready_to_use";
 };
 
-type AdoptedProject = {
+type FollowedProject = {
   _id: Id<"projects">;
   name: string;
   summary?: string;
@@ -97,10 +97,10 @@ export default function ProfilePage({
       : "skip"
   ) as Project[] | undefined;
 
-  const adoptedProjects = useQuery(
-    api.projects.getAdoptedByUser,
+  const followedProjects = useQuery(
+    api.projects.getFollowedByUser,
     isAuthenticated ? { userId } : "skip"
-  ) as AdoptedProject[] | undefined;
+  ) as FollowedProject[] | undefined;
 
   if (isLoading || !isAuthenticated) {
     return (
@@ -258,10 +258,10 @@ export default function ProfilePage({
                         {profile.projectCount}
                       </Badge>
                     </TabsTrigger>
-                    <TabsTrigger value="adopted" className="gap-2">
-                      {`Tools ${firstName} uses`}
+                    <TabsTrigger value="following" className="gap-2">
+                      Following
                       <Badge variant="secondary" className="bg-zinc-100">
-                        {profile.adoptionCount}
+                        {profile.followingCount}
                       </Badge>
                     </TabsTrigger>
                   </TabsList>
@@ -292,15 +292,15 @@ export default function ProfilePage({
                 )}
               </TabsContent>
 
-              <TabsContent value="adopted" className="space-y-4">
-                {adoptedProjects === undefined ? (
-                  <EmptyState message="Loading tools in use..." />
-                ) : adoptedProjects.length === 0 ? (
-                  <EmptyState message="Nothing gathered yet." />
+              <TabsContent value="following" className="space-y-4">
+                {followedProjects === undefined ? (
+                  <EmptyState message="Loading followed tools..." />
+                ) : followedProjects.length === 0 ? (
+                  <EmptyState message="Not following anything yet." />
                 ) : (
                   <div className="space-y-3">
-                    {adoptedProjects.map((project) => (
-                      <AdoptedCard key={project._id} project={project} />
+                    {followedProjects.map((project) => (
+                      <FollowedCard key={project._id} project={project} />
                     ))}
                   </div>
                 )}
@@ -382,7 +382,7 @@ function ProjectCard({
                 <span>{project.commentCount}</span>
                 <span className="text-zinc-300">•</span>
                 <Users className="h-4 w-4" aria-hidden="true" />
-                <span>{project.adoptionCount}</span>
+                <span>{project.followerCount}</span>
                 <span className="text-zinc-300">•</span>
                 <Eye className="h-4 w-4" aria-hidden="true" />
                 <span>{project.viewCount}</span>
@@ -395,7 +395,7 @@ function ProjectCard({
   );
 }
 
-function AdoptedCard({ project }: { project: AdoptedProject }) {
+function FollowedCard({ project }: { project: FollowedProject }) {
   const router = useRouter();
 
   return (

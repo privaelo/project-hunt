@@ -26,7 +26,7 @@ export default function Home() {
   );
   const { isAuthenticated, user } = useCurrentUser();
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
-  const toggleAdoption = useMutation(api.projects.toggleAdoption);
+  const toggleFollow = useMutation(api.projects.toggleFollow);
 
   // Build current user object for Facepile
   const currentUser = user
@@ -71,12 +71,12 @@ export default function Home() {
     }
   };
 
-  const handleAdopt = async (projectId: Id<"projects">) => {
+  const handleFollow = async (projectId: Id<"projects">) => {
     try {
-      await toggleAdoption({ projectId });
+      await toggleFollow({ projectId });
     } catch (error) {
-      console.error("Failed to toggle adoption:", error);
-      toast.error("Failed to update adoption. Please try again.");
+      console.error("Failed to toggle follow:", error);
+      toast.error("Failed to update follow. Please try again.");
     }
   };
 
@@ -107,8 +107,7 @@ export default function Home() {
                           <ProjectRow
                             project={project as ProjectRowData}
                             onUpvote={handleUpvote}
-                            onAdopt={handleAdopt}
-                            currentUser={currentUser}
+                            onFollow={handleFollow}
                             isAuthenticated={isAuthenticated}
                           />
                         </motion.div>

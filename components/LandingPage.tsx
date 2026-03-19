@@ -13,7 +13,7 @@ const MOCK_PROJECTS: {
   spaceIcon: string;
   readiness: ReadinessStatus;
   upvotes: number;
-  adopters: number;
+  followers: number;
   summary: string;
 }[] = [
   {
@@ -22,7 +22,7 @@ const MOCK_PROJECTS: {
     spaceIcon: "⚡",
     readiness: "ready_to_use",
     upvotes: 24,
-    adopters: 12,
+    followers: 12,
     summary:
       "Routes approval requests from a shared mailbox to the right person based on rules — no more manual forwarding.",
   },
@@ -32,7 +32,7 @@ const MOCK_PROJECTS: {
     spaceIcon: "📊",
     readiness: "mostly_working",
     upvotes: 18,
-    adopters: 8,
+    followers: 8,
     summary:
       "Pulls live inventory data into Excel and colour-codes parts by status. Originally built for one line, now used by three.",
   },
@@ -42,7 +42,7 @@ const MOCK_PROJECTS: {
     spaceIcon: "✨",
     readiness: "ready_to_use",
     upvotes: 31,
-    adopters: 19,
+    followers: 19,
     summary:
       "A collection of tested prompts for turning long Teams call transcripts into concise action-item summaries.",
   },
@@ -52,7 +52,7 @@ const MOCK_PROJECTS: {
     spaceIcon: "📈",
     readiness: "mostly_working",
     upvotes: 11,
-    adopters: 5,
+    followers: 5,
     summary:
       "A Power BI template for tracking team OKRs with drill-down by quarter. Adapt the data model to your department.",
   },
@@ -62,7 +62,7 @@ const MOCK_PROJECTS: {
     spaceIcon: "🔗",
     readiness: "ready_to_use",
     upvotes: 22,
-    adopters: 15,
+    followers: 15,
     summary:
       "Posts new ServiceNow tickets to the right Slack channel and pings the on-call engineer automatically.",
   },
@@ -72,7 +72,7 @@ const MOCK_PROJECTS: {
     spaceIcon: "📋",
     readiness: "ready_to_use",
     upvotes: 14,
-    adopters: 9,
+    followers: 9,
     summary:
       "Assigns tasks to manager, IT, and new hire on day one via SharePoint. No manual handoffs needed.",
   },
@@ -82,7 +82,7 @@ const MOCK_PROJECTS: {
     spaceIcon: "🐍",
     readiness: "early_prototype",
     upvotes: 9,
-    adopters: 3,
+    followers: 3,
     summary:
       "Reads PDF invoices and outputs a structured CSV. Handles most common supplier formats with minimal config.",
   },
@@ -146,7 +146,7 @@ export function LandingPage() {
               </span>
               <span className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-emerald-500" />
-                Surface what&apos;s worth adopting
+                Surface what&apos;s worth following
               </span>
               <span className="flex items-center gap-2">
                 <BookMarked className="h-4 w-4 text-emerald-500" />
@@ -215,7 +215,7 @@ export function LandingPage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <Users2 className="h-3.5 w-3.5" />
-                      {project.adopters} using this
+                      {project.followers} following
                     </span>
                   </div>
                 </div>

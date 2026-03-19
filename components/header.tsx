@@ -58,12 +58,21 @@ export function Header() {
       return `${notification.actorName} upvoted ${projectName}`;
     }
 
-    if (notification.type === "adoption") {
-      return `${notification.actorName} is using ${projectName}`;
+    if (notification.type === "follow" || notification.type === "adoption") {
+      return `${notification.actorName} started following ${projectName}`;
     }
 
     if (notification.type === "project_update") {
       return `${notification.actorName} updated ${projectName}`;
+    }
+
+    if (notification.type === "followed_project_comment") {
+      const count = notification.count ?? 1;
+      if (count > 1) {
+        const others = count - 1;
+        return `${notification.actorName} and ${others} ${others === 1 ? "other" : "others"} commented on ${projectName}`;
+      }
+      return `${notification.actorName} commented on ${projectName}`;
     }
 
     const verb = notification.isReply ? "replied on" : "commented on";
@@ -156,7 +165,7 @@ export function Header() {
                         <div className="max-h-96 divide-y divide-zinc-100 overflow-auto">
                           {notifications.map((notification) => {
                             const href = `/project/${notification.projectId}${
-                              notification.type === "comment" ? "#discussion" : ""
+                              notification.type === "comment" || notification.type === "followed_project_comment" ? "#discussion" : ""
                             }`;
                             return (
                               <Link

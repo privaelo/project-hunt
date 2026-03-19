@@ -82,7 +82,7 @@ export const getProfile = query({
       return null;
     }
 
-    const [team, focusAreas, projects, adoptions] = await Promise.all([
+    const [team, focusAreas, projects, follows] = await Promise.all([
       user.teamId ? ctx.db.get(user.teamId) : Promise.resolve(null),
       fetchUserFocusAreas(ctx, user._id),
       ctx.db
@@ -110,7 +110,7 @@ export const getProfile = query({
         icon: fa.icon,
       })),
       projectCount: projects.length,
-      adoptionCount: adoptions.length,
+      followingCount: follows.length,
     };
   },
 });

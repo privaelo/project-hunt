@@ -37,7 +37,7 @@ export {
   listPaginated,
   getUserProjects,
   getByUserId,
-  getAdoptedByUser,
+  getFollowedByUser,
   getNewestProjects,
   getTopProjectsBySpace,
   getById,
@@ -47,10 +47,10 @@ export {
 export {
   trackView,
   toggleUpvote,
-  toggleAdoption,
+  toggleFollow,
   hasUserUpvoted,
   getUpvoteCount,
-  getAdopters,
+  getFollowers,
   refreshHotScores,
 } from "./projects/engagement";
 
