@@ -135,7 +135,7 @@ export function SearchBar() {
           <input
             ref={inputRef}
             type="text"
-            className="h-9 w-full rounded-full border border-emerald-200 bg-zinc-50 pl-9 pr-10 text-sm text-zinc-900 placeholder:text-zinc-500 shadow-sm ring-2 ring-emerald-500/20 transition-all hover:bg-zinc-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+            className="h-9 w-full rounded-full border border-emerald-200 bg-zinc-50 pl-9 pr-14 text-sm text-zinc-900 placeholder:text-zinc-500 shadow-sm ring-2 ring-emerald-500/20 transition-all hover:bg-zinc-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
             placeholder="Search tools..."
             value={query}
             onChange={(e) => {
@@ -160,7 +160,7 @@ export function SearchBar() {
           <Dialog>
             <DialogTrigger asChild>
               <button
-                className="absolute right-2 flex h-6 w-6 items-center justify-center rounded-full text-emerald-600 hover:bg-emerald-50 transition-colors"
+                className="absolute right-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm transition-colors hover:bg-emerald-100"
                 aria-label="AI Search Assistant"
                 onClick={(e) => e.stopPropagation()}
               >
