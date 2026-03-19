@@ -320,7 +320,7 @@ function renderTextVersion(
   sections.push("");
   sections.push("── Garden just hit 100 members ──");
   sections.push(
-    "Over 100 people have now signed up for Garden. Thanks for being part of it — whether you've shared a project, left a comment, or just browsed around, you've helped make this a real place where people share what they build at work."
+    "Over 100 people have signed up. Thanks for being part of it — you've helped make this a real place where people share what they build at work."
   );
 
   if (payload.ownProjectActivity.length > 0) {
@@ -462,7 +462,7 @@ export function renderWeeklyDigestEmail(args: {
                           <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #166534; margin: 0 0 10px;">Milestone</div>
                           <div style="font-size: 18px; font-weight: 700; color: #18181b; margin: 0 0 10px;">Garden just hit 100 members</div>
                           <div style="font-size: 14px; line-height: 1.7; color: #52525b;">
-                            Over 100 people have now signed up for Garden. Thanks for being part of it — whether you've shared a project, left a comment, or just browsed around, you've helped make this a real place where people share what they build at work.
+                            Over 100 people have signed up. Thanks for being part of it — you've helped make this a real place where people share what they build at work.
                           </div>
                         </td>
                       </tr>
