@@ -89,6 +89,27 @@ export const migrateClearFocusAreas = internalMutationFromFunctions({
   },
 });
 
+export const clearFocusAreaIdFromProjectsAction = action({
+  args: {},
+  handler: async (ctx): Promise<{ updated: number }> => {
+    return await ctx.runMutation(internal.projects.clearFocusAreaIdFromProjects, {});
+  },
+});
+
+export const clearFocusAreaIdFromProjects = internalMutationFromFunctions({
+  args: {},
+  handler: async (ctx) => {
+    const projects = await ctx.db.query("projects").collect();
+    let updated = 0;
+    for (const project of projects) {
+      if (project.focusAreaId === undefined) continue;
+      await ctx.db.patch(project._id, { focusAreaId: undefined });
+      updated++;
+    }
+    return { updated };
+  },
+});
+
 export const migrateReadinessStatusAction = action({
   args: {},
   handler: async (ctx): Promise<{ updated: number }> => {

@@ -107,7 +107,7 @@ export const seed = internalMutation({
         summary: "Discover competitor signals across the web.",
         userId: userIds[0],
         teamId: teamIds[0],
-        focusAreaId: focusAreaIds[0],
+        primaryFocusAreaId: focusAreaIds[0],
         status: "active" as const,
         readinessStatus: "ready_to_use" as const,
         upvotes: 2,
@@ -121,7 +121,7 @@ export const seed = internalMutation({
         summary: "Plan and execute launch playbooks.",
         userId: userIds[1],
         teamId: teamIds[0],
-        focusAreaId: focusAreaIds[1],
+        primaryFocusAreaId: focusAreaIds[1],
         status: "active" as const,
         readinessStatus: "early_prototype" as const,
         upvotes: 1,
@@ -135,7 +135,7 @@ export const seed = internalMutation({
         summary: "Organize user research in one place.",
         userId: userIds[2],
         teamId: teamIds[1],
-        focusAreaId: focusAreaIds[2],
+        primaryFocusAreaId: focusAreaIds[2],
         status: "pending" as const,
         readinessStatus: "mostly_working" as const,
         upvotes: 1,
@@ -149,7 +149,7 @@ export const seed = internalMutation({
         summary: "Track privacy posture and compliance gaps.",
         userId: userIds[3],
         teamId: undefined,
-        focusAreaId: focusAreaIds[3],
+        primaryFocusAreaId: focusAreaIds[3],
         status: "active" as const,
         readinessStatus: "ready_to_use" as const,
         upvotes: 3,
@@ -163,7 +163,7 @@ export const seed = internalMutation({
         summary: undefined,
         userId: userIds[8],
         teamId: teamIds[2],
-        focusAreaId: focusAreaIds[4],
+        primaryFocusAreaId: focusAreaIds[4],
         status: "pending" as const,
         readinessStatus: "ready_to_use" as const,
         upvotes: 0,
@@ -183,7 +183,6 @@ export const seed = internalMutation({
         summary: project.summary,
         userId: project.userId,
         teamId: project.teamId,
-        focusAreaId: project.focusAreaId,
         status: project.status,
         readinessStatus: project.readinessStatus,
         upvotes: project.upvotes,
@@ -195,6 +194,14 @@ export const seed = internalMutation({
         allFields,
       });
       projectIds.push(id);
+      if (project.primaryFocusAreaId) {
+        await ctx.db.insert("projectSpaces", {
+          projectId: id,
+          focusAreaId: project.primaryFocusAreaId,
+          isPrimary: true,
+          hotScore: project.hotScore ?? 0,
+        });
+      }
     }
 
     // 6. Media Files

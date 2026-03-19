@@ -115,7 +115,6 @@ export const createProject = internalMutationFromFunctions({
     status: v.union(v.literal("pending"), v.literal("active")),
     userId: v.id("users"),
     links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
-    focusAreaId: v.optional(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("just_an_idea"), v.literal("early_prototype"), v.literal("mostly_working"), v.literal("ready_to_use")),
     pinned: v.optional(v.boolean()),
   },
@@ -134,7 +133,6 @@ export const createProject = internalMutationFromFunctions({
       status: args.status,
       userId: args.userId,
       links: args.links,
-      focusAreaId: args.focusAreaId,
       readinessStatus: args.readinessStatus,
       pinned: args.pinned ?? false,
     });
@@ -166,7 +164,6 @@ export const updateProjectFields = internalMutationFromFunctions({
     name: v.string(),
     summary: v.optional(v.string()),
     links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
-    focusAreaId: v.optional(v.id("focusAreas")),
     readinessStatus: v.union(v.literal("just_an_idea"), v.literal("early_prototype"), v.literal("mostly_working"), v.literal("ready_to_use")),
   },
   handler: async (ctx, args) => {
@@ -174,7 +171,6 @@ export const updateProjectFields = internalMutationFromFunctions({
       name: args.name,
       summary: args.summary,
       links: args.links,
-      focusAreaId: args.focusAreaId,
       readinessStatus: args.readinessStatus,
     });
   },
@@ -253,7 +249,6 @@ export const create = action({
         name: args.name,
         summary: args.summary,
         links: args.links,
-        focusAreaId: args.focusAreaId,
         readinessStatus: args.readinessStatus,
         status: "pending" as const,
         userId: user._id,
@@ -327,7 +322,6 @@ export const updateProject = action({
       name: args.name,
       summary: args.summary,
       links: args.links,
-      focusAreaId: args.focusAreaId,
       readinessStatus: args.readinessStatus,
     });
 
