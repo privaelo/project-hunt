@@ -206,14 +206,16 @@ export function Header() {
 
               {isAuthenticated && (
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger>
-                    {convexUser?.name?.split(" ")[0] ?? "Profile"}
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[180px] p-1">
-                      {convexUser && (
-                        <li>
-                          <NavigationMenuLink asChild>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className={navigationMenuTriggerStyle()}>
+                        {convexUser?.name?.split(" ")[0] ?? "Profile"}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-[180px] p-1">
+                      <ul className="grid">
+                        {convexUser && (
+                          <li>
                             <Link
                               href={`/profile/${convexUser._id}`}
                               className="flex flex-row w-full select-none items-center gap-2 rounded-md px-3 py-2 text-sm font-medium leading-none text-zinc-700 no-underline outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900"
@@ -221,20 +223,20 @@ export function Header() {
                               <User className="h-4 w-4" />
                               <span>Profile</span>
                             </Link>
-                          </NavigationMenuLink>
+                          </li>
+                        )}
+                        <li>
+                          <button
+                            onClick={() => void signOut()}
+                            className="flex w-full select-none items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium normal-case tracking-normal leading-none text-zinc-700 outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900"
+                          >
+                            <LogOut className="h-4 w-4" />
+                            <span>Log Out</span>
+                          </button>
                         </li>
-                      )}
-                      <li>
-                        <button
-                          onClick={() => void signOut()}
-                          className="flex w-full select-none items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium normal-case tracking-normal leading-none text-zinc-700 outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          <span>Log Out</span>
-                        </button>
-                      </li>
-                    </ul>
-                  </NavigationMenuContent>
+                      </ul>
+                    </PopoverContent>
+                  </Popover>
                 </NavigationMenuItem>
               )}
             </NavigationMenuList>
