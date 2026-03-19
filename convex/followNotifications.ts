@@ -10,8 +10,8 @@ const DEDUP_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
 
 /**
  * Enqueues an email to a project follower when someone comments on a project
- * they follow. Skips the commenter and the project owner (who gets a separate
- * comment_activity email).
+ * they follow. Skips the recipient if they are the commenter. Callers are
+ * responsible for excluding the project owner before calling this helper.
  */
 export async function enqueueFollowedCommentEmail(
   ctx: MutationCtx,
