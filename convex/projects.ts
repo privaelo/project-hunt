@@ -71,6 +71,9 @@ export {
 export {
   migrateReadinessStatusAction,
   migrateReadinessStatus,
+  getAllProjectIds,
+  reindexProjectInRag,
+  reindexAllProjectsInRag,
 } from "./projects/migrations";
 
 export {
