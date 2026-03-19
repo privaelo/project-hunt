@@ -131,6 +131,8 @@ export default defineSchema({
       weeklyDigest: v.optional(v.boolean()),
       spaceActivity: v.optional(v.boolean()),
       projectActivity: v.optional(v.boolean()),
+      followedProjectComment: v.optional(v.boolean()),
+      followedProjectUpdate: v.optional(v.boolean()),
     })),
   })
     .index("by_teamId", ["teamId"])

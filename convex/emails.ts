@@ -25,7 +25,7 @@ import {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-type EmailCategory = "weeklyDigest" | "spaceActivity" | "projectActivity";
+type EmailCategory = "weeklyDigest" | "spaceActivity" | "projectActivity" | "followedProjectComment" | "followedProjectUpdate";
 type EmailRecipient = {
   name: string;
   email: string | null;
@@ -256,6 +256,8 @@ export const getEmailPreferences = query({
       weeklyDigest: prefs?.weeklyDigest !== false,
       spaceActivity: prefs?.spaceActivity !== false,
       projectActivity: prefs?.projectActivity !== false,
+      followedProjectComment: prefs?.followedProjectComment !== false,
+      followedProjectUpdate: prefs?.followedProjectUpdate !== false,
     };
   },
 });
@@ -265,6 +267,8 @@ export const updateEmailPreferences = mutation({
     weeklyDigest: v.optional(v.boolean()),
     spaceActivity: v.optional(v.boolean()),
     projectActivity: v.optional(v.boolean()),
+    followedProjectComment: v.optional(v.boolean()),
+    followedProjectUpdate: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
@@ -274,6 +278,8 @@ export const updateEmailPreferences = mutation({
       weeklyDigest: args.weeklyDigest ?? current.weeklyDigest,
       spaceActivity: args.spaceActivity ?? current.spaceActivity,
       projectActivity: args.projectActivity ?? current.projectActivity,
+      followedProjectComment: args.followedProjectComment ?? current.followedProjectComment,
+      followedProjectUpdate: args.followedProjectUpdate ?? current.followedProjectUpdate,
     };
 
     await ctx.db.patch(user._id, { emailPreferences: updated });

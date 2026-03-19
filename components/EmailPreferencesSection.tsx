@@ -20,8 +20,18 @@ const PREFERENCES = [
   },
   {
     key: "projectActivity" as const,
-    label: "Project activity",
-    description: "Comments on your tools, and updates from tools you follow",
+    label: "Your tool activity",
+    description: "Comments and engagement on tools you've built",
+  },
+  {
+    key: "followedProjectComment" as const,
+    label: "Comments on followed tools",
+    description: "When someone comments on a project you follow",
+  },
+  {
+    key: "followedProjectUpdate" as const,
+    label: "Updates to followed tools",
+    description: "When a project you follow is edited or releases a new version",
   },
 ];
 
@@ -32,7 +42,7 @@ export function EmailPreferencesSection() {
   if (!prefs) return null;
 
   const handleToggle = async (
-    key: "weeklyDigest" | "spaceActivity" | "projectActivity",
+    key: "weeklyDigest" | "spaceActivity" | "projectActivity" | "followedProjectComment" | "followedProjectUpdate",
     checked: boolean
   ) => {
     try {

@@ -29,7 +29,7 @@ export async function enqueueFollowedCommentEmail(
   const recipient = await ctx.db.get(args.recipientUserId);
   if (!recipient?.email) return;
   if (!recipient.onboardingCompleted) return;
-  if (!isEmailEnabled(recipient, "projectActivity")) return;
+  if (!isEmailEnabled(recipient, "followedProjectComment")) return;
 
   const cutoff = Date.now() - DEDUP_WINDOW_MS;
   const recentEmail = await ctx.db
@@ -77,7 +77,7 @@ export async function enqueueFollowedProjectUpdateEmail(
   const recipient = await ctx.db.get(args.recipientUserId);
   if (!recipient?.email) return;
   if (!recipient.onboardingCompleted) return;
-  if (!isEmailEnabled(recipient, "projectActivity")) return;
+  if (!isEmailEnabled(recipient, "followedProjectUpdate")) return;
 
   const cutoff = Date.now() - DEDUP_WINDOW_MS;
   const recentEmail = await ctx.db
