@@ -2,7 +2,6 @@ import { Agent, vStreamArgs } from "@convex-dev/agent";
 import { searchCatalog, showProjects, showThreads } from "./tools";
 import { components } from "./_generated/api";
 import { bedrock } from "@ai-sdk/amazon-bedrock";
-import { openai } from "@ai-sdk/openai";
 import { action, mutation, query } from "./_generated/server";
 import { getCurrentUserOrThrow } from "./users";
 import { v } from "convex/values";
@@ -23,7 +22,7 @@ export const projectAgent = new Agent(components.agent, {
   `,
   tools: { searchCatalog, showProjects, showThreads },
   languageModel: bedrock("us.anthropic.claude-haiku-4-5-20251001-v1:0"),
-  textEmbeddingModel: openai.embedding("text-embedding-3-small"),
+  textEmbeddingModel: bedrock.embedding("us.cohere.embed-v4:0"),
   maxSteps: 10,
 });
 

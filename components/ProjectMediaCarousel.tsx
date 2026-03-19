@@ -22,9 +22,14 @@ type MediaItem = {
 
 type ProjectMediaCarouselProps = {
   media: MediaItem[];
+  allowExpand?: boolean;
 };
 
-export function ProjectMediaCarousel({ media }: ProjectMediaCarouselProps) {
+export function ProjectMediaCarousel({
+  media,
+  allowExpand = true,
+}: ProjectMediaCarouselProps) {
+  const isCompactPreview = !allowExpand;
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -84,24 +89,33 @@ export function ProjectMediaCarousel({ media }: ProjectMediaCarouselProps) {
 
   return (
     <>
-      <div className="relative w-full max-w-2xl mx-auto">
+      <div
+        className={`relative w-full ${isCompactPreview ? "max-w-xl" : "max-w-2xl mx-auto"}`}
+      >
         <Carousel setApi={setApi} className="w-full">
           <CarouselContent>
             {media.map((item) => (
               <CarouselItem key={item._id}>
                 <MediaSlide
                   media={item}
-                  onExpand={handleExpand}
+                  onExpand={allowExpand ? handleExpand : undefined}
                   isSingleItem={media.length === 1}
                   isExpanded={isExpanded}
+                  isCompactPreview={isCompactPreview}
                 />
               </CarouselItem>
             ))}
           </CarouselContent>
           {media.length > 1 && (
             <>
-              <CarouselPrevious className="left-2 bg-black/30 hover:bg-black/40 text-white border-0" />
-              <CarouselNext className="right-2 bg-black/30 hover:bg-black/40 text-white border-0" />
+              <CarouselPrevious
+                className="left-2 bg-black/30 hover:bg-black/40 text-white border-0"
+                onClick={(e) => e.stopPropagation()}
+              />
+              <CarouselNext
+                className="right-2 bg-black/30 hover:bg-black/40 text-white border-0"
+                onClick={(e) => e.stopPropagation()}
+              />
             </>
           )}
         </Carousel>
@@ -127,56 +141,58 @@ export function ProjectMediaCarousel({ media }: ProjectMediaCarouselProps) {
       </div>
 
       {/* Expanded Lightbox Dialog */}
-      <Dialog open={isExpanded} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent
-          className="max-w-none sm:max-w-none w-[95vw] max-h-[95vh] p-0 bg-transparent border-none shadow-none"
-          showCloseButton={false}
-        >
-          <DialogTitle className="sr-only">Media viewer</DialogTitle>
-          {/* Custom close button */}
-          <button
-            onClick={handleClose}
-            className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
-            aria-label="Close"
+      {allowExpand && (
+        <Dialog open={isExpanded} onOpenChange={(open) => !open && handleClose()}>
+          <DialogContent
+            className="max-w-none sm:max-w-none w-[95vw] max-h-[95vh] p-0 bg-transparent border-none shadow-none"
+            showCloseButton={false}
           >
-            <X className="w-6 h-6" />
-          </button>
+            <DialogTitle className="sr-only">Media viewer</DialogTitle>
+            {/* Custom close button */}
+            <button
+              onClick={handleClose}
+              className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-6 h-6" />
+            </button>
 
-          <div className="relative w-full h-full flex items-center justify-center">
-            <Carousel setApi={setExpandedApi} className="w-full max-w-[90vw]">
-              <CarouselContent>
-                {media.map((item) => (
-                  <CarouselItem key={item._id}>
-                    <ExpandedMediaSlide media={item} />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
+            <div className="relative w-full h-full flex items-center justify-center">
+              <Carousel setApi={setExpandedApi} className="w-full max-w-[90vw]">
+                <CarouselContent>
+                  {media.map((item) => (
+                    <CarouselItem key={item._id}>
+                      <ExpandedMediaSlide media={item} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                {media.length > 1 && (
+                  <>
+                    <CarouselPrevious className="left-4 bg-black/50 hover:bg-black/70 text-white border-0 w-12 h-12" />
+                    <CarouselNext className="right-4 bg-black/50 hover:bg-black/70 text-white border-0 w-12 h-12" />
+                  </>
+                )}
+              </Carousel>
+
+              {/* Dot indicators for expanded view */}
               {media.length > 1 && (
-                <>
-                  <CarouselPrevious className="left-4 bg-black/50 hover:bg-black/70 text-white border-0 w-12 h-12" />
-                  <CarouselNext className="right-4 bg-black/50 hover:bg-black/70 text-white border-0 w-12 h-12" />
-                </>
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 rounded-full px-3 py-2">
+                  {media.map((_, index) => (
+                    <button
+                      key={index}
+                      className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                        index === expandedCurrent ? "bg-white" : "bg-white/50"
+                      }`}
+                      onClick={() => expandedApi?.scrollTo(index)}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
               )}
-            </Carousel>
-
-            {/* Dot indicators for expanded view */}
-            {media.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 rounded-full px-3 py-2">
-                {media.map((_, index) => (
-                  <button
-                    key={index}
-                    className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                      index === expandedCurrent ? "bg-white" : "bg-white/50"
-                    }`}
-                    onClick={() => expandedApi?.scrollTo(index)}
-                    aria-label={`Go to slide ${index + 1}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
@@ -186,11 +202,13 @@ function MediaSlide({
   onExpand,
   isSingleItem,
   isExpanded,
+  isCompactPreview,
 }: {
   media: MediaItem;
-  onExpand: () => void;
+  onExpand?: () => void;
   isSingleItem: boolean;
   isExpanded: boolean;
+  isCompactPreview: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -204,6 +222,8 @@ function MediaSlide({
 
   if (!media.url) return null;
   const isVideo = media.type === "video";
+  const multiItemHeightClass = isCompactPreview ? "h-[320px]" : "h-[500px]";
+  const singleItemMaxHeightClass = isCompactPreview ? "max-h-[320px]" : "max-h-[500px]";
 
   const handleVideoClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -229,12 +249,12 @@ function MediaSlide({
     >
       {isVideo ? (
         <div
-          className={`relative w-full ${isSingleItem ? "" : "h-[500px]"} flex items-center justify-center`}
+          className={`relative w-full ${isSingleItem ? "" : multiItemHeightClass} flex items-center justify-center`}
         >
           <video
             ref={videoRef}
             src={media.url}
-            className={`w-full object-contain ${isSingleItem ? "h-auto max-h-[500px]" : "max-h-full"}`}
+            className={`w-full object-contain ${isSingleItem ? `h-auto ${singleItemMaxHeightClass}` : "max-h-full"}`}
             preload="metadata"
             playsInline
             onEnded={handleVideoEnded}
@@ -266,10 +286,10 @@ function MediaSlide({
         <img
           src={media.url}
           alt="Project media"
-          className="w-full h-auto max-h-[500px] object-contain"
+          className={`w-full h-auto object-contain ${singleItemMaxHeightClass}`}
         />
       ) : (
-        <div className="relative w-full h-[500px] overflow-hidden">
+        <div className={`relative w-full overflow-hidden ${multiItemHeightClass}`}>
           {/* Blurred background for letterboxing */}
           <Image
             src={media.url}

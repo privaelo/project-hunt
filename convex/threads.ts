@@ -756,6 +756,53 @@ export const backfillAllThreads = internalAction({
   },
 });
 
+// ─── RAG Re-indexing (embedding model migration) ────────────────────────────
+
+export const getAllThreadIds = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const threads = await ctx.db.query("threads").collect();
+    return threads.map((t) => ({ _id: t._id, title: t.title, body: t.body }));
+  },
+});
+
+export const reindexThreadInRag = internalAction({
+  args: {
+    threadId: v.id("threads"),
+    title: v.string(),
+    body: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const text = args.body ? `${args.title}\n\n${args.body}` : args.title;
+    const { entryId } = await rag.add(ctx, {
+      namespace: "threads",
+      text,
+      key: args.threadId,
+    });
+    await ctx.runMutation(internal.threads.updateThreadEntryId, {
+      threadId: args.threadId,
+      entryId,
+    });
+  },
+});
+
+export const reindexAllThreadsInRag = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const threads = await ctx.runQuery(internal.threads.getAllThreadIds, {});
+    let scheduled = 0;
+    for (const thread of threads) {
+      await ctx.scheduler.runAfter(
+        scheduled * 200,
+        internal.threads.reindexThreadInRag,
+        { threadId: thread._id, title: thread.title, body: thread.body },
+      );
+      scheduled++;
+    }
+    return { scheduled };
+  },
+});
+
 export const backfillAllFieldsForThreads = internalMutation({
   args: {},
   handler: async (ctx) => {
