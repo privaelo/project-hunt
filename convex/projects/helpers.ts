@@ -1,5 +1,6 @@
 import type { Id, Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import { getSecondarySpacesForProject } from "./spaces";
 
 const HOT_SCORE_GRAVITY = 1.0;
 const HOT_SCORE_AGE_OFFSET = 2;
@@ -79,16 +80,19 @@ export async function enrichProjects(
         icon: focusAreaDoc.icon,
       } : null;
 
-      const adoptersWithInfo = await Promise.all(
-        adoptions.slice(0, 4).map(async (adoption) => {
-          const user = await ctx.db.get(adoption.userId);
-          return {
-            _id: adoption.userId,
-            name: user?.name ?? "Unknown User",
-            avatarUrl: user?.avatarUrlId ?? "",
-          };
-        })
-      );
+      const [adoptersWithInfo, additionalFocusAreas] = await Promise.all([
+        Promise.all(
+          adoptions.slice(0, 4).map(async (adoption) => {
+            const user = await ctx.db.get(adoption.userId);
+            return {
+              _id: adoption.userId,
+              name: user?.name ?? "Unknown User",
+              avatarUrl: user?.avatarUrlId ?? "",
+            };
+          })
+        ),
+        getSecondarySpacesForProject(ctx, project._id),
+      ]);
 
       return {
         ...project,
@@ -100,6 +104,7 @@ export async function enrichProjects(
         creatorName: creator?.name ?? "Unknown User",
         creatorAvatar: creator?.avatarUrlId ?? "",
         focusArea,
+        additionalFocusAreas,
         previewMedia,
         adoptionCount: adoptions.length,
         adopters: adoptersWithInfo,

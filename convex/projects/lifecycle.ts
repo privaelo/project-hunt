@@ -6,6 +6,7 @@ import { rag } from "../rag";
 import type { Id } from "../_generated/dataModel";
 import type { EntryId } from "@convex-dev/rag";
 import { calculateHotScore } from "./helpers";
+import { propagateHotScoreToMemberships } from "./spaces";
 
 export const getCurrentUserInternal = internalQuery({
   args: {},
@@ -192,18 +193,27 @@ export const confirmProject = mutation({
       throw new Error("Project is not pending");
     }
     const now = Date.now();
+    const hotScore = calculateHotScore(project.engagementScore ?? 0, project._creationTime, now);
     await ctx.db.patch(args.projectId, {
       status: "active" as const,
-      hotScore: calculateHotScore(project.engagementScore ?? 0, project._creationTime, now),
+      hotScore,
     });
 
-    // Notify followers of the space about the new project
-    if (project.focusAreaId) {
+    // Propagate hotScore to membership rows
+    await propagateHotScoreToMemberships(ctx, args.projectId, hotScore);
+
+    // Notify followers of all spaces this project belongs to
+    const membershipRows = await ctx.db
+      .query("projectSpaces")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    for (const row of membershipRows) {
       await ctx.scheduler.runAfter(
         0,
         internal.spaceNotifications.notifySpaceFollowers,
         {
-          focusAreaId: project.focusAreaId,
+          focusAreaId: row.focusAreaId,
           contentType: "project" as const,
           contentId: args.projectId,
           contentTitle: project.name,
@@ -220,6 +230,7 @@ export const create = action({
     summary: v.optional(v.string()),
     links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
     focusAreaId: v.optional(v.id("focusAreas")),
+    additionalFocusAreaIds: v.optional(v.array(v.id("focusAreas"))),
     readinessStatus: v.union(v.literal("just_an_idea"), v.literal("early_prototype"), v.literal("mostly_working"), v.literal("ready_to_use")),
   },
   handler: async (ctx, args): Promise<{
@@ -248,6 +259,14 @@ export const create = action({
         userId: user._id,
       }
     );
+    // Sync space memberships (primary + secondary)
+    await ctx.runMutation(internal.projects.syncProjectSpaceMemberships, {
+      projectId,
+      primaryFocusAreaId: args.focusAreaId,
+      additionalFocusAreaIds: args.additionalFocusAreaIds ?? [],
+      hotScore: 0,
+    });
+
     const text = args.summary ? `${args.name}\n\n${args.summary}` : args.name;
     const { entryId } = await rag.add(ctx, {
       namespace: "projects",
@@ -286,6 +305,7 @@ export const updateProject = action({
     summary: v.optional(v.string()),
     links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
     focusAreaId: v.optional(v.id("focusAreas")),
+    additionalFocusAreaIds: v.optional(v.array(v.id("focusAreas"))),
     readinessStatus: v.union(v.literal("just_an_idea"), v.literal("early_prototype"), v.literal("mostly_working"), v.literal("ready_to_use")),
   },
   handler: async (ctx, args) => {
@@ -310,6 +330,15 @@ export const updateProject = action({
       focusAreaId: args.focusAreaId,
       readinessStatus: args.readinessStatus,
     });
+
+    // Sync space memberships (primary + secondary)
+    await ctx.runMutation(internal.projects.syncProjectSpaceMemberships, {
+      projectId: args.projectId,
+      primaryFocusAreaId: args.focusAreaId,
+      additionalFocusAreaIds: args.additionalFocusAreaIds ?? [],
+      hotScore: project.hotScore ?? 0,
+    });
+
     const text = args.summary ? `${args.name}\n\n${args.summary}` : args.name;
     const { entryId } = await rag.add(ctx, {
       namespace: "projects",
@@ -344,6 +373,9 @@ export const cancelProject = action({
     if (project.entryId) {
       await rag.delete(ctx, { entryId: project.entryId as EntryId });
     }
+    await ctx.runMutation(internal.projects.deleteProjectMemberships, {
+      projectId: args.projectId,
+    });
     await ctx.runMutation(internal.projects.deleteProject, {
       projectId: args.projectId,
     });

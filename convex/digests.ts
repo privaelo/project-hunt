@@ -271,8 +271,8 @@ export const gatherUserDigestData = internalQuery({
       const focusArea = await ctx.db.get(follow.focusAreaId);
       if (!focusArea || !focusArea.isActive) continue;
 
-      // Top projects in this space created during the period
-      const spaceProjects = await ctx.db
+      // Top projects in this space created during the period (primary + secondary)
+      const primaryProjects = await ctx.db
         .query("projects")
         .withIndex("by_status_focusArea_hotScore", (q) =>
           q.eq("status", "active").eq("focusAreaId", focusArea._id)
@@ -280,7 +280,28 @@ export const gatherUserDigestData = internalQuery({
         .order("desc")
         .collect();
 
-      const newSpaceProjects = spaceProjects.filter(
+      // Also include secondary-tagged projects
+      const secondaryRows = await ctx.db
+        .query("projectSpaces")
+        .withIndex("by_focusArea", (q) => q.eq("focusAreaId", focusArea._id))
+        .collect();
+
+      const primaryIds = new Set(primaryProjects.map((p) => p._id));
+      const secondaryProjectDocs = (
+        await Promise.all(
+          secondaryRows
+            .filter((row) => !primaryIds.has(row.projectId))
+            .map(async (row) => {
+              const p = await ctx.db.get(row.projectId);
+              if (!p || p.status !== "active") return null;
+              return p;
+            })
+        )
+      ).filter((p): p is NonNullable<typeof p> => p !== null);
+
+      const allSpaceProjects = [...primaryProjects, ...secondaryProjectDocs];
+
+      const newSpaceProjects = allSpaceProjects.filter(
         (p) => p._creationTime >= periodStart && p._creationTime < periodEnd
       );
 

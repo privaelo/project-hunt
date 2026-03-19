@@ -15,6 +15,7 @@ import { Slider } from "@/components/ui/slider";
 import { Info } from "lucide-react";
 import { SimilarProjectsPreview } from "@/components/SimilarProjectsPreview";
 import { SpacePicker } from "@/components/SpacePicker";
+import { AdditionalSpacesPicker } from "@/components/AdditionalSpacesPicker";
 import { MediaUploadField } from "@/components/MediaUploadField";
 import { FileUploadField } from "@/components/FileUploadField";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -66,7 +67,16 @@ export default function SubmitProject() {
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
   const [selectedProjectFiles, setSelectedProjectFiles] = useState<NewProjectFileItem[]>([]);
   const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>("personal");
+  const [additionalSpaces, setAdditionalSpaces] = useState<Id<"focusAreas">[]>([]);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"just_an_idea" | "early_prototype" | "mostly_working" | "ready_to_use">("just_an_idea");
+
+  const handlePrimarySpaceChange = (selected: Id<"focusAreas"> | "personal" | null) => {
+    setSelectedFocusArea(selected);
+    // Remove the new primary from additional spaces if it was there
+    if (selected && selected !== "personal") {
+      setAdditionalSpaces((prev) => prev.filter((id) => id !== selected));
+    }
+  };
 
   const deriveName = () => {
     const title = formData.workingTitle.trim();
@@ -109,6 +119,7 @@ export default function SubmitProject() {
         summary,
         links: filteredLinks.length > 0 ? filteredLinks : undefined,
         focusAreaId: selectedFocusArea === "personal" ? undefined : selectedFocusArea ?? undefined,
+        additionalFocusAreaIds: additionalSpaces.length > 0 ? additionalSpaces : undefined,
         readinessStatus: selectedReadinessStatus,
       });
       createdProjectId = result.projectId;
@@ -240,8 +251,33 @@ export default function SubmitProject() {
                 <SpacePicker
                   spaces={focusAreas}
                   selectedSpace={selectedFocusArea}
-                  onSelectionChange={setSelectedFocusArea}
+                  onSelectionChange={handlePrimarySpaceChange}
                   currentUserName={currentUser?.name}
+                />
+              </div>
+
+              {/* Additional Spaces */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-zinc-600">
+                    Additional spaces
+                  </label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-xs">
+                        Only your primary space appears on project cards. Add additional spaces to reach other communities where your project is also relevant.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <AdditionalSpacesPicker
+                  spaces={focusAreas}
+                  selectedSpaces={additionalSpaces}
+                  onSelectionChange={setAdditionalSpaces}
+                  excludeSpaceId={selectedFocusArea === "personal" ? null : selectedFocusArea}
                 />
               </div>
 

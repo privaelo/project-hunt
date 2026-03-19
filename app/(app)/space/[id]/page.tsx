@@ -54,7 +54,7 @@ export default function SpacePage({
     status: projectStatus,
     loadMore: loadMoreProjects,
   } = usePaginatedQuery(
-    api.projects.listPaginatedBySpace,
+    api.projects.listPaginatedBySpaceMembership,
     { focusAreaId },
     { initialNumItems: 15 }
   );

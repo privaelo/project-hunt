@@ -8,6 +8,7 @@ import {
   upsertUpvoteNotification,
 } from "../notifications";
 import { calculateHotScore } from "./helpers";
+import { propagateHotScoreToMemberships } from "./spaces";
 
 export const trackView = mutation({
   args: {
@@ -60,10 +61,12 @@ export const toggleUpvote = mutation({
       await ctx.db.delete(existingUpvote._id);
       const now = Date.now();
       const newEngagementScore = Math.max(0, (project.engagementScore ?? 0) - 1);
+      const newHotScore = calculateHotScore(newEngagementScore, project._creationTime, now, project.lastVersionAt ?? undefined);
       await ctx.db.patch(args.projectId, {
         engagementScore: newEngagementScore,
-        hotScore: calculateHotScore(newEngagementScore, project._creationTime, now, project.lastVersionAt ?? undefined),
+        hotScore: newHotScore,
       });
+      await propagateHotScoreToMemberships(ctx, args.projectId, newHotScore);
       if (project.userId !== user._id) {
         await syncUpvoteNotification(ctx, {
           recipientUserId: project.userId,
@@ -78,10 +81,12 @@ export const toggleUpvote = mutation({
         createdAt: now,
       });
       const newEngagementScore = (project.engagementScore ?? 0) + 1;
+      const newHotScore = calculateHotScore(newEngagementScore, project._creationTime, now, project.lastVersionAt ?? undefined);
       await ctx.db.patch(args.projectId, {
         engagementScore: newEngagementScore,
-        hotScore: calculateHotScore(newEngagementScore, project._creationTime, now, project.lastVersionAt ?? undefined),
+        hotScore: newHotScore,
       });
+      await propagateHotScoreToMemberships(ctx, args.projectId, newHotScore);
       if (project.userId !== user._id) {
         await upsertUpvoteNotification(ctx, {
           recipientUserId: project.userId,
@@ -202,6 +207,7 @@ export const refreshHotScores = internalMutationFromFunctions({
         project.lastVersionAt ?? undefined
       );
       await ctx.db.patch(project._id, { hotScore });
+      await propagateHotScoreToMemberships(ctx, project._id, hotScore);
     }
     return { updated: projects.length };
   },

@@ -260,14 +260,28 @@ export default function ProjectPage({
                     </Avatar>
                   )}
                   <div className="flex flex-col">
-                    {project.focusArea && (
-                      <Link
-                        href={`/space/${project.focusArea._id}`}
-                        className="whitespace-nowrap text-xs font-semibold text-zinc-900 hover:underline"
-                      >
-                        g/{project.focusArea.name}
-                      </Link>
-                    )}
+                    <div className="flex flex-wrap items-center gap-x-2">
+                      {project.focusArea && (
+                        <Link
+                          href={`/space/${project.focusArea._id}`}
+                          className="whitespace-nowrap text-xs font-semibold text-zinc-900 hover:underline"
+                        >
+                          g/{project.focusArea.name}
+                        </Link>
+                      )}
+                      {project.additionalFocusAreas && project.additionalFocusAreas.length > 0 && (
+                        project.additionalFocusAreas.map((space) => (
+                          <Link
+                            key={space._id}
+                            href={`/space/${space._id}`}
+                            className="flex items-center gap-0.5 whitespace-nowrap text-xs text-zinc-400 hover:text-zinc-700 hover:underline"
+                          >
+                            <SpaceIcon icon={space.icon} name={space.name} size="sm" />
+                            g/{space.name}
+                          </Link>
+                        ))
+                      )}
+                    </div>
                     <Link
                       href={`/profile/${project.userId}`}
                       className="whitespace-nowrap text-xs text-zinc-900 hover:underline"

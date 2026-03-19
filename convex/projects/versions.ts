@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { getCurrentUserOrThrow } from "../users";
 import { calculateHotScore } from "./helpers";
+import { propagateHotScoreToMemberships } from "./spaces";
 
 export const getVersionById = query({
   args: { versionId: v.id("projectVersions") },
@@ -170,15 +171,16 @@ export const createVersion = mutation({
     });
 
     // Update project: bump hot score, increment version count, optionally update readiness
+    const newHotScore = calculateHotScore(
+      project.engagementScore ?? 0,
+      project._creationTime,
+      now,
+      now
+    );
     const patchFields: Record<string, unknown> = {
       versionCount: (project.versionCount ?? 0) + (isFirstVersion ? 2 : 1),
       lastVersionAt: now,
-      hotScore: calculateHotScore(
-        project.engagementScore ?? 0,
-        project._creationTime,
-        now,
-        now
-      ),
+      hotScore: newHotScore,
     };
 
     if (args.readinessStatus) {
@@ -186,6 +188,7 @@ export const createVersion = mutation({
     }
 
     await ctx.db.patch(args.projectId, patchFields);
+    await propagateHotScoreToMemberships(ctx, args.projectId, newHotScore);
 
     // Notify adopters about the project update
     await ctx.scheduler.runAfter(0, internal.notifications.notifyProjectUpdate, {

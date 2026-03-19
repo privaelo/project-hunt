@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { LinksEditor } from "@/components/LinksEditor";
 import { SpacePicker } from "@/components/SpacePicker";
+import { AdditionalSpacesPicker } from "@/components/AdditionalSpacesPicker";
 import { MediaUploadField } from "@/components/MediaUploadField";
 import { FileUploadField } from "@/components/FileUploadField";
 import type { LinkItem, ExistingMediaItem, NewFileItem, NewProjectFileItem } from "@/lib/types";
@@ -72,7 +73,15 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
   const [newProjectFiles, setNewProjectFiles] = useState<NewProjectFileItem[]>([]);
   const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>(null);
+  const [additionalSpaces, setAdditionalSpaces] = useState<Id<"focusAreas">[]>([]);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"just_an_idea" | "early_prototype" | "mostly_working" | "ready_to_use">("just_an_idea");
+
+  const handlePrimarySpaceChange = (selected: Id<"focusAreas"> | "personal" | null) => {
+    setSelectedFocusArea(selected);
+    if (selected && selected !== "personal") {
+      setAdditionalSpaces((prev) => prev.filter((id) => id !== selected));
+    }
+  };
 
   const handleExistingMediaReorder = async (reorderedMedia: ExistingMediaItem[]) => {
     try {
@@ -118,6 +127,9 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
         setLinks([{ url: "", label: "" }]);
       }
       setSelectedFocusArea(project.focusAreaId ?? null);
+      if (project.additionalFocusAreas) {
+        setAdditionalSpaces(project.additionalFocusAreas.map((fa: { _id: Id<"focusAreas"> }) => fa._id));
+      }
       const loadedStatus = project.readinessStatus === "in_progress" ? "early_prototype" : project.readinessStatus ?? "just_an_idea";
       setSelectedReadinessStatus(loadedStatus);
       setIsLoading(false);
@@ -148,6 +160,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
         summary: isRichTextEmpty(formData.description) ? undefined : formData.description,
         links: filteredLinks.length > 0 ? filteredLinks : undefined,
         focusAreaId: selectedFocusArea === "personal" ? undefined : selectedFocusArea ?? undefined,
+        additionalFocusAreaIds: additionalSpaces,
         readinessStatus: selectedReadinessStatus,
       });
 
@@ -299,8 +312,35 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
               <SpacePicker
                 spaces={focusAreas}
                 selectedSpace={selectedFocusArea}
-                onSelectionChange={setSelectedFocusArea}
+                onSelectionChange={handlePrimarySpaceChange}
                 currentUserName={currentUser?.name}
+              />
+            </div>
+          </div>
+
+          {/* Additional Spaces */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-zinc-600">
+                Additional spaces
+              </label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-xs">
+                    Add additional spaces to reach other communities where your project is also relevant.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="max-w-2xl">
+              <AdditionalSpacesPicker
+                spaces={focusAreas}
+                selectedSpaces={additionalSpaces}
+                onSelectionChange={setAdditionalSpaces}
+                excludeSpaceId={selectedFocusArea === "personal" ? null : selectedFocusArea}
               />
             </div>
           </div>

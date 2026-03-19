@@ -42,6 +42,7 @@ export type ProjectRowData = {
   creatorName: string;
   creatorAvatar: string;
   focusArea: FocusArea | null;
+  additionalFocusAreas?: FocusArea[];
   readinessStatus?: ReadinessStatus;
   previewMedia: Array<{
     _id: string;

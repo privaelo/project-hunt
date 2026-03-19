@@ -63,6 +63,15 @@ export {
 } from "./projects/search";
 
 export {
+  syncProjectSpaceMemberships,
+  deleteProjectMemberships,
+  propagateHotScoreToMemberships,
+  listPaginatedBySpaceMembership,
+} from "./projects/spaces";
+
+export {
+  backfillProjectSpacesAction,
+  backfillProjectSpaces,
   migrateClearFocusAreasAction,
   migrateClearFocusAreas,
   migrateReadinessStatusAction,

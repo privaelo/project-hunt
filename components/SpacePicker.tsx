@@ -11,6 +11,7 @@ import {
   ComboboxList,
   ComboboxSeparator,
 } from "@/components/ui/combobox";
+import { InputGroupAddon } from "@/components/ui/input-group";
 import { SpaceIcon } from "@/components/SpaceIcon";
 import { CreateFocusAreaDialog } from "@/components/CreateFocusAreaDialog";
 import { Button } from "@/components/ui/button";
@@ -88,7 +89,13 @@ export function SpacePicker({
       <ComboboxInput
         placeholder="Select a space..."
         className="rounded-full bg-background h-11 max-w-xs"
-      />
+      >
+        {selectedOption && selectedOption.id !== "personal" && (
+          <InputGroupAddon align="inline-start">
+            <SpaceIcon icon={selectedOption.icon} name={selectedOption.name} size="sm" />
+          </InputGroupAddon>
+        )}
+      </ComboboxInput>
       <ComboboxContent>
         <ComboboxEmpty>No spaces found.</ComboboxEmpty>
         <ComboboxList>

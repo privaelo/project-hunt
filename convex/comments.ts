@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import { getCurrentUserOrThrow, getCurrentUser } from "./users";
 import { createProjectNotification } from "./notifications";
 import { enqueueCommentEmail, enqueueReplyEmail } from "./commentNotifications";
-import { calculateHotScore } from "./projects";
+import { calculateHotScore, propagateHotScoreToMemberships } from "./projects";
 
 export const addComment = mutation({
   args: {
@@ -28,10 +28,12 @@ export const addComment = mutation({
     if (project) {
       const now = Date.now();
       const newEngagementScore = (project.engagementScore ?? 0) + 1;
+      const newHotScore = calculateHotScore(newEngagementScore, project._creationTime, now, project.lastVersionAt ?? undefined);
       await ctx.db.patch(args.projectId, {
         engagementScore: newEngagementScore,
-        hotScore: calculateHotScore(newEngagementScore, project._creationTime, now, project.lastVersionAt ?? undefined),
+        hotScore: newHotScore,
       });
+      await propagateHotScoreToMemberships(ctx, args.projectId, newHotScore);
     }
 
     if (project && project.userId !== user._id) {
@@ -160,10 +162,12 @@ export const deleteComment = mutation({
     if (project) {
       const now = Date.now();
       const newEngagementScore = Math.max(0, (project.engagementScore ?? 0) - 1);
+      const newHotScore = calculateHotScore(newEngagementScore, project._creationTime, now, project.lastVersionAt ?? undefined);
       await ctx.db.patch(comment.projectId, {
         engagementScore: newEngagementScore,
-        hotScore: calculateHotScore(newEngagementScore, project._creationTime, now, project.lastVersionAt ?? undefined),
+        hotScore: newHotScore,
       });
+      await propagateHotScoreToMemberships(ctx, comment.projectId, newHotScore);
     }
 
     const existingUpvotes = await ctx.db

@@ -524,3 +524,5 @@ Secrets required:
 17. **Email templates live in `convex/emailRenderer.ts`** — all HTML must use `escapeHtml()` for user-generated content. Templates include both HTML and plain-text versions. Add new email types by adding a renderer function and a case in `sendEmail`'s type dispatch.
 
 18. **SES shares AWS credentials with Bedrock** — `AWS_REGION`, `AWS_ACCESS_KEY_ID`, and `AWS_SECRET_ACCESS_KEY` are shared across all AWS services (Bedrock, SES). The IAM role must have both Bedrock and SES permissions. `SES_FROM_EMAIL` must also be set and the sender address verified in SES.
+
+19. **`hotScore` must be propagated to `projectSpaces`** — The `projectSpaces` table denormalizes `hotScore` from `projects` to enable a single paginated index scan per space feed. Any code path that patches `hotScore` on a project must also call `propagateHotScoreToMemberships(ctx, projectId, newHotScore)` from `convex/projects/spaces.ts`. Current call sites: `toggleUpvote`, `addComment`, `deleteComment`, `createVersion`, `confirmProject`, `refreshHotScores`.

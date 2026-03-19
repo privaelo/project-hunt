@@ -4,6 +4,7 @@ import { paginationOptsValidator } from "convex/server";
 import type { Id, Doc } from "../_generated/dataModel";
 import { getCurrentUser } from "../users";
 import { enrichProjects } from "./helpers";
+import { getSecondarySpacesForProject } from "./spaces";
 
 export const list = query({
   args: {},
@@ -331,13 +332,25 @@ export const getTopProjectsBySpace = query({
   },
   handler: async (ctx, args) => {
     const limit = args.limit ?? 5;
-    const projects = await ctx.db
-      .query("projects")
-      .withIndex("by_status_focusArea_hotScore", (q) =>
-        q.eq("status", "active").eq("focusAreaId", args.focusAreaId)
+
+    // Query membership rows sorted by hotScore
+    const topRows = await ctx.db
+      .query("projectSpaces")
+      .withIndex("by_focusArea_hotScore", (q) =>
+        q.eq("focusAreaId", args.focusAreaId)
       )
       .order("desc")
       .take(limit);
+
+    const projects = (
+      await Promise.all(
+        topRows.map(async (row) => {
+          const project = await ctx.db.get(row.projectId);
+          if (!project || project.status !== "active") return null;
+          return project;
+        })
+      )
+    ).filter((p): p is NonNullable<typeof p> => p !== null);
 
     return Promise.all(
       projects.map(async (project) => {
@@ -404,16 +417,19 @@ export const getById = query({
       group: focusAreaDoc.group,
       icon: focusAreaDoc.icon,
     } : null;
-    const adoptersWithInfo = await Promise.all(
-      adoptions.slice(0, 6).map(async (adoption) => {
-        const user = await ctx.db.get(adoption.userId);
-        return {
-          _id: adoption.userId,
-          name: user?.name ?? "Unknown User",
-          avatarUrl: user?.avatarUrlId ?? "",
-        };
-      })
-    );
+    const [adoptersWithInfo, additionalFocusAreas] = await Promise.all([
+      Promise.all(
+        adoptions.slice(0, 6).map(async (adoption) => {
+          const user = await ctx.db.get(adoption.userId);
+          return {
+            _id: adoption.userId,
+            name: user?.name ?? "Unknown User",
+            avatarUrl: user?.avatarUrlId ?? "",
+          };
+        })
+      ),
+      getSecondarySpacesForProject(ctx, args.projectId),
+    ]);
     return {
       ...project,
       team: teamName,
@@ -423,6 +439,7 @@ export const getById = query({
       creatorName: creator?.name ?? "Unknown User",
       creatorAvatar: creator?.avatarUrlId ?? "",
       focusArea,
+      additionalFocusAreas,
       adoptionCount: adoptions.length,
       adopters: adoptersWithInfo,
       hasAdopted,
