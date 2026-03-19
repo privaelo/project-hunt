@@ -291,24 +291,24 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Space Selector - Required field at top */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <label className="text-base font-semibold text-zinc-900">
-                Choose a space
-              </label>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p className="text-xs">
-                    Spaces help categorize your project and make it easier for teammates to discover relevant work.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <div className="max-w-2xl">
+          {/* Space Selectors — grouped */}
+          <div className="space-y-3 max-w-2xl">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <label className="text-base font-semibold text-zinc-900">
+                  Choose a space
+                </label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-xs">
+                      Spaces help categorize your project and make it easier for teammates to discover relevant work.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <SpacePicker
                 spaces={focusAreas}
                 selectedSpace={selectedFocusArea}
@@ -316,26 +316,22 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
                 currentUserName={currentUser?.name}
               />
             </div>
-          </div>
-
-          {/* Additional Spaces */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-zinc-600">
-                Additional spaces
-              </label>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-zinc-400 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p className="text-xs">
-                    Add additional spaces to reach other communities where your project is also relevant.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <div className="max-w-2xl">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-zinc-600">
+                  Additional spaces
+                </label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-zinc-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-xs">
+                      Add additional spaces to reach other communities where your project is also relevant.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <AdditionalSpacesPicker
                 spaces={focusAreas}
                 selectedSpaces={additionalSpaces}
