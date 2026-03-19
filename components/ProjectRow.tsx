@@ -25,7 +25,6 @@ interface ProjectRowProps {
   project: ProjectRowData;
   onUpvote: (projectId: Id<"projects">) => void;
   onFollow: (projectId: Id<"projects">) => void;
-  currentUser: UserRef | null;
   isAuthenticated: boolean;
   hideSpaceLabel?: boolean;
 }
@@ -35,7 +34,6 @@ export function ProjectRow({
   project,
   onUpvote,
   onFollow,
-  currentUser,
   isAuthenticated,
   hideSpaceLabel,
 }: ProjectRowProps) {
