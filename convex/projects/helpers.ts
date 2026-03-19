@@ -1,6 +1,6 @@
 import type { Id, Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { getSecondarySpacesForProject } from "./spaces";
+import { getAllSpacesForProject } from "./spaces";
 
 const HOT_SCORE_GRAVITY = 1.0;
 const HOT_SCORE_AGE_OFFSET = 2;
@@ -25,21 +25,9 @@ export async function enrichProjects(
   projects: Doc<"projects">[],
   userId: Id<"users"> | undefined
 ) {
-  const focusAreaIds = Array.from(
-    new Set(projects.map((project) => project.focusAreaId).filter((id): id is Id<"focusAreas"> => id !== undefined))
-  );
-  const focusAreaDocs = await Promise.all(
-    focusAreaIds.map((id) => ctx.db.get(id))
-  );
-  const focusAreaMap = new Map(
-    focusAreaDocs
-      .filter((fa): fa is NonNullable<typeof fa> => fa !== null)
-      .map((fa) => [fa._id, fa])
-  );
-
   return Promise.all(
     projects.map(async (project) => {
-      const [upvotes, comments, creator, team, mediaFiles, follows] = await Promise.all([
+      const [upvotes, comments, creator, team, mediaFiles, follows, spaces] = await Promise.all([
         ctx.db
           .query("upvotes")
           .withIndex("by_project", (q) => q.eq("projectId", project._id))
@@ -61,6 +49,7 @@ export async function enrichProjects(
           .withIndex("by_project", (q) => q.eq("projectId", project._id))
           .order("desc")
           .collect(),
+        getAllSpacesForProject(ctx, project._id),
       ]);
 
       const previewMedia = await Promise.all(
@@ -72,27 +61,16 @@ export async function enrichProjects(
         }))
       );
 
-      const focusAreaDoc = project.focusAreaId ? focusAreaMap.get(project.focusAreaId) : null;
-      const focusArea = focusAreaDoc ? {
-        _id: focusAreaDoc._id,
-        name: focusAreaDoc.name,
-        group: focusAreaDoc.group,
-        icon: focusAreaDoc.icon,
-      } : null;
-
-      const [followersWithInfo, additionalFocusAreas] = await Promise.all([
-        Promise.all(
-          follows.slice(0, 4).map(async (follow) => {
-            const user = await ctx.db.get(follow.userId);
-            return {
-              _id: follow.userId,
-              name: user?.name ?? "Unknown User",
-              avatarUrl: user?.avatarUrlId ?? "",
-            };
-          })
-        ),
-        getSecondarySpacesForProject(ctx, project._id),
-      ]);
+      const followersWithInfo = await Promise.all(
+        follows.slice(0, 4).map(async (follow) => {
+          const user = await ctx.db.get(follow.userId);
+          return {
+            _id: follow.userId,
+            name: user?.name ?? "Unknown User",
+            avatarUrl: user?.avatarUrlId ?? "",
+          };
+        })
+      );
 
       return {
         ...project,
@@ -103,8 +81,8 @@ export async function enrichProjects(
         hasUpvoted: userId ? upvotes.some((u) => u.userId === userId) : false,
         creatorName: creator?.name ?? "Unknown User",
         creatorAvatar: creator?.avatarUrlId ?? "",
-        focusArea,
-        additionalFocusAreas,
+        focusArea: spaces.primary,
+        additionalFocusAreas: spaces.secondary,
         previewMedia,
         followerCount: follows.length,
         followers: followersWithInfo,

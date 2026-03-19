@@ -3,6 +3,7 @@ import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { isEmailEnabled } from "./emails";
+import { getAllSpacesForProject } from "./projects/spaces";
 
 const BATCH_SIZE = 50;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -271,35 +272,22 @@ export const gatherUserDigestData = internalQuery({
       const focusArea = await ctx.db.get(follow.focusAreaId);
       if (!focusArea || !focusArea.isActive) continue;
 
-      // Top projects in this space created during the period (primary + secondary)
-      const primaryProjects = await ctx.db
-        .query("projects")
-        .withIndex("by_status_focusArea_hotScore", (q) =>
-          q.eq("status", "active").eq("focusAreaId", focusArea._id)
-        )
+      // All projects in this space (primary + secondary), sorted by hotScore
+      const spaceRows = await ctx.db
+        .query("projectSpaces")
+        .withIndex("by_focusArea_hotScore", (q) => q.eq("focusAreaId", focusArea._id))
         .order("desc")
         .collect();
 
-      // Also include secondary-tagged projects
-      const secondaryRows = await ctx.db
-        .query("projectSpaces")
-        .withIndex("by_focusArea", (q) => q.eq("focusAreaId", focusArea._id))
-        .collect();
-
-      const primaryIds = new Set(primaryProjects.map((p) => p._id));
-      const secondaryProjectDocs = (
+      const allSpaceProjects = (
         await Promise.all(
-          secondaryRows
-            .filter((row) => !primaryIds.has(row.projectId))
-            .map(async (row) => {
-              const p = await ctx.db.get(row.projectId);
-              if (!p || p.status !== "active") return null;
-              return p;
-            })
+          spaceRows.map(async (row) => {
+            const p = await ctx.db.get(row.projectId);
+            if (!p || p.status !== "active") return null;
+            return p;
+          })
         )
       ).filter((p): p is NonNullable<typeof p> => p !== null);
-
-      const allSpaceProjects = [...primaryProjects, ...secondaryProjectDocs];
 
       const newSpaceProjects = allSpaceProjects.filter(
         (p) => p._creationTime >= periodStart && p._creationTime < periodEnd
@@ -360,17 +348,17 @@ export const gatherUserDigestData = internalQuery({
 
     const topProjects: PlatformHighlights["topProjects"] = [];
     for (const project of trendingProjectDocs) {
-      const [creator, focusArea] = await Promise.all([
+      const [creator, spaces] = await Promise.all([
         ctx.db.get(project.userId),
-        project.focusAreaId ? ctx.db.get(project.focusAreaId) : null,
+        getAllSpacesForProject(ctx, project._id),
       ]);
       topProjects.push({
         projectId: project._id,
         projectName: project.name,
         upvotes: project.upvotes,
         creatorName: creator?.name ?? "Unknown",
-        spaceName: focusArea?.name ?? null,
-        spaceIcon: focusArea?.icon ?? null,
+        spaceName: spaces.primary?.name ?? null,
+        spaceIcon: spaces.primary?.icon ?? null,
       });
     }
 

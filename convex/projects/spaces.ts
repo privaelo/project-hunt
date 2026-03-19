@@ -122,7 +122,7 @@ export async function propagateHotScoreToMemberships(
 
 // ─── Shared query helper ─────────────────────────────────────────────────────
 
-export async function getSecondarySpacesForProject(
+export async function getAllSpacesForProject(
   ctx: QueryCtx,
   projectId: Id<"projects">
 ) {
@@ -131,24 +131,22 @@ export async function getSecondarySpacesForProject(
     .withIndex("by_project", (q) => q.eq("projectId", projectId))
     .collect();
 
-  const secondaryRows = rows.filter((row) => !row.isPrimary);
-
-  const spaces = await Promise.all(
-    secondaryRows.map(async (row) => {
+  const resolved = await Promise.all(
+    rows.map(async (row) => {
       const fa = await ctx.db.get(row.focusAreaId);
       if (!fa || !fa.isActive) return null;
       return {
-        _id: fa._id,
-        name: fa.name,
-        group: fa.group,
-        icon: fa.icon,
+        isPrimary: row.isPrimary,
+        space: { _id: fa._id, name: fa.name, group: fa.group, icon: fa.icon },
       };
     })
   );
 
-  return spaces.filter(
-    (s): s is NonNullable<typeof s> => s !== null
-  );
+  const valid = resolved.filter((r): r is NonNullable<typeof r> => r !== null);
+  return {
+    primary: valid.find((r) => r.isPrimary)?.space ?? null,
+    secondary: valid.filter((r) => !r.isPrimary).map((r) => r.space),
+  };
 }
 
 // ─── Paginated space feed (primary + secondary, sorted by hotScore) ──────────

@@ -126,7 +126,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       } else {
         setLinks([{ url: "", label: "" }]);
       }
-      setSelectedFocusArea(project.focusAreaId ?? null);
+      setSelectedFocusArea(project.focusArea?._id ?? null);
       if (project.additionalFocusAreas) {
         setAdditionalSpaces(project.additionalFocusAreas.map((fa: { _id: Id<"focusAreas"> }) => fa._id));
       }

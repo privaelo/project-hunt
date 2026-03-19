@@ -35,7 +35,6 @@ export {
 export {
   list,
   listPaginated,
-  listPaginatedBySpace,
   getUserProjects,
   getByUserId,
   getFollowedByUser,
@@ -70,10 +69,6 @@ export {
 } from "./projects/spaces";
 
 export {
-  backfillProjectSpacesAction,
-  backfillProjectSpaces,
-  migrateClearFocusAreasAction,
-  migrateClearFocusAreas,
   migrateReadinessStatusAction,
   migrateReadinessStatus,
 } from "./projects/migrations";

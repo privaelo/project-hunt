@@ -1,10 +1,10 @@
 import { query } from "../_generated/server";
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
-import type { Id, Doc } from "../_generated/dataModel";
+import type { Doc } from "../_generated/dataModel";
 import { getCurrentUser } from "../users";
 import { enrichProjects } from "./helpers";
-import { getSecondarySpacesForProject } from "./spaces";
+import { getAllSpacesForProject } from "./spaces";
 
 export const list = query({
   args: {},
@@ -14,48 +14,34 @@ export const list = query({
       .withIndex("by_status", (q) => q.eq("status", "active"))
       .collect();
 
-    const focusAreaIds = Array.from(
-      new Set(projects.map((project) => project.focusAreaId).filter((id): id is Id<"focusAreas"> => id !== undefined))
-    );
-    const focusAreaDocs = await Promise.all(
-      focusAreaIds.map((id) => ctx.db.get(id))
-    );
-    const focusAreaMap = new Map(
-      focusAreaDocs
-        .filter((fa): fa is NonNullable<typeof fa> => fa !== null)
-        .map((fa) => [fa._id, fa])
-    );
-
     const currentUser = await getCurrentUser(ctx);
     const userId = currentUser?._id;
 
     const projectsWithCounts = await Promise.all(
       projects.map(async (project) => {
-        const upvotes = await ctx.db
-          .query("upvotes")
-          .withIndex("by_project", (q) => q.eq("projectId", project._id))
-          .collect();
-        const comments = await ctx.db
-          .query("comments")
-          .withIndex("by_project", (q) => q.eq("projectId", project._id))
-          .filter((q) => q.neq(q.field("isDeleted"), true))
-          .collect();
-        let hasUpvoted = false;
-        if (userId) {
-          const userUpvote = upvotes.find((u) => u.userId === userId);
-          hasUpvoted = !!userUpvote;
-        }
-        const creator = await ctx.db.get(project.userId);
+        const [upvotes, comments, creator, mediaFiles, spaces] = await Promise.all([
+          ctx.db
+            .query("upvotes")
+            .withIndex("by_project", (q) => q.eq("projectId", project._id))
+            .collect(),
+          ctx.db
+            .query("comments")
+            .withIndex("by_project", (q) => q.eq("projectId", project._id))
+            .filter((q) => q.neq(q.field("isDeleted"), true))
+            .collect(),
+          ctx.db.get(project.userId),
+          ctx.db
+            .query("mediaFiles")
+            .withIndex("by_project_ordered", (q) => q.eq("projectId", project._id))
+            .order("asc")
+            .collect(),
+          getAllSpacesForProject(ctx, project._id),
+        ]);
         let teamName = "";
         if (project.teamId) {
           const team = await ctx.db.get(project.teamId);
           teamName = team?.name ?? "";
         }
-        const mediaFiles = await ctx.db
-          .query("mediaFiles")
-          .withIndex("by_project_ordered", (q) => q.eq("projectId", project._id))
-          .order("asc")
-          .collect();
         const previewMedia = await Promise.all(
           mediaFiles.map(async (media) => ({
             _id: media._id,
@@ -64,22 +50,15 @@ export const list = query({
             url: await ctx.storage.getUrl(media.storageId),
           }))
         );
-        const focusAreaDoc = project.focusAreaId ? focusAreaMap.get(project.focusAreaId) : null;
-        const focusArea = focusAreaDoc ? {
-          _id: focusAreaDoc._id,
-          name: focusAreaDoc.name,
-          group: focusAreaDoc.group,
-          icon: focusAreaDoc.icon,
-        } : null;
         return {
           ...project,
           team: teamName,
           upvotes: upvotes.length,
           commentCount: comments.length,
-          hasUpvoted,
+          hasUpvoted: userId ? upvotes.some((u) => u.userId === userId) : false,
           creatorName: creator?.name ?? "Unknown User",
           creatorAvatar: creator?.avatarUrlId ?? "",
-          focusArea,
+          focusArea: spaces.primary,
           previewMedia,
         };
       })
@@ -130,28 +109,6 @@ export const listPaginated = query({
   },
 });
 
-export const listPaginatedBySpace = query({
-  args: {
-    paginationOpts: paginationOptsValidator,
-    focusAreaId: v.id("focusAreas"),
-  },
-  handler: async (ctx, args) => {
-    const currentUser = await getCurrentUser(ctx);
-    const userId = currentUser?._id;
-    const paginatedResult = await ctx.db
-      .query("projects")
-      .withIndex("by_status_focusArea_hotScore", (q) =>
-        q.eq("status", "active").eq("focusAreaId", args.focusAreaId)
-      )
-      .order("desc")
-      .paginate(args.paginationOpts);
-    const enrichedProjects = await enrichProjects(ctx, paginatedResult.page, userId);
-    return {
-      ...paginatedResult,
-      page: enrichedProjects,
-    };
-  },
-});
 
 export const getUserProjects = query({
   args: {},
@@ -410,14 +367,7 @@ export const getById = query({
       const team = await ctx.db.get(project.teamId);
       teamName = team?.name ?? "";
     }
-    const focusAreaDoc = project.focusAreaId ? await ctx.db.get(project.focusAreaId) : null;
-    const focusArea = focusAreaDoc ? {
-      _id: focusAreaDoc._id,
-      name: focusAreaDoc.name,
-      group: focusAreaDoc.group,
-      icon: focusAreaDoc.icon,
-    } : null;
-    const [followersWithInfo, additionalFocusAreas] = await Promise.all([
+    const [followersWithInfo, spaces] = await Promise.all([
       Promise.all(
         follows.slice(0, 6).map(async (follow) => {
           const user = await ctx.db.get(follow.userId);
@@ -428,7 +378,7 @@ export const getById = query({
           };
         })
       ),
-      getSecondarySpacesForProject(ctx, args.projectId),
+      getAllSpacesForProject(ctx, args.projectId),
     ]);
     return {
       ...project,
@@ -438,8 +388,8 @@ export const getById = query({
       hasUpvoted,
       creatorName: creator?.name ?? "Unknown User",
       creatorAvatar: creator?.avatarUrlId ?? "",
-      focusArea,
-      additionalFocusAreas,
+      focusArea: spaces.primary,
+      additionalFocusAreas: spaces.secondary,
       followerCount: follows.length,
       followers: followersWithInfo,
       hasFollowed,
