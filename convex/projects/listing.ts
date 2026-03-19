@@ -333,7 +333,7 @@ export const getTopProjectsBySpace = query({
   handler: async (ctx, args) => {
     const limit = args.limit ?? 5;
 
-    // Query membership table (contains both primary + secondary) sorted by hotScore
+    // Query membership rows sorted by hotScore
     const topRows = await ctx.db
       .query("projectSpaces")
       .withIndex("by_focusArea_hotScore", (q) =>

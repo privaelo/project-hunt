@@ -63,12 +63,8 @@ export const syncProjectSpaceMemberships = internalMutationFromFunctions({
     for (const [focusAreaId, isPrimary] of desiredMap) {
       const existingRow = existingByFocusArea.get(focusAreaId);
       if (existingRow) {
-        // Update if isPrimary or hotScore changed
         if (existingRow.isPrimary !== isPrimary || existingRow.hotScore !== args.hotScore) {
-          await ctx.db.patch(existingRow._id, {
-            isPrimary,
-            hotScore: args.hotScore,
-          });
+          await ctx.db.patch(existingRow._id, { isPrimary, hotScore: args.hotScore });
         }
       } else {
         await ctx.db.insert("projectSpaces", {
@@ -175,7 +171,7 @@ export const listPaginatedBySpaceMembership = query({
       .order("desc")
       .paginate(args.paginationOpts);
 
-    // Fetch project docs for each membership row
+    // Fetch project docs, filtering out any that are pending or deleted
     const projects = (
       await Promise.all(
         paginatedResult.page.map(async (row) => {

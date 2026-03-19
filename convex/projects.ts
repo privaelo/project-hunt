@@ -70,6 +70,8 @@ export {
 } from "./projects/spaces";
 
 export {
+  backfillProjectSpacesAction,
+  backfillProjectSpaces,
   migrateClearFocusAreasAction,
   migrateClearFocusAreas,
   migrateReadinessStatusAction,

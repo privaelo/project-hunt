@@ -202,28 +202,13 @@ export const confirmProject = mutation({
     // Propagate hotScore to membership rows
     await propagateHotScoreToMemberships(ctx, args.projectId, hotScore);
 
-    // Notify followers of the primary space about the new project
-    if (project.focusAreaId) {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.spaceNotifications.notifySpaceFollowers,
-        {
-          focusAreaId: project.focusAreaId,
-          contentType: "project" as const,
-          contentId: args.projectId,
-          contentTitle: project.name,
-          creatorUserId: project.userId,
-        }
-      );
-    }
-
-    // Notify followers of secondary spaces
-    const secondaryRows = await ctx.db
+    // Notify followers of all spaces this project belongs to
+    const membershipRows = await ctx.db
       .query("projectSpaces")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
       .collect();
 
-    for (const row of secondaryRows) {
+    for (const row of membershipRows) {
       await ctx.scheduler.runAfter(
         0,
         internal.spaceNotifications.notifySpaceFollowers,
