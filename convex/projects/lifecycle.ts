@@ -70,7 +70,6 @@ export const populateProjectDetails = internalQuery({
         _creationTime: v.number(),
         allFields: v.optional(v.string()),
         links: v.optional(v.array(v.object({ url: v.string(), label: v.optional(v.string()) }))),
-        focusAreaId: v.optional(v.id("focusAreas")),
         readinessStatus: v.optional(v.union(v.literal("in_progress"), v.literal("just_an_idea"), v.literal("early_prototype"), v.literal("mostly_working"), v.literal("ready_to_use"))),
         pinned: v.optional(v.boolean()),
         engagementScore: v.optional(v.number()),

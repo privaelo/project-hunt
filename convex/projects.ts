@@ -69,12 +69,6 @@ export {
 } from "./projects/spaces";
 
 export {
-  backfillProjectSpacesAction,
-  backfillProjectSpaces,
-  migrateClearFocusAreasAction,
-  migrateClearFocusAreas,
-  clearFocusAreaIdFromProjectsAction,
-  clearFocusAreaIdFromProjects,
   migrateReadinessStatusAction,
   migrateReadinessStatus,
 } from "./projects/migrations";
