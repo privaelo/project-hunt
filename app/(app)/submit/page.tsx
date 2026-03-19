@@ -224,8 +224,11 @@ export default function SubmitProject() {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-        <div className="mb-2 space-y-2">
+        <div className="mb-2 flex items-center gap-3">
           <h2 className="text-3xl font-semibold tracking-tight">Register a tool in the catalog</h2>
+          <Link href="/guidelines" className="text-sm text-zinc-500 underline underline-offset-4 hover:text-zinc-700">
+            What can I post?
+          </Link>
         </div>
 
         <form onSubmit={handleSubmit}>

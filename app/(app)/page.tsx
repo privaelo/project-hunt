@@ -85,9 +85,14 @@ export default function Home() {
       <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6 pb-16 pt-4">
         <section className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold text-zinc-900">
-              Tools catalog
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-semibold text-zinc-900">
+                Tools catalog
+              </h1>
+              <Link href="/guidelines" className="text-sm text-zinc-500 underline underline-offset-4 hover:text-zinc-700">
+                What can I post?
+              </Link>
+            </div>
             <LayoutGroup>
               <div className="space-y-0">
                 {isLoading ? (
