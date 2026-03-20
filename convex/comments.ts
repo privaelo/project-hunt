@@ -73,6 +73,13 @@ export const addComment = mutation({
         parentComment.userId !== user._id &&
         parentComment.userId !== project.userId
       ) {
+        await createProjectNotification(ctx, {
+          recipientUserId: parentComment.userId,
+          actorUserId: user._id,
+          projectId: project._id,
+          type: "comment",
+          commentId,
+        });
         await enqueueReplyEmail(ctx, {
           contentType: "project",
           contentId: args.projectId,
