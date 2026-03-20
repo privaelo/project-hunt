@@ -19,7 +19,7 @@ import { ProjectMediaCarousel } from "@/components/ProjectMediaCarousel";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { SpaceIcon } from "@/components/SpaceIcon";
 import { stripHtml, getRelativeTime } from "@/lib/utils";
-import type { ProjectRowData, UserRef } from "@/lib/types";
+import type { ProjectRowData } from "@/lib/types";
 
 interface ProjectRowProps {
   project: ProjectRowData;

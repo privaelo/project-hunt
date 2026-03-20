@@ -143,7 +143,6 @@ export default function ProfilePage({
     );
   }
 
-  const firstName = (profile.name || "").trim().split(" ")[0] || "User";
   const email = profile.email?.trim() || "";
   const teamsChatLink = email
     ? `https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(

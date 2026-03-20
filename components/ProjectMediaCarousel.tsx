@@ -283,7 +283,7 @@ function MediaSlide({
           </div>
         </div>
       ) : isSingleItem ? (
-        <img
+        <Image
           src={media.url}
           alt="Project media"
           className={`w-full h-auto object-contain ${singleItemMaxHeightClass}`}
