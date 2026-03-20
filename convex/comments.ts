@@ -77,7 +77,7 @@ export const addComment = mutation({
           recipientUserId: parentComment.userId,
           actorUserId: user._id,
           projectId: project._id,
-          type: "comment",
+          type: "reply",
           commentId,
         });
         await enqueueReplyEmail(ctx, {

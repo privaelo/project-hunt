@@ -64,8 +64,11 @@ export function Header() {
       return `${notification.actorName} commented on ${projectName}`;
     }
 
-    const verb = notification.isReply ? "replied on" : "commented on";
-    return `${notification.actorName} ${verb} ${projectName}`;
+    if (notification.type === "reply") {
+      return `${notification.actorName} replied to your comment on ${projectName}`;
+    }
+
+    return `${notification.actorName} commented on ${projectName}`;
   };
 
   return (
@@ -136,7 +139,7 @@ export function Header() {
                         <div className="max-h-96 divide-y divide-zinc-100 overflow-auto">
                           {notifications.map((notification) => {
                             const href = `/project/${notification.projectId}${
-                              notification.type === "comment" || notification.type === "followed_project_comment" ? "#discussion" : ""
+                              notification.type === "comment" || notification.type === "reply" || notification.type === "followed_project_comment" ? "#discussion" : ""
                             }`;
                             return (
                               <Link

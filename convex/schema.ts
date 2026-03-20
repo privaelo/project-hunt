@@ -100,6 +100,7 @@ export default defineSchema({
     projectId: v.id("projects"),
     type: v.union(
       v.literal("comment"),
+      v.literal("reply"),
       v.literal("upvote"),
       v.literal("adoption"),    // legacy — kept for migration compatibility
       v.literal("follow"),

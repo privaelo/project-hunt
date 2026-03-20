@@ -29,7 +29,7 @@ export async function createProjectNotification(
     recipientUserId: Id<"users">;
     actorUserId: Id<"users">;
     projectId: Id<"projects">;
-    type: "comment" | "follow" | "project_update" | "followed_project_comment";
+    type: "comment" | "reply" | "follow" | "project_update" | "followed_project_comment";
     commentId?: Id<"comments">;
   }
 ) {
