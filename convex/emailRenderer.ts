@@ -664,8 +664,8 @@ export function renderCommentActivityEmail(args: {
 
   const contentPath =
     payload.contentType === "project"
-      ? `/project/${payload.contentId}`
-      : `/thread/${payload.contentId}`;
+      ? `/project/${payload.contentId}#discussion`
+      : `/thread/${payload.contentId}#discussion`;
   const contentUrl = joinUrl(baseUrl, contentPath);
   const preheader = isReply
     ? `${escapeHtml(payload.commenterName)} replied to your comment`
