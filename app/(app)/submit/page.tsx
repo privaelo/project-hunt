@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { isRichTextEmpty, stripHtml } from "@/lib/utils";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
 import { Info } from "lucide-react";
 import { SimilarProjectsPreview } from "@/components/SimilarProjectsPreview";

@@ -51,6 +51,10 @@ function EmojiPickerPopover({
         className="w-auto p-0 border-0"
         side="right"
         align="start"
+        onWheel={(e) => {
+          // Keep wheel scrolling inside the picker from bubbling to parent layers
+          e.stopPropagation();
+        }}
       >
         <EmojiPicker
           onEmojiClick={(emojiData: EmojiClickData) => {

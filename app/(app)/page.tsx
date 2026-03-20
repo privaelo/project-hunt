@@ -24,14 +24,9 @@ export default function Home() {
     {},
     { initialNumItems: 15 }
   );
-  const { isAuthenticated, user } = useCurrentUser();
+  const { isAuthenticated } = useCurrentUser();
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
   const toggleFollow = useMutation(api.projects.toggleFollow);
-
-  // Build current user object for Facepile
-  const currentUser = user
-    ? { _id: user._id, name: user.name, avatarUrl: user.avatarUrlId || "" }
-    : null;
 
   const isLoading = status === "LoadingFirstPage";
   const canLoadMore = status === "CanLoadMore";
@@ -91,7 +86,7 @@ export default function Home() {
                   href="/submit"
                   className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
                 >
-                  Share what you're working on
+                  Share what you&apos;re working on
                 </Link>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   <Link href="/guidelines" className="underline underline-offset-2 hover:text-foreground transition-colors">

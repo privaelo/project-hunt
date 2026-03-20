@@ -22,7 +22,7 @@ export const projectAgent = new Agent(components.agent, {
   `,
   tools: { searchCatalog, showProjects, showThreads },
   languageModel: bedrock("us.anthropic.claude-haiku-4-5-20251001-v1:0"),
-  textEmbeddingModel: bedrock.embedding("amazon.titan-embed-text-v2:0"),
+  embeddingModel: bedrock.embedding("amazon.titan-embed-text-v2:0"),
   maxSteps: 10,
 });
 

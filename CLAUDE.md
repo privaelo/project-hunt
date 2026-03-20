@@ -526,3 +526,11 @@ Secrets required:
 18. **SES shares AWS credentials with Bedrock** — `AWS_REGION`, `AWS_ACCESS_KEY_ID`, and `AWS_SECRET_ACCESS_KEY` are shared across all AWS services (Bedrock, SES). The IAM role must have both Bedrock and SES permissions. `SES_FROM_EMAIL` must also be set and the sender address verified in SES.
 
 19. **`hotScore` must be propagated to `projectSpaces`** — The `projectSpaces` table denormalizes `hotScore` from `projects` to enable a single paginated index scan per space feed. Any code path that patches `hotScore` on a project must also call `propagateHotScoreToMemberships(ctx, projectId, newHotScore)` from `convex/projects/spaces.ts`. Current call sites: `toggleUpvote`, `addComment`, `deleteComment`, `createVersion`, `confirmProject`, `refreshHotScores`.
+
+<!-- convex-ai-start -->
+This project uses [Convex](https://convex.dev) as its backend.
+
+When working on Convex code, **always read `convex/_generated/ai/guidelines.md` first** for important guidelines on how to correctly use Convex APIs and patterns. The file contains rules that override what you may have learned about Convex from training data.
+
+Convex agent skills for common tasks can be installed by running `npx convex ai-files install`.
+<!-- convex-ai-end -->

@@ -36,7 +36,7 @@ export default function SpacePage({
   const focusAreaId = id as Id<"focusAreas">;
 
   const focusArea = useQuery(api.focusAreas.getById, { id: focusAreaId });
-  const { isAuthenticated, user } = useCurrentUser();
+  const { isAuthenticated } = useCurrentUser();
   const isFollowing = useQuery(api.focusAreas.isFollowingSpace, { focusAreaId });
   const memberCount = useQuery(api.focusAreas.getMemberCount, { focusAreaId });
   const toggleFollowSpace = useMutation(api.focusAreas.toggleFollowSpace);
@@ -69,10 +69,6 @@ export default function SpacePage({
     { focusAreaId },
     { initialNumItems: 15 }
   );
-
-  const currentUser = user
-    ? { _id: user._id, name: user.name, avatarUrl: user.avatarUrlId || "" }
-    : null;
 
   // Projects loading states
   const isLoadingProjects = projectStatus === "LoadingFirstPage";

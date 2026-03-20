@@ -5,8 +5,8 @@ import { api } from "./_generated/api";
 // Tool 1: The "Eye" (Search)
 export const searchCatalog = createTool({
   description: "Search the catalog for projects and discussion threads matching the query using hybrid search (vector search and full text search).",
-  args: z.object({ query: z.string() }).describe("The query to be used in the hybrid search to find projects and threads"),
-  handler: async (ctx, { query }): Promise<string> => {
+  inputSchema: z.object({ query: z.string() }).describe("The query to be used in the hybrid search to find projects and threads"),
+  execute: async (ctx, { query }): Promise<string> => {
     if (query.trim().length < 2) {
       return "Query too short. Please provide at least 2 characters.";
     }
@@ -61,11 +61,11 @@ export const searchCatalog = createTool({
 // Tool 2: The "Mouth" (Structured Output — Projects)
 export const showProjects = createTool({
   description: "Display a list of project cards to the user. Use this when you find relevant projects.",
-  args: z.object({
+  inputSchema: z.object({
     projectIds: z.array(z.string()).describe("The entryIDs of the relevant projects"),
     summary: z.string().describe("A brief summary of why these were chosen"),
   }),
-  handler: async () => {
+  execute: async () => {
     // We don't need to do backend logic here.
     // The mere fact that this tool was called is enough for the UI.
     return "Projects displayed to user.";
@@ -75,11 +75,11 @@ export const showProjects = createTool({
 // Tool 3: Display Thread Cards
 export const showThreads = createTool({
   description: "Display a list of discussion thread cards to the user. Use this when you find relevant discussion threads.",
-  args: z.object({
+  inputSchema: z.object({
     threadIds: z.array(z.string()).describe("The entryIDs of the relevant threads"),
     summary: z.string().describe("A brief summary of why these threads were chosen"),
   }),
-  handler: async () => {
+  execute: async () => {
     return "Threads displayed to user.";
   },
 });

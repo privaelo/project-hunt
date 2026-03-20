@@ -53,21 +53,15 @@ export function SearchBar() {
   // Perform search when debounced query changes
   useEffect(() => {
     if (debouncedQuery.trim().length < 2) {
-      setResults([]);
-      setIsLoading(false);
-      setIsOpen(false);
       return;
     }
 
     const currentRequestId = ++requestIdRef.current;
-    setIsLoading(true);
-    setIsOpen(true);
 
     searchCatalog({ query: debouncedQuery })
       .then((searchResults) => {
         if (requestIdRef.current !== currentRequestId) return;
         setResults(searchResults);
-        setIsOpen(true);
       })
       .catch((error) => {
         if (requestIdRef.current !== currentRequestId) return;
@@ -142,8 +136,20 @@ export function SearchBar() {
             placeholder="Search tools & threads..."
             value={query}
             onChange={(e) => {
-              setQuery(e.target.value);
+              const nextQuery = e.target.value;
+              requestIdRef.current += 1;
+              setQuery(nextQuery);
               setActiveIndex(-1);
+
+              if (nextQuery.trim().length >= 2) {
+                setIsLoading(true);
+                setIsOpen(true);
+                return;
+              }
+
+              setIsLoading(false);
+              setIsOpen(false);
+              setResults([]);
             }}
             onFocus={() => {
               if (results.length > 0 && query.trim().length >= 2) {

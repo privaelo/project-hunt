@@ -2,7 +2,7 @@ const region = process.env.COGNITO_REGION;
 const userPoolId = process.env.COGNITO_USER_POOL_ID;
 const clientId = process.env.COGNITO_CLIENT_ID;
 
-export default {
+const authConfig = {
   providers: [
     {
       // Standard OIDC provider: Convex auto-discovers JWKS via
@@ -14,3 +14,5 @@ export default {
     },
   ],
 };
+
+export default authConfig;
