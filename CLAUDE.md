@@ -16,7 +16,7 @@ The app title in `app/layout.tsx` is "Garden"; the repo is named `project-hunt`.
 | Styling | Tailwind CSS v4, shadcn/ui, Radix UI, Lucide React |
 | Backend/DB | Convex (real-time backend-as-a-service) |
 | Auth | AWS Cognito via AWS Amplify, bridged to Convex via OIDC |
-| AI / RAG | `@convex-dev/agent`, `@convex-dev/rag`, Amazon Bedrock (Claude Haiku), OpenAI embeddings |
+| AI / RAG | `@convex-dev/agent`, `@convex-dev/rag`, Amazon Bedrock (Claude Haiku + Amazon Titan Embed v2) |
 | Analytics | PostHog (proxied via Next.js rewrites; initialized in `instrumentation-client.ts`) |
 | Animation | Motion (Framer Motion v12) |
 | Rich Text | `react-quill-new` (editor), `dompurify` (sanitizer), `react-markdown` (renderer) |
@@ -40,9 +40,14 @@ project-hunt/
 │   │   ├── about/page.tsx
 │   │   ├── create-team/page.tsx
 │   │   ├── create-thread/page.tsx  # Standalone thread creation page
+│   │   ├── guidelines/page.tsx         # Platform guidelines page
 │   │   ├── profile/[id]/page.tsx   # User profile — tabs for Built/Uses; shows department
 │   │   ├── project/[id]/page.tsx       # Project detail
 │   │   ├── project/[id]/edit/page.tsx  # Project edit form
+│   │   ├── project/[id]/versions/      # Project version history
+│   │   │   ├── page.tsx                # Versions list
+│   │   │   ├── new/page.tsx            # Create new version
+│   │   │   └── [versionId]/edit/page.tsx  # Edit existing version
 │   │   ├── space/[id]/page.tsx         # Focus area/space feed (tabs: Projects + Threads)
 │   │   ├── thread/[id]/page.tsx        # Thread detail + comments
 │   │   └── submit/                     # Multi-step project submission
@@ -58,21 +63,28 @@ project-hunt/
 │   ├── ui/                     # shadcn/ui base components (do not modify manually)
 │   │   └── sonner.tsx          # Custom Sonner toaster wrapper with Lucide icons
 │   ├── auth/AuthPage.tsx       # Auth UI wrapper
-│   ├── chat/                   # AI chat components (ProjectCardsDisplay, SearchingIndicator)
+│   ├── chat/                   # AI chat components
+│   │   ├── ProjectCardsDisplay.tsx  # Project card grid for search results
+│   │   ├── SearchingIndicator.tsx   # Loading indicator for search
+│   │   └── ThreadCardsDisplay.tsx   # Thread card display for search results
+│   ├── AdditionalSpacesPicker.tsx # Multi-select combobox for secondary spaces
 │   ├── ConvexClientProvider.tsx # Convex + Cognito auth bridge
+│   ├── EmailPreferencesSection.tsx # Email notification preferences UI
 │   ├── app-sidebar.tsx         # Main navigation sidebar
-│   ├── header.tsx              # Top navigation bar
+│   ├── header.tsx              # Top navigation bar (includes SearchBar)
 │   ├── LandingPage.tsx         # Public landing page component
 │   ├── ProjectRow.tsx          # Project list item card (ArrowBigUp upvote icon)
-│   ├── ProjectMediaCarousel.tsx # Media carousel for project detail
+│   ├── ProjectMediaCarousel.tsx # Media carousel with expandable/zoomed media support
 │   ├── ProjectFileDownload.tsx # File download section on project detail
+│   ├── SearchBar.tsx           # Header search bar (hybrid full-text + semantic search)
 │   ├── SimilarProjectsPreview.tsx # Similar projects shown on /submit
 │   ├── Facepile.tsx            # Adopter avatar group
 │   ├── ReadinessBadge.tsx      # Readiness status badge
 │   ├── SpaceIcon.tsx           # Renders a space's emoji icon or initial fallback
-│   ├── SpacePicker.tsx         # Combobox for selecting a focus area (space)
+│   ├── SpacePicker.tsx         # Combobox for selecting a primary focus area (space)
 │   ├── CreateThreadForm.tsx    # Inline form for creating a thread in a space
 │   ├── ThreadRow.tsx           # Thread list item card
+│   ├── VersionsList.tsx        # Project version history display
 │   ├── CommentThread.tsx / CommentForm.tsx  # Shared comment UI for both projects and threads
 │   ├── ChatInterface.tsx / MessageList.tsx  # AI chat UI
 │   ├── LinksEditor.tsx         # Links editing UI for project forms
@@ -95,15 +107,20 @@ project-hunt/
 │   │   ├── engagement.ts       # upvotes, adoptions, views, hot score refresh
 │   │   ├── search.ts           # full-text and semantic search
 │   │   ├── media.ts            # file/media upload/delete/reorder
+│   │   ├── versions.ts         # version CRUD + file management
+│   │   ├── spaces.ts           # projectSpaces sync + hotScore propagation
 │   │   ├── migrations.ts       # data migrations
 │   │   └── helpers.ts          # calculateHotScore, enrichProjects
 │   ├── emails.ts               # Email sending (SES v2), queue drainer, user preferences
-│   ├── emailRenderer.ts        # HTML + plain-text email templates (weekly digest)
+│   ├── emailRenderer.ts        # HTML + plain-text email templates (weekly digest, notifications)
 │   ├── digests.ts              # Weekly digest orchestrator, per-user data gathering, enqueuing
+│   ├── commentNotifications.ts # Email alerts when someone comments on your project (30-min dedup)
+│   ├── followNotifications.ts  # Email alerts when followed projects get comments
+│   ├── spaceNotifications.ts   # Email alerts for followed space activity
 │   ├── threads.ts              # Threads feature: CRUD, upvotes, comments, hot score
 │   ├── ragbot.ts               # AI agent (ProjectFinder) + thread management
 │   ├── rag.ts                  # RAG component init
-│   ├── tools.ts                # Agent tools: searchProjects, showProjects
+│   ├── tools.ts                # Agent tools: searchCatalog, showProjects, showThreads
 │   ├── users.ts                # User management (ensureUser, getCurrentUser, getEmailRecipient, department sync)
 │   ├── teams.ts
 │   ├── comments.ts             # Project comments
@@ -187,6 +204,9 @@ Key tables and their purpose:
 | `projects` | Core project records; `status: "pending" \| "active"` |
 | `mediaFiles` | Images/videos attached to projects (ordered) |
 | `projectFiles` | Downloadable files attached to projects |
+| `projectVersions` | Version snapshots: tag, title, body, links; ordered by `by_project_createdAt` |
+| `versionFiles` | Files attached to a specific version |
+| `projectSpaces` | Denormalized project ↔ space memberships with `isPrimary` flag and cached `hotScore` |
 | `upvotes` | Per-user upvotes on projects |
 | `adoptions` | Per-user "I'm using this" signals |
 | `projectViews` | Unique view tracking per viewer ID |
@@ -339,7 +359,7 @@ hotScore = (engagementScore + 1) / (ageHours + 2)^1.0
 - Updated on every upvote/comment
 - Also refreshed hourly via cron job (`convex/crons.ts` → `internal.projects.refreshHotScores`)
 - Pinned projects always appear first regardless of score
-- Feed index: `by_status_hotScore`; space feed index: `by_status_focusArea_hotScore`
+- Feed index: `by_status_hotScore`; space feed uses `projectSpaces.by_focusArea_hotScore` (denormalized)
 
 **Threads**:
 - Same formula; `engagementScore` = upvote count + comment count
@@ -387,7 +407,7 @@ Key exported queries:
 
 ## Focus Areas (Spaces)
 
-Focus areas are taxonomy tags rendered as "Spaces" in the sidebar (styled like `g/name`). Each project can belong to one focus area, and each thread *must* belong to one. Users can follow/join spaces.
+Focus areas are taxonomy tags rendered as "Spaces" in the sidebar (styled like `g/name`). Each project can belong to **one primary focus area** plus optional secondary spaces (multi-space support via `projectSpaces` table). Each thread *must* belong to exactly one space. Users can follow/join spaces.
 
 Key backend functions in `convex/focusAreas.ts`:
 - `listActive` — all active spaces
@@ -408,11 +428,11 @@ The AI chat assistant lives in `convex/ragbot.ts`:
 
 - **Agent**: `projectAgent` using `@convex-dev/agent`
 - **LLM**: Amazon Bedrock (`us.anthropic.claude-haiku-4-5-20251001-v1:0`)
-- **Embeddings**: OpenAI `text-embedding-3-small`
-- **Tools**: `searchProjects` (semantic RAG search), `showProjects` (renders results to UI)
-- **RAG namespace**: `"projects"` — project names + summaries are indexed on create/update
+- **Embeddings**: Amazon Bedrock (Amazon Titan Embed v2)
+- **Tools**: `searchCatalog` (hybrid RAG search across projects + threads), `showProjects` (renders project results), `showThreads` (renders thread results)
+- **RAG namespace**: `"projects"` — project names + summaries are indexed; `"threads"` — thread titles + bodies are indexed
 
-When a project is created or updated, `rag.add()` is called to upsert its embedding. On project deletion, `rag.delete()` removes it.
+When a project or thread is created or updated, `rag.add()` upserts its embedding. On deletion, `rag.delete()` removes it. Search results include both projects and threads, distinguished by emoji indicators in the UI.
 
 ---
 
@@ -442,6 +462,9 @@ Cron (every 5 min) → drainEmailQueue (action, convex/emails.ts)
 | `convex/digests.ts` | Orchestrator action, per-user data gathering, email enqueuing with deduplication |
 | `convex/emails.ts` | `sendEmail` (SES v2 integration), queue drainer, email preference queries/mutations |
 | `convex/emailRenderer.ts` | `renderWeeklyDigestEmail` — typed HTML + plain-text templates with `escapeHtml` |
+| `convex/commentNotifications.ts` | Enqueues comment notification emails to project owners (30-min dedup window) |
+| `convex/followNotifications.ts` | Enqueues notification emails to users who follow a commented project |
+| `convex/spaceNotifications.ts` | Enqueues notification emails to users who follow a space with new activity |
 | `convex/users.ts` | `getEmailRecipient` — internal query returning `{ name, email }` for a user |
 
 ### Digest Data Shape
@@ -461,7 +484,7 @@ The `emailQueue` table tracks every outbound email with status transitions: `pen
 
 ### Email Preferences
 
-Users can opt out of email categories via `emailPreferences` on the `users` table. Categories: `weeklyDigest`, `spaceActivity`, `projectActivity`. All default to opt-in (enabled if undefined). Preferences are checked during digest generation, not at send time.
+Users can opt out of email categories via `emailPreferences` on the `users` table. Categories: `weeklyDigest`, `spaceActivity`, `projectActivity`, `followedProjectComment`, `followedProjectUpdate`. All default to opt-in (enabled if undefined). Preferences are checked during digest generation, not at send time. The `EmailPreferencesSection` component renders toggle switches for each category.
 
 ---
 
@@ -469,9 +492,11 @@ Users can opt out of email categories via `emailPreferences` on the `users` tabl
 
 Notifications are aggregated (upserted) per `(recipient, project, type)` tuple. Types:
 - `"comment"` — someone commented on your project
+- `"reply"` — someone replied to your comment
 - `"upvote"` — upvote count notification (aggregated)
 - `"adoption"` — someone adopted your project
 - `"project_update"` — a project you've interacted with was updated
+- `"followed_project_comment"` — a project you follow received a new comment
 
 ---
 
@@ -505,7 +530,7 @@ Secrets required:
 
 8. **PostHog analytics** is initialized in `instrumentation-client.ts` (Next.js client instrumentation hook) and proxied through Next.js rewrites (`/ingest/*` → PostHog endpoints) to avoid ad blockers. Requires `NEXT_PUBLIC_POSTHOG_KEY` env var.
 
-9. **Threads do not have notifications** — only project activity triggers notifications. This is intentional; do not add thread notifications without discussing the aggregation strategy.
+9. **Threads do not have in-app notifications** — `notifications` table entries are only generated for project activity. Thread/space email notifications exist (via `spaceNotifications.ts`) but do not surface as in-app notification badges. Do not add thread in-app notifications without discussing the aggregation strategy.
 
 10. **`SpacePicker`** is a controlled combobox component (`components/SpacePicker.tsx`) used on the standalone `/create-thread` page to let users pick which space a thread belongs to.
 
@@ -526,6 +551,14 @@ Secrets required:
 18. **SES shares AWS credentials with Bedrock** — `AWS_REGION`, `AWS_ACCESS_KEY_ID`, and `AWS_SECRET_ACCESS_KEY` are shared across all AWS services (Bedrock, SES). The IAM role must have both Bedrock and SES permissions. `SES_FROM_EMAIL` must also be set and the sender address verified in SES.
 
 19. **`hotScore` must be propagated to `projectSpaces`** — The `projectSpaces` table denormalizes `hotScore` from `projects` to enable a single paginated index scan per space feed. Any code path that patches `hotScore` on a project must also call `propagateHotScoreToMemberships(ctx, projectId, newHotScore)` from `convex/projects/spaces.ts`. Current call sites: `toggleUpvote`, `addComment`, `deleteComment`, `createVersion`, `confirmProject`, `refreshHotScores`.
+
+20. **Multi-space support** — Projects can belong to multiple spaces. One space is `isPrimary: true`; others are secondary. The `AdditionalSpacesPicker` component handles secondary space selection. `syncProjectSpaceMemberships()` in `convex/projects/spaces.ts` keeps the `projectSpaces` table in sync whenever a project is created/updated.
+
+21. **Project versions** — Projects track a changelog via `projectVersions` (tag, title, body, links, files). The `versionCount` and `lastVersionAt` fields on `projects` are updated on every version create/delete. Version pages live at `/project/[id]/versions`. The `VersionsList` component renders the history with expand/collapse.
+
+22. **Header search bar** — `SearchBar.tsx` in `header.tsx` performs hybrid search (full-text + semantic via RAG) returning both projects and threads. Projects and threads are distinguished with emoji prefixes in results. Search is powered by `convex/projects/search.ts` and threads RAG indexing.
+
+23. **AI SDK v6** — The project uses Vercel AI SDK v6 (`ai: ^6.0.116`) with `@convex-dev/agent ^0.6.0-beta.0` and `@convex-dev/rag ^0.7.2`. If updating agent/RAG code, check `convex/_generated/ai/guidelines.md` for the correct v6 API patterns; the beta versions have different interfaces than earlier releases.
 
 <!-- convex-ai-start -->
 This project uses [Convex](https://convex.dev) as its backend.
