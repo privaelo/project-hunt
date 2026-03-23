@@ -103,7 +103,7 @@ export function Header() {
                 <NavigationMenuItem>
                   <Link
                     href="/submit"
-                    className="inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 px-4 py-2 text-sm font-medium text-white shadow-md shadow-emerald-500/25 transition-all hover:shadow-lg hover:shadow-emerald-500/40 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2"
+                    className="inline-flex items-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2"
                     aria-label="Register a tool"
                   >
                     <PlusCircle className="h-4 w-4" />

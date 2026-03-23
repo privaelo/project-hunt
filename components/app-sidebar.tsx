@@ -31,7 +31,7 @@ function SidebarSpaces() {
       <div className="flex items-center justify-between px-2 py-1.5">
         <SidebarGroupLabel className="px-0">Spaces</SidebarGroupLabel>
         <CreateFocusAreaDialog>
-          <Button variant="ghost" size="icon" className="h-6 w-6">
+          <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
             <Plus className="h-4 w-4" />
           </Button>
         </CreateFocusAreaDialog>

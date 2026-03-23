@@ -110,11 +110,11 @@ export function ProjectMediaCarousel({
             <>
               <CarouselPrevious
                 className="left-2 bg-black/30 hover:bg-black/40 text-white border-0"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); api?.scrollPrev(); }}
               />
               <CarouselNext
                 className="right-2 bg-black/30 hover:bg-black/40 text-white border-0"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); api?.scrollNext(); }}
               />
             </>
           )}
