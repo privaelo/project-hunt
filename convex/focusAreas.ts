@@ -1,4 +1,4 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 
@@ -44,10 +44,7 @@ export const create = mutation({
     icon: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
+    const user = await getCurrentUserOrThrow(ctx);
 
     const focusAreaId = await ctx.db.insert("focusAreas", {
       name: args.name,
@@ -70,7 +67,7 @@ export const create = mutation({
   },
 });
 
-export const update = mutation({
+export const update = internalMutation({
   args: {
     id: v.id("focusAreas"),
     name: v.optional(v.string()),
@@ -84,7 +81,7 @@ export const update = mutation({
   },
 });
 
-export const archive = mutation({
+export const archive = internalMutation({
   args: {
     id: v.id("focusAreas"),
   },
@@ -93,7 +90,7 @@ export const archive = mutation({
   },
 });
 
-export const reactivate = mutation({
+export const reactivate = internalMutation({
   args: {
     id: v.id("focusAreas"),
   },

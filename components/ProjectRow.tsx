@@ -109,7 +109,7 @@ export function ProjectRow({
 
       {/* Media carousel OR summary - not both */}
       {hasMedia ? (
-        <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
           <ProjectMediaCarousel media={project.previewMedia} />
         </div>
       ) : project.summary ? (
@@ -170,7 +170,7 @@ export function ProjectRow({
               variant="ghost"
               size="sm"
               onClick={(e) => { e.stopPropagation(); handleFollowClick(); }}
-              className={`flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium !bg-zinc-200 hover:!bg-zinc-300 active:!bg-zinc-400 ${project.hasFollowed ? "text-emerald-700 hover:text-emerald-800" : "text-zinc-700"}`}
+              className={`flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium !bg-zinc-200 hover:!bg-zinc-300 active:!bg-zinc-400 ${project.hasFollowed ? "text-emerald-700 hover:text-emerald-800" : "text-zinc-700 hover:text-zinc-800"}`}
               aria-label={project.hasFollowed ? "Unfollow project" : "Follow project"}
             >
               {project.hasFollowed ? (
