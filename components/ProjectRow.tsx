@@ -109,8 +109,8 @@ export function ProjectRow({
 
       {/* Media carousel OR summary - not both */}
       {hasMedia ? (
-        <div className="w-full max-w-2xl">
-          <ProjectMediaCarousel media={project.previewMedia} allowExpand={false} />
+        <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+          <ProjectMediaCarousel media={project.previewMedia} />
         </div>
       ) : project.summary ? (
         <p className="text-sm leading-5 text-zinc-600 line-clamp-2 break-words">
