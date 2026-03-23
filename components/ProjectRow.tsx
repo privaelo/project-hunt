@@ -109,7 +109,7 @@ export function ProjectRow({
 
       {/* Media carousel OR summary - not both */}
       {hasMedia ? (
-        <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
           <ProjectMediaCarousel media={project.previewMedia} />
         </div>
       ) : project.summary ? (
