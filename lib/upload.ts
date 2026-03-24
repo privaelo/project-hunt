@@ -1,3 +1,5 @@
+import type { Id } from "@/convex/_generated/dataModel";
+
 /**
  * Upload a file to Convex storage via a generated upload URL.
  *
@@ -7,7 +9,7 @@
 export async function uploadFile(
   file: File,
   generateUploadUrl: () => Promise<string>,
-): Promise<{ storageId: string; contentType: string }> {
+): Promise<{ storageId: Id<"_storage">; contentType: string }> {
   const contentType = file.type || "application/octet-stream";
 
   const uploadUrl = await generateUploadUrl();
