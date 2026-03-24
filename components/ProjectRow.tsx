@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { ArrowBigUp, Forward, MessageCircle, Users, UserPlus, UserCheck } from "lucide-react";
+import { ArrowBigUp, Eye, EyeOff, Forward, MessageCircle, Users } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import {
@@ -171,14 +171,14 @@ export function ProjectRow({
               size="sm"
               onClick={(e) => { e.stopPropagation(); handleFollowClick(); }}
               className={`flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium !bg-zinc-200 hover:!bg-zinc-300 active:!bg-zinc-400 ${project.hasFollowed ? "text-emerald-700 hover:text-emerald-800" : "text-zinc-700 hover:text-zinc-800"}`}
-              aria-label={project.hasFollowed ? "Unfollow project" : "Follow project"}
+              aria-label={project.hasFollowed ? "Unwatch project" : "Watch project"}
             >
               {project.hasFollowed ? (
-                <UserCheck className="h-4 w-4" aria-hidden="true" />
+                <Eye className="h-4 w-4" aria-hidden="true" />
               ) : (
-                <UserPlus className="h-4 w-4" aria-hidden="true" />
+                <EyeOff className="h-4 w-4" aria-hidden="true" />
               )}
-              <span>{project.hasFollowed ? "Following" : "Follow"}</span>
+              <span>{project.hasFollowed ? "Watching" : "Watch"}</span>
             </Button>
           </motion.div>
         ) : (
@@ -191,8 +191,8 @@ export function ProjectRow({
               asChild
             >
               <Link href="/sign-in" prefetch={false}>
-                <UserPlus className="h-4 w-4" aria-hidden="true" />
-                <span>Follow</span>
+                <EyeOff className="h-4 w-4" aria-hidden="true" />
+                <span>Watch</span>
               </Link>
             </Button>
           </motion.div>

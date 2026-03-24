@@ -17,7 +17,8 @@ import { RichTextContent } from "@/components/RichTextContent";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { Facepile } from "@/components/Facepile";
 import Link from "next/link";
-import { ArrowBigUp, Eye, Forward, Link2, Pencil, Plus, Tag } from "lucide-react";
+import { ArrowBigUp, Forward, Link2, Pencil, Plus, Tag } from "lucide-react";
+import { ViewsIcon } from "@/components/ViewsIcon";
 import { SpaceIcon } from "@/components/SpaceIcon";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -292,7 +293,7 @@ export default function ProjectPage({
                 </div>
                 {isOwner && (
                   <div className="flex items-center gap-1 text-xs text-zinc-400">
-                    <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                    <ViewsIcon className="h-3.5 w-3.5" aria-hidden="true" />
                     {project.viewCount ?? 0} views
                   </div>
                 )}

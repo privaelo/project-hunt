@@ -25,6 +25,7 @@ import { SpacePicker } from "@/components/SpacePicker";
 import { AdditionalSpacesPicker } from "@/components/AdditionalSpacesPicker";
 import { MediaUploadField } from "@/components/MediaUploadField";
 import { FileUploadField } from "@/components/FileUploadField";
+import { uploadFile } from "@/lib/upload";
 import type { LinkItem, ExistingMediaItem, NewFileItem, NewProjectFileItem } from "@/lib/types";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -168,28 +169,13 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       if (selectedFiles.length > 0) {
         await Promise.all(
           selectedFiles.map(async ({ file }) => {
-            // Generate upload URL
-            const uploadUrl = await generateUploadUrl();
+            const { storageId, contentType } = await uploadFile(file, generateUploadUrl);
 
-            // Upload file to storage
-            const uploadResult = await fetch(uploadUrl, {
-              method: "POST",
-              headers: { "Content-Type": file.type },
-              body: file,
-            });
-
-            if (!uploadResult.ok) {
-              throw new Error(`Failed to upload ${file.name}`);
-            }
-
-            const { storageId } = await uploadResult.json();
-
-            // Add media to project with metadata
             await addMediaToProject({
               projectId,
               storageId,
               type: file.type.startsWith('video/') ? 'video' : 'image',
-              contentType: file.type,
+              contentType,
             });
           })
         );
@@ -199,24 +185,13 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
       if (newProjectFiles.length > 0) {
         await Promise.all(
           newProjectFiles.map(async ({ file }) => {
-            const uploadUrl = await generateUploadUrl();
-            const uploadResult = await fetch(uploadUrl, {
-              method: "POST",
-              headers: { "Content-Type": file.type },
-              body: file,
-            });
-
-            if (!uploadResult.ok) {
-              throw new Error(`Failed to upload ${file.name}`);
-            }
-
-            const { storageId } = await uploadResult.json();
+            const { storageId, contentType } = await uploadFile(file, generateUploadUrl);
 
             await addFileToProject({
               projectId,
               storageId,
               filename: file.name,
-              contentType: file.type,
+              contentType,
               fileSize: file.size,
             });
           })

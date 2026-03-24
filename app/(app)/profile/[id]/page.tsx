@@ -15,7 +15,8 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { EmailPreferencesSection } from "@/components/EmailPreferencesSection";
-import { ArrowBigUp, Eye, MessageSquare, Pencil, Users } from "lucide-react";
+import { ArrowBigUp, MessageSquare, Pencil, Users } from "lucide-react";
+import { ViewsIcon } from "@/components/ViewsIcon";
 import { stripHtml } from "@/lib/utils";
 import {
   Breadcrumb,
@@ -258,7 +259,7 @@ export default function ProfilePage({
                       </Badge>
                     </TabsTrigger>
                     <TabsTrigger value="following" className="gap-2">
-                      Following
+                      Watching
                       <Badge variant="secondary" className="bg-zinc-100">
                         {profile.followingCount}
                       </Badge>
@@ -293,9 +294,9 @@ export default function ProfilePage({
 
               <TabsContent value="following" className="space-y-4">
                 {followedProjects === undefined ? (
-                  <EmptyState message="Loading followed tools..." />
+                  <EmptyState message="Loading watched tools..." />
                 ) : followedProjects.length === 0 ? (
-                  <EmptyState message="Not following anything yet." />
+                  <EmptyState message="Not watching anything yet." />
                 ) : (
                   <div className="space-y-3">
                     {followedProjects.map((project) => (
@@ -383,7 +384,7 @@ function ProjectCard({
                 <Users className="h-4 w-4" aria-hidden="true" />
                 <span>{project.followerCount}</span>
                 <span className="text-zinc-300">•</span>
-                <Eye className="h-4 w-4" aria-hidden="true" />
+                <ViewsIcon className="h-4 w-4" aria-hidden="true" />
                 <span>{project.viewCount}</span>
               </div>
             </div>
