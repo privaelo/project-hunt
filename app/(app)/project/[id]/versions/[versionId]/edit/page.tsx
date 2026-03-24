@@ -9,6 +9,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileUploadField } from "@/components/FileUploadField";
+import { uploadFile } from "@/lib/upload";
 import { LinksEditor } from "@/components/LinksEditor";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import Link from "next/link";
@@ -115,24 +116,12 @@ export default function EditVersionPage({
 
       // Upload new files — abort if any fail
       for (const fileItem of newFiles) {
-        const uploadUrl = await generateUploadUrl();
-        const uploadResult = await fetch(uploadUrl, {
-          method: "POST",
-          headers: { "Content-Type": fileItem.file.type },
-          body: fileItem.file,
-        });
-        if (!uploadResult.ok) {
-          throw new Error(`Failed to upload "${fileItem.file.name}". Remove it and try again.`);
-        }
-        const { storageId } = await uploadResult.json();
-        if (!storageId) {
-          throw new Error(`Failed to upload "${fileItem.file.name}". This file type may not be supported.`);
-        }
+        const { storageId, contentType } = await uploadFile(fileItem.file, generateUploadUrl);
         await addFileToVersion({
           versionId,
           storageId,
           filename: fileItem.file.name,
-          contentType: fileItem.file.type,
+          contentType,
           fileSize: fileItem.file.size,
         });
       }
