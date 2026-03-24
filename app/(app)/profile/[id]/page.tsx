@@ -259,7 +259,7 @@ export default function ProfilePage({
                       </Badge>
                     </TabsTrigger>
                     <TabsTrigger value="following" className="gap-2">
-                      Following
+                      Watching
                       <Badge variant="secondary" className="bg-zinc-100">
                         {profile.followingCount}
                       </Badge>
@@ -294,9 +294,9 @@ export default function ProfilePage({
 
               <TabsContent value="following" className="space-y-4">
                 {followedProjects === undefined ? (
-                  <EmptyState message="Loading followed tools..." />
+                  <EmptyState message="Loading watched tools..." />
                 ) : followedProjects.length === 0 ? (
-                  <EmptyState message="Not following anything yet." />
+                  <EmptyState message="Not watching anything yet." />
                 ) : (
                   <div className="space-y-3">
                     {followedProjects.map((project) => (
