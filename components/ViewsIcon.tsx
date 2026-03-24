@@ -20,9 +20,9 @@ export function ViewsIcon(props: SVGProps<SVGSVGElement>) {
       {/* Rounded rectangle — the "post" container */}
       <rect x="2" y="3" width="20" height="18" rx="3" ry="3" />
       {/* Eye shape — centered inside the rectangle */}
-      <path d="M12 9.5c-3.5 0-5.5 2.5-5.5 2.5s2 2.5 5.5 2.5 5.5-2.5 5.5-2.5-2-2.5-5.5-2.5z" />
+      <path d="M12 9c-4 0-6.5 3-6.5 3s2.5 3 6.5 3 6.5-3 6.5-3-2.5-3-6.5-3z" />
       {/* Pupil */}
-      <circle cx="12" cy="12" r="1.25" />
+      <circle cx="12" cy="12" r="1.5" />
     </svg>
   );
 }
