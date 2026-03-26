@@ -54,7 +54,7 @@ function SidebarSpaces() {
             sorted.map((area) => (
               <SidebarMenuItem key={area._id}>
                 <SidebarMenuButton asChild>
-                  <Link href={`/space/${area._id}`}>
+                  <Link href={`/space/${area._id}`} title={`g/${area.name}`}>
                     <SpaceIcon icon={area.icon} name={area.name} size="sm" />
                     <span className="text-zinc-500 font-mono text-xs">
                       g/{area.name}
