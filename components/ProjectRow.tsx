@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { ArrowBigUp, Eye, EyeOff, Forward, MessageCircle, Users } from "lucide-react";
+import { ArrowBigUp, Eye, EyeOff, Forward, MessageCircle } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import {
@@ -95,10 +95,6 @@ export function ProjectRow({
           <span className="text-zinc-300">•</span>
           <span>{getRelativeTime(project._creationTime)}</span>
         </div>
-        <div className="flex items-center gap-1 text-zinc-500">
-          <Users className="h-3.5 w-3.5" />
-          <span>{project.followerCount}</span>
-        </div>
       </div>
 
       {/* Title */}
@@ -171,14 +167,15 @@ export function ProjectRow({
               size="sm"
               onClick={(e) => { e.stopPropagation(); handleFollowClick(); }}
               className={`flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium !bg-zinc-200 hover:!bg-zinc-300 active:!bg-zinc-400 ${project.hasFollowed ? "text-emerald-700 hover:text-emerald-800" : "text-zinc-700 hover:text-zinc-800"}`}
-              aria-label={project.hasFollowed ? "Unwatch project" : "Watch project"}
+              aria-label={project.hasFollowed ? `Unwatch (${project.followerCount} watching)` : `Watch (${project.followerCount} watching)`}
+              title={project.hasFollowed ? `Unwatch (${project.followerCount} watching)` : `Watch (${project.followerCount} watching)`}
             >
               {project.hasFollowed ? (
                 <Eye className="h-4 w-4" aria-hidden="true" />
               ) : (
                 <EyeOff className="h-4 w-4" aria-hidden="true" />
               )}
-              <span>{project.hasFollowed ? "Watching" : "Watch"}</span>
+              <span>{project.followerCount}</span>
             </Button>
           </motion.div>
         ) : (
@@ -190,9 +187,9 @@ export function ProjectRow({
               className="flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-medium !bg-zinc-200 hover:!bg-zinc-300 active:!bg-zinc-400 !text-zinc-700"
               asChild
             >
-              <Link href="/sign-in" prefetch={false}>
+              <Link href="/sign-in" prefetch={false} title={`Watch (${project.followerCount} watching)`}>
                 <EyeOff className="h-4 w-4" aria-hidden="true" />
-                <span>Watch</span>
+                <span>{project.followerCount}</span>
               </Link>
             </Button>
           </motion.div>

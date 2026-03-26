@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReadinessBadge } from "@/components/ReadinessBadge";
 import { EmailPreferencesSection } from "@/components/EmailPreferencesSection";
-import { ArrowBigUp, MessageSquare, Pencil, Users } from "lucide-react";
+import { ArrowBigUp, Eye, MessageSquare, Pencil } from "lucide-react";
 import { ViewsIcon } from "@/components/ViewsIcon";
 import { stripHtml } from "@/lib/utils";
 import {
@@ -381,7 +381,7 @@ function ProjectCard({
                 <MessageSquare className="h-4 w-4" aria-hidden="true" />
                 <span>{project.commentCount}</span>
                 <span className="text-zinc-300">•</span>
-                <Users className="h-4 w-4" aria-hidden="true" />
+                <Eye className="h-4 w-4" aria-hidden="true" />
                 <span>{project.followerCount}</span>
                 <span className="text-zinc-300">•</span>
                 <ViewsIcon className="h-4 w-4" aria-hidden="true" />
