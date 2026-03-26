@@ -5,12 +5,23 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import "react-quill-new/dist/quill.snow.css";
 
-const ReactQuill = dynamic(() => import("react-quill-new"), {
-  ssr: false,
-  loading: () => (
-    <div className="min-h-28 rounded-md border border-zinc-200 bg-white" />
-  ),
-});
+const ReactQuill = dynamic(
+  async () => {
+    const { default: RQ } = await import("react-quill-new");
+    const { Quill } = await import("react-quill-new");
+    const { default: QuillResizeImage } = await import("quill-resize-image");
+    if (!Quill.imports["modules/resize"]) {
+      Quill.register("modules/resize", QuillResizeImage);
+    }
+    return RQ;
+  },
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-28 rounded-md border border-zinc-200 bg-white" />
+    ),
+  }
+);
 
 const BASE_TOOLBAR = [
   ["bold", "italic", "underline", "strike"],
@@ -94,6 +105,7 @@ export function RichTextEditor({
   const modules = useMemo(() => {
     if (onImageUpload) {
       return {
+        resize: {},
         toolbar: {
           container: IMAGE_TOOLBAR,
           handlers: {
