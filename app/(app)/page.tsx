@@ -89,8 +89,9 @@ export default function Home() {
                   Share what you&apos;re working on
                 </Link>
                 <p className="text-xs text-muted-foreground mt-0.5">
+                  Don&apos;t share anything you wouldn&apos;t share in a public Teams channel.{" "}
                   <Link href="/guidelines" className="underline underline-offset-2 hover:text-foreground transition-colors">
-                    What can I post?
+                    Guidelines
                   </Link>
                 </p>
               </div>
