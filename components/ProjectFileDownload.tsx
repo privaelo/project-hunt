@@ -58,17 +58,17 @@ export function ProjectFileDownload({ files, projectId, clickCounts }: ProjectFi
             type="button"
             onClick={() => handleDownload({ _id: file._id, filename: file.filename, url: file.url! }, i)}
             disabled={downloadingIndex === i}
-            className="flex items-center gap-2 text-m font-medium text-zinc-700 hover:text-zinc-900 hover:underline disabled:opacity-50 w-full"
+            className="flex items-center gap-2 text-xs text-zinc-500 hover:text-zinc-700 hover:underline disabled:opacity-50 w-full"
             aria-label={`Download ${file.filename}`}
           >
             {downloadingIndex === i ? (
-              <Loader2 className="h-5 w-5 text-zinc-400 animate-spin shrink-0" aria-hidden="true" />
+              <Loader2 className="h-4 w-4 text-zinc-400 animate-spin shrink-0" aria-hidden="true" />
             ) : (
-              <FileIcon className="h-5 w-5 text-zinc-400 shrink-0" aria-hidden="true" />
+              <FileIcon className="h-4 w-4 text-zinc-400 shrink-0" aria-hidden="true" />
             )}
             <span className="flex-1 min-w-0 truncate text-left">{file.filename}</span>
             {count > 0 && (
-              <span className="font-medium text-zinc-700 shrink-0 ml-auto pl-2">{count}</span>
+              <span className="text-zinc-500 shrink-0 ml-auto pl-2">{count}</span>
             )}
           </button>
         );

@@ -450,7 +450,7 @@ export default function ProjectPage({
                 {((versions && versions.length > 0) || isOwner) && (
                   <div className="min-w-0 space-y-3 border-t border-zinc-300 pt-5">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                      <p className="text-sm font-semibold text-zinc-800">
                         Versions
                       </p>
                       {isOwner && (
@@ -491,10 +491,10 @@ export default function ProjectPage({
                   return (activeLinks.length > 0 || filesToShow.length > 0) && (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                        <p className="text-sm font-semibold text-zinc-800">
                           Links &amp; Downloads
                         </p>
-                        <MousePointerClick className="h-3.5 w-3.5 text-zinc-400" aria-label="Click counts" />
+                        <MousePointerClick className="h-4 w-4 text-zinc-500" aria-label="Click counts" />
                       </div>
                       <div className="space-y-2">
                         {filesToShow.length > 0 && (
@@ -512,13 +512,13 @@ export default function ProjectPage({
                               href={pl.href}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-m font-medium text-zinc-700 hover:text-zinc-900 hover:underline"
+                              className="flex items-center gap-2 text-xs text-zinc-500 hover:text-zinc-700 hover:underline"
                               onClick={() => void trackLinkClick({ projectId, resourceId: pl.href, resourceType: "link" })}
                             >
-                              <Link2 className="h-5 w-5 text-zinc-400 shrink-0" aria-hidden="true" />
+                              <Link2 className="h-4 w-4 text-zinc-400 shrink-0" aria-hidden="true" />
                               <span className="flex-1 min-w-0 truncate">{pl.label}</span>
                               {count > 0 && (
-                                <span className="font-medium text-zinc-700 shrink-0 ml-auto pl-2">{count}</span>
+                                <span className="text-zinc-500 shrink-0 ml-auto pl-2">{count}</span>
                               )}
                             </a>
                           );
