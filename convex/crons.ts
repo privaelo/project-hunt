@@ -10,10 +10,10 @@ crons.interval(
   internal.projects.refreshHotScores
 );
 
-// Generate weekly digests every Friday at 10:30 AM EST (15:30 UTC)
+// Generate weekly digests every Friday at 12:00 PM EST (17:00 UTC)
 crons.weekly(
   "generate weekly digests",
-  { dayOfWeek: "friday", hourUTC: 15, minuteUTC: 30 },
+  { dayOfWeek: "friday", hourUTC: 17, minuteUTC: 0 },
   internal.digests.generateWeeklyDigests
 );
 
