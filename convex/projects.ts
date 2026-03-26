@@ -52,6 +52,8 @@ export {
   getUpvoteCount,
   getFollowers,
   refreshHotScores,
+  trackLinkClick,
+  getLinkClickCounts,
 } from "./projects/engagement";
 
 export {
