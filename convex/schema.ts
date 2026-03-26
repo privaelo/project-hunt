@@ -178,6 +178,7 @@ export default defineSchema({
     createdAt: v.number(),
     entryId: v.optional(v.string()),
     allFields: v.optional(v.string()),
+    imageStorageIds: v.optional(v.array(v.id("_storage"))),
   })
     .searchIndex("allFields", { searchField: "allFields" })
     .index("by_focusArea", ["focusAreaId"])

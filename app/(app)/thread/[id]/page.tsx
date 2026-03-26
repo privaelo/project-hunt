@@ -27,6 +27,7 @@ import {
   BreadcrumbSeparator,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
+import { useThreadImageUpload } from "@/hooks/use-thread-image-upload";
 import {
   Dialog,
   DialogContent,
@@ -35,7 +36,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 
 export default function ThreadPage({
@@ -56,6 +57,16 @@ export default function ThreadPage({
   const deleteComment = useMutation(api.threads.deleteComment);
   const toggleCommentUpvote = useMutation(api.threads.toggleCommentUpvote);
   const [shareOpen, setShareOpen] = useState(false);
+  const { handleImageUpload, getStorageIdsFromHtml, populateExistingImages } =
+    useThreadImageUpload();
+
+  // Query image URLs for existing thread images (for edit mode mapping)
+  const threadImageUrls = useQuery(
+    api.threads.getThreadImageUrls,
+    thread?.imageStorageIds && thread.imageStorageIds.length > 0
+      ? { storageIds: thread.imageStorageIds }
+      : "skip"
+  );
 
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -91,6 +102,13 @@ export default function ThreadPage({
     setShareOpen(true);
   };
 
+  // Populate image URL→storageId map when entering edit mode or when image URLs load
+  useEffect(() => {
+    if (isEditing && threadImageUrls) {
+      populateExistingImages(threadImageUrls);
+    }
+  }, [isEditing, threadImageUrls, populateExistingImages]);
+
   const handleStartEdit = () => {
     if (!thread) return;
     setEditTitle(thread.title);
@@ -108,10 +126,18 @@ export default function ThreadPage({
     if (!editTitle.trim()) return;
     setIsSaving(true);
     try {
+      const storageIdsFromBody = getStorageIdsFromHtml(editBody);
+      const hasImages = storageIdsFromBody.length > 0;
+      const bodyToSubmit = isRichTextEmpty(editBody) && !hasImages ? undefined : editBody;
+      const imageStorageIds = hasImages ? storageIdsFromBody : undefined;
       await updateThread({
         threadId,
         title: editTitle.trim(),
-        body: isRichTextEmpty(editBody) ? undefined : editBody,
+        body: bodyToSubmit,
+        imageStorageIds:
+          imageStorageIds && imageStorageIds.length > 0
+            ? imageStorageIds
+            : undefined,
       });
       setIsEditing(false);
     } catch (error) {
@@ -259,6 +285,7 @@ export default function ThreadPage({
                     onChange={setEditBody}
                     placeholder="Add more context (optional)"
                     disabled={isSaving}
+                    onImageUpload={handleImageUpload}
                   />
                   <div className="flex items-center justify-between">
                     <Button

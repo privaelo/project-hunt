@@ -11,12 +11,15 @@ import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { isRichTextEmpty } from "@/lib/utils";
 import { SpacePicker } from "@/components/SpacePicker";
+import { useThreadImageUpload } from "@/hooks/use-thread-image-upload";
 import Link from "next/link";
 
 export default function CreateThreadPage() {
   const router = useRouter();
   const focusAreas = useQuery(api.focusAreas.listActive);
   const createThread = useMutation(api.threads.createThread);
+  const { handleImageUpload, getStorageIdsFromHtml } =
+    useThreadImageUpload();
 
   const [selectedSpace, setSelectedSpace] = useState<
     Id<"focusAreas"> | "personal" | null
@@ -35,10 +38,18 @@ export default function CreateThreadPage() {
 
     setIsSubmitting(true);
     try {
+      const storageIdsFromBody = getStorageIdsFromHtml(body);
+      const hasImages = storageIdsFromBody.length > 0;
+      const bodyToSubmit = isRichTextEmpty(body) && !hasImages ? undefined : body;
+      const imageStorageIds = hasImages ? storageIdsFromBody : undefined;
       const threadId = await createThread({
         title: title.trim(),
-        body: isRichTextEmpty(body) ? undefined : body,
+        body: bodyToSubmit,
         focusAreaId,
+        imageStorageIds:
+          imageStorageIds && imageStorageIds.length > 0
+            ? imageStorageIds
+            : undefined,
       });
       router.push(`/thread/${threadId}`);
     } catch (error) {
@@ -93,6 +104,7 @@ export default function CreateThreadPage() {
               onChange={setBody}
               placeholder="Add more context"
               disabled={isSubmitting}
+              onImageUpload={handleImageUpload}
             />
           </div>
 

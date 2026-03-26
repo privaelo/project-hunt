@@ -19,8 +19,9 @@ export function RichTextContent({ html, className = "" }: RichTextContentProps) 
       "ul", "ol", "li",
       "blockquote", "pre", "code",
       "a", "span",
+      "img",
     ],
-    ALLOWED_ATTR: ["href", "rel", "target", "class", "data-language"],
+    ALLOWED_ATTR: ["href", "rel", "target", "class", "data-language", "src", "alt", "width", "height"],
   });
 
   return (
