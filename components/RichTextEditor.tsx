@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import "react-quill-new/dist/quill.snow.css";
 
@@ -46,6 +46,50 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const onImageUploadRef = useRef(onImageUpload);
   onImageUploadRef.current = onImageUpload;
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Intercept paste/drop of images to prevent Quill from embedding base64 data URLs,
+  // which can exceed Convex's 1 MiB document size limit.
+  useEffect(() => {
+    if (!onImageUpload || !wrapperRef.current) return;
+
+    const blockImageTransfer = (e: ClipboardEvent | DragEvent) => {
+      const files =
+        "clipboardData" in e
+          ? e.clipboardData?.files
+          : e.dataTransfer?.files;
+      if (!files) return;
+      const hasImage = Array.from(files).some((f) =>
+        f.type.startsWith("image/")
+      );
+      if (hasImage) {
+        e.preventDefault();
+        e.stopPropagation();
+        toast.info("Use the image button in the toolbar to add images.");
+      }
+    };
+
+    const el = wrapperRef.current;
+    el.addEventListener("paste", blockImageTransfer as EventListener, true);
+    el.addEventListener("drop", blockImageTransfer as EventListener, true);
+
+    return () => {
+      el.removeEventListener("paste", blockImageTransfer as EventListener, true);
+      el.removeEventListener("drop", blockImageTransfer as EventListener, true);
+    };
+  }, [onImageUpload]);
+
+  // Safety net: strip any base64 images that slip past the paste/drop blocker.
+  const handleChange = useCallback(
+    (html: string) => {
+      if (onImageUpload && html.includes("src=\"data:")) {
+        onChange(html.replace(/<img[^>]+src="data:[^"]*"[^>]*>/g, ""));
+        return;
+      }
+      onChange(html);
+    },
+    [onChange, onImageUpload]
+  );
 
   const modules = useMemo(() => {
     if (onImageUpload) {
@@ -84,11 +128,11 @@ export function RichTextEditor({
   }, [onImageUpload]);
 
   return (
-    <div className="rich-text-editor">
+    <div ref={wrapperRef} className="rich-text-editor">
       <ReactQuill
         theme="snow"
         value={value}
-        onChange={onChange}
+        onChange={handleChange}
         modules={modules}
         placeholder={placeholder}
         readOnly={disabled}
