@@ -250,7 +250,7 @@ export default function SubmitProject() {
               </div>
 
               {/* Title and form tabs — grouped */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Title - Required field */}
                 <div className="space-y-2">
                   <Input
