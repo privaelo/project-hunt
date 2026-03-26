@@ -19,10 +19,12 @@ The app title in `app/layout.tsx` is "Garden"; the repo is named `project-hunt`.
 | AI / RAG | `@convex-dev/agent`, `@convex-dev/rag`, Amazon Bedrock (Claude Haiku + Amazon Titan Embed v2) |
 | Analytics | PostHog (proxied via Next.js rewrites; initialized in `instrumentation-client.ts`) |
 | Animation | Motion (Framer Motion v12) |
-| Rich Text | `react-quill-new` (editor), `dompurify` (sanitizer), `react-markdown` (renderer) |
+| Rich Text | `react-quill-new` (editor), `quill-resize-image` (image resizing), `dompurify` (sanitizer), `react-markdown` (renderer) |
 | Drag & Drop | `@dnd-kit/core`, `@dnd-kit/sortable` (media reordering) |
+| Carousel | `embla-carousel-react` (media carousel) |
 | Email | AWS SES v2 (`@aws-sdk/client-sesv2`) for transactional email delivery |
 | Toasts | Sonner (replaces `alert()` and silent failures throughout) |
+| Workpool | `@convex-dev/workpool` — concurrency-limited background task execution |
 
 ---
 
@@ -90,6 +92,7 @@ project-hunt/
 │   ├── LinksEditor.tsx         # Links editing UI for project forms
 │   ├── RichTextEditor.tsx / RichTextContent.tsx
 │   ├── MediaUploadField.tsx / FileUploadField.tsx
+│   ├── ViewsIcon.tsx               # Custom composite SVG icon (eye inside rounded rect) for view counts
 │   └── ...
 │
 ├── convex/                     # Convex backend (functions + schema)
@@ -138,7 +141,8 @@ project-hunt/
 │   └── fileSize.ts
 │
 ├── hooks/
-│   └── use-mobile.ts
+│   ├── use-mobile.ts
+│   └── use-thread-image-upload.ts  # Manages inline image uploads for thread rich-text editors
 │
 ├── instrumentation-client.ts   # PostHog client initialization (Next.js instrumentation)
 ├── public/                     # Static assets
@@ -159,6 +163,7 @@ npm run dev        # Start dev server at http://localhost:3000
 npm run build      # Production build
 npm run start      # Serve production build
 npm run lint       # Run ESLint
+npm run lint:fix   # Run ESLint with auto-fix
 
 # Backend (Convex) — run in parallel with Next.js
 npx convex dev     # Start Convex dev server (watches convex/ directory)
@@ -212,13 +217,14 @@ Key tables and their purpose:
 | `projectViews` | Unique view tracking per viewer ID |
 | `comments` | Threaded comments on projects (soft delete; retained if replies exist) |
 | `commentUpvotes` | Per-user upvotes on project comments |
+| `linkClickCounts` | Tracks click counts per link or file on a project; `resourceType: "link" \| "file"` |
 | `emailQueue` | Outbound email queue (pending → sent/failed); drained by cron |
 | `notifications` | Aggregated activity notifications |
 | `users` | User profiles; `onboardingCompleted` gates access; `department` from Cognito |
 | `userFocusAreas` | User ↔ focus area interest associations (follow/join) |
 | `teams` | Team/group records |
 | `focusAreas` | Taxonomy spaces (like subreddits); shown in sidebar |
-| `threads` | Discussion threads within a space; has hot score like projects |
+| `threads` | Discussion threads within a space; has hot score like projects; `imageStorageIds` tracks embedded images |
 | `threadUpvotes` | Per-user upvotes on threads |
 | `threadComments` | Threaded comments on threads (soft delete) |
 | `threadCommentUpvotes` | Per-user upvotes on thread comments |
@@ -443,7 +449,7 @@ The app sends weekly digest emails summarizing platform activity. The pipeline u
 ### Pipeline Flow
 
 ```
-Cron (Monday 9am) → generateWeeklyDigests (action, convex/digests.ts)
+Cron (Friday 12pm EST / 17:00 UTC) → generateWeeklyDigests (action, convex/digests.ts)
   └─ loop: getEligibleUserBatch (50 users/batch, cursor-based)
        └─ generateDigestBatch (action)
             └─ per user: gatherUserDigestData (query) → enqueueDigestEmail (mutation)
@@ -494,7 +500,8 @@ Notifications are aggregated (upserted) per `(recipient, project, type)` tuple. 
 - `"comment"` — someone commented on your project
 - `"reply"` — someone replied to your comment
 - `"upvote"` — upvote count notification (aggregated)
-- `"adoption"` — someone adopted your project
+- `"adoption"` — legacy; kept for migration compatibility
+- `"follow"` — someone followed your project
 - `"project_update"` — a project you've interacted with was updated
 - `"followed_project_comment"` — a project you follow received a new comment
 
@@ -558,7 +565,19 @@ Secrets required:
 
 22. **Header search bar** — `SearchBar.tsx` in `header.tsx` performs hybrid search (full-text + semantic via RAG) returning both projects and threads. Projects and threads are distinguished with emoji prefixes in results. Search is powered by `convex/projects/search.ts` and threads RAG indexing.
 
-23. **AI SDK v6** — The project uses Vercel AI SDK v6 (`ai: ^6.0.116`) with `@convex-dev/agent ^0.6.0-beta.0` and `@convex-dev/rag ^0.7.2`. If updating agent/RAG code, check `convex/_generated/ai/guidelines.md` for the correct v6 API patterns; the beta versions have different interfaces than earlier releases.
+23. **AI SDK v6** — The project uses Vercel AI SDK v6 (`ai: ^6.0.116`) with `@convex-dev/agent ^0.6.1` and `@convex-dev/rag ^0.7.2`. If updating agent/RAG code, check `convex/_generated/ai/guidelines.md` for the correct v6 API patterns.
+
+24. **`allFields` on threads** — mirrors the same pattern as projects: a denormalized string indexed via `searchIndex("allFields", ...)` for full-text search. It is updated whenever a thread is created or edited, and is used by `fullTextSearchThreads()` in the search pipeline.
+
+25. **RAG entry ID tracking** — both `projects` and `threads` tables have an `entryId` field that stores the RAG document ID returned by `rag.add()`. This is used to update (`rag.add()`) or remove (`rag.delete()`) entries when a project/thread changes. The `by_entryId` index enables fast lookups. Backfill functions (`backfillAllProjects`, `backfillAllThreads`) re-index records that are missing entry IDs.
+
+26. **Thread image support** — threads support embedded images in their rich-text `body`. Uploaded images are stored in Convex storage and their IDs are tracked in `threads.imageStorageIds`. Use the `useThreadImageUpload` hook (`hooks/use-thread-image-upload.ts`) in editors: it maintains a `Map<url, storageId>` so `getStorageIdsFromHtml(html)` can resolve which storage IDs are still referenced in the final HTML before saving. Call `populateExistingImages()` when entering edit mode on an existing thread.
+
+27. **Hot score `effectiveTime`** — `calculateHotScore()` in `convex/projects/helpers.ts` uses `effectiveTime = lastVersionAt ? Math.max(creationTime, lastVersionAt) : creationTime`. Publishing a new project version bumps `lastVersionAt`, which resets the age calculation and boosts the project's score as if it were newly created.
+
+28. **`linkClickCounts` table** — tracks click-through counts per link or downloadable file on a project (`resourceType: "link" | "file"`). Use the `by_project_resource` index for lookups. Do not read this table with `.filter()` alone.
+
+29. **`ViewsIcon` component** — a custom composite SVG (`components/ViewsIcon.tsx`) representing "views on this post" (eye inside a rounded rectangle). Use this instead of the standalone `Eye` icon from Lucide wherever a view count is displayed alongside a project.
 
 <!-- convex-ai-start -->
 This project uses [Convex](https://convex.dev) as its backend.
