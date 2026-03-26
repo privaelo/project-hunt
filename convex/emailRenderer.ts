@@ -316,13 +316,6 @@ function renderTextVersion(
   sections.push(`Hi ${recipientName},`);
   sections.push(`Here's what happened in Garden this week.`);
 
-  // Milestone announcement — remove after next digest send
-  sections.push("");
-  sections.push("── Garden just hit 100 members ──");
-  sections.push(
-    "Over 100 people have now signed up for Garden. Thanks for being part of it. Whether you've shared a project, left a comment, or just browsed around, you've helped make this a real place where people share what they build at work."
-  );
-
   if (payload.ownProjectActivity.length > 0) {
     sections.push("");
     sections.push("Your projects this week");
@@ -451,22 +444,6 @@ export function renderWeeklyDigestEmail(args: {
                         `
                         : ""
                     }
-                  </td>
-                </tr>
-                <!-- Milestone announcement — remove after next digest send -->
-                <tr>
-                  <td style="padding: 24px 28px 0;">
-                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: collapse; border: 1px solid #d4d4d8; border-radius: 12px;">
-                      <tr>
-                        <td style="padding: 20px 22px;">
-                          <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #166534; margin: 0 0 10px;">Milestone</div>
-                          <div style="font-size: 18px; font-weight: 700; color: #18181b; margin: 0 0 10px;">Garden just hit 100 members</div>
-                          <div style="font-size: 14px; line-height: 1.7; color: #52525b;">
-                            Over 100 people have now signed up for Garden. Thanks for being part of it. Whether you've shared a project, left a comment, or just browsed around, you've helped make this a real place where people share what they build at work.
-                          </div>
-                        </td>
-                      </tr>
-                    </table>
                   </td>
                 </tr>
                 ${
