@@ -191,6 +191,53 @@ export const getFollowers = query({
   },
 });
 
+export const trackLinkClick = mutation({
+  args: {
+    projectId: v.id("projects"),
+    resourceId: v.string(),
+    resourceType: v.union(v.literal("link"), v.literal("file")),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("linkClickCounts")
+      .withIndex("by_project_resource", (q) =>
+        q.eq("projectId", args.projectId).eq("resourceId", args.resourceId)
+      )
+      .first();
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        count: existing.count + 1,
+        lastClickedAt: Date.now(),
+      });
+    } else {
+      await ctx.db.insert("linkClickCounts", {
+        projectId: args.projectId,
+        resourceId: args.resourceId,
+        resourceType: args.resourceType,
+        count: 1,
+        lastClickedAt: Date.now(),
+      });
+    }
+  },
+});
+
+export const getLinkClickCounts = query({
+  args: {
+    projectId: v.id("projects"),
+  },
+  handler: async (ctx, args) => {
+    const rows = await ctx.db
+      .query("linkClickCounts")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    const result: Record<string, number> = {};
+    for (const row of rows) {
+      result[row.resourceId] = row.count;
+    }
+    return result;
+  },
+});
+
 export const refreshHotScores = internalMutationFromFunctions({
   args: {},
   handler: async (ctx) => {

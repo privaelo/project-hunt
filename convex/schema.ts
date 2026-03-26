@@ -74,6 +74,15 @@ export default defineSchema({
   })
     .index("by_project", ["projectId"])
     .index("by_project_and_viewer", ["projectId", "viewerId"]),
+  linkClickCounts: defineTable({
+    projectId: v.id("projects"),
+    resourceId: v.string(),
+    resourceType: v.union(v.literal("link"), v.literal("file")),
+    count: v.number(),
+    lastClickedAt: v.number(),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_project_resource", ["projectId", "resourceId"]),
   comments: defineTable({
     projectId: v.id("projects"),
     userId: v.id("users"),

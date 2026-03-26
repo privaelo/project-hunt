@@ -111,6 +111,8 @@ export default function ProjectPage({
   const toggleUpvote = useMutation(api.projects.toggleUpvote);
   const toggleFollow = useMutation(api.projects.toggleFollow);
   const trackView = useMutation(api.projects.trackView);
+  const trackLinkClick = useMutation(api.projects.trackLinkClick);
+  const linkClickCounts = useQuery(api.projects.getLinkClickCounts, { projectId });
   const addComment = useMutation(api.comments.addComment);
   const deleteComment = useMutation(api.comments.deleteComment);
   const toggleCommentUpvote = useMutation(api.comments.toggleCommentUpvote);
@@ -493,20 +495,31 @@ export default function ProjectPage({
                       </p>
                       <div className="space-y-2">
                         {filesToShow.length > 0 && (
-                          <ProjectFileDownload files={filesToShow} />
+                          <ProjectFileDownload
+                            files={filesToShow}
+                            projectId={projectId}
+                            clickCounts={linkClickCounts ?? {}}
+                          />
                         )}
-                        {activeLinks.map((pl, i) => (
-                          <a
-                            key={i}
-                            href={pl.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-m font-medium text-zinc-700 hover:text-zinc-900 hover:underline"
-                          >
-                            <Link2 className="h-5 w-5 text-zinc-400" aria-hidden="true" />
-                            {pl.label}
-                          </a>
-                        ))}
+                        {activeLinks.map((pl, i) => {
+                          const count = linkClickCounts?.[pl.href] ?? 0;
+                          return (
+                            <a
+                              key={i}
+                              href={pl.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-m font-medium text-zinc-700 hover:text-zinc-900 hover:underline"
+                              onClick={() => void trackLinkClick({ projectId, resourceId: pl.href, resourceType: "link" })}
+                            >
+                              <Link2 className="h-5 w-5 text-zinc-400 shrink-0" aria-hidden="true" />
+                              <span className="flex-1">{pl.label}</span>
+                              {count > 0 && (
+                                <span className="text-xs text-zinc-400 font-normal shrink-0">· {count}</span>
+                              )}
+                            </a>
+                          );
+                        })}
                       </div>
                     </div>
                   );
