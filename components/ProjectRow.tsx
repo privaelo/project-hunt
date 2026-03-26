@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { ArrowBigUp, Eye, EyeOff, Forward, MessageCircle, Users } from "lucide-react";
+import { ArrowBigUp, Eye, EyeOff, Forward, MessageCircle } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,7 +96,7 @@ export function ProjectRow({
           <span>{getRelativeTime(project._creationTime)}</span>
         </div>
         <div className="flex items-center gap-1 text-zinc-500">
-          <Users className="h-3.5 w-3.5" />
+          <Eye className="h-3.5 w-3.5" />
           <span>{project.followerCount}</span>
         </div>
       </div>
