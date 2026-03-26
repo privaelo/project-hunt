@@ -109,7 +109,7 @@ export function RichTextEditor({
         toolbar: {
           container: IMAGE_TOOLBAR,
           handlers: {
-            image: function (this: { quill: { getSelection: (focus: boolean) => { index: number }; insertEmbed: (index: number, type: string, value: string) => void; setSelection: (index: number, length: number) => void } }) {
+            image: function (this: { quill: { getSelection: (focus: boolean) => { index: number } | null; getLength: () => number; insertEmbed: (index: number, type: string, value: string) => void; setSelection: (index: number, length: number) => void } }) {
               const quill = this.quill;
               const input = document.createElement("input");
               input.type = "file";
@@ -124,8 +124,9 @@ export function RichTextEditor({
                 try {
                   const url = await onImageUploadRef.current!(file);
                   const range = quill.getSelection(true);
-                  quill.insertEmbed(range.index, "image", url);
-                  quill.setSelection(range.index + 1, 0);
+                  const index = range ? range.index : quill.getLength() - 1;
+                  quill.insertEmbed(index, "image", url);
+                  quill.setSelection(index + 1, 0);
                 } catch {
                   toast.error("Failed to upload image. Please try again.");
                 }

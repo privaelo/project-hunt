@@ -90,7 +90,14 @@ export const updateThread = mutation({
     const trimmedTitle = args.title.trim();
     const trimmedBody = args.body?.trim() || undefined;
 
-    // Clean up removed images from storage
+    await ctx.db.patch(args.threadId, {
+      title: trimmedTitle,
+      body: trimmedBody,
+      allFields: buildAllFields(trimmedTitle, trimmedBody),
+      imageStorageIds: args.imageStorageIds,
+    });
+
+    // Clean up removed images from storage (after successful patch)
     const oldIds = new Set(thread.imageStorageIds ?? []);
     const newIds = new Set(args.imageStorageIds ?? []);
     for (const oldId of oldIds) {
@@ -98,13 +105,6 @@ export const updateThread = mutation({
         await ctx.storage.delete(oldId);
       }
     }
-
-    await ctx.db.patch(args.threadId, {
-      title: trimmedTitle,
-      body: trimmedBody,
-      allFields: buildAllFields(trimmedTitle, trimmedBody),
-      imageStorageIds: args.imageStorageIds,
-    });
 
     // Re-index thread in RAG
     await ctx.scheduler.runAfter(

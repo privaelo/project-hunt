@@ -33,10 +33,10 @@ export function CreateThreadForm({ focusAreaId, defaultExpanded, onSuccess }: Cr
 
     setIsSubmitting(true);
     try {
-      const bodyToSubmit = isRichTextEmpty(body) ? undefined : body;
-      const imageStorageIds = bodyToSubmit
-        ? getStorageIdsFromHtml(bodyToSubmit)
-        : undefined;
+      const storageIdsFromBody = getStorageIdsFromHtml(body);
+      const hasImages = storageIdsFromBody.length > 0;
+      const bodyToSubmit = isRichTextEmpty(body) && !hasImages ? undefined : body;
+      const imageStorageIds = hasImages ? storageIdsFromBody : undefined;
       await createThread({
         title: title.trim(),
         body: bodyToSubmit,

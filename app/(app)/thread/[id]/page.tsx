@@ -36,7 +36,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 
 export default function ThreadPage({
@@ -102,13 +102,17 @@ export default function ThreadPage({
     setShareOpen(true);
   };
 
+  // Populate image URL→storageId map when entering edit mode or when image URLs load
+  useEffect(() => {
+    if (isEditing && threadImageUrls) {
+      populateExistingImages(threadImageUrls);
+    }
+  }, [isEditing, threadImageUrls, populateExistingImages]);
+
   const handleStartEdit = () => {
     if (!thread) return;
     setEditTitle(thread.title);
     setEditBody(thread.body || "");
-    if (threadImageUrls) {
-      populateExistingImages(threadImageUrls);
-    }
     setIsEditing(true);
   };
 
@@ -122,10 +126,10 @@ export default function ThreadPage({
     if (!editTitle.trim()) return;
     setIsSaving(true);
     try {
-      const bodyToSubmit = isRichTextEmpty(editBody) ? undefined : editBody;
-      const imageStorageIds = bodyToSubmit
-        ? getStorageIdsFromHtml(bodyToSubmit)
-        : undefined;
+      const storageIdsFromBody = getStorageIdsFromHtml(editBody);
+      const hasImages = storageIdsFromBody.length > 0;
+      const bodyToSubmit = isRichTextEmpty(editBody) && !hasImages ? undefined : editBody;
+      const imageStorageIds = hasImages ? storageIdsFromBody : undefined;
       await updateThread({
         threadId,
         title: editTitle.trim(),
