@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { CreateFocusAreaDialog } from "./CreateFocusAreaDialog";
 import { SpaceIcon } from "./SpaceIcon";
-import { Plus, PlusCircle, MessageSquarePlus, Info, Home, BookOpen, Check } from "lucide-react";
+import { Plus, PlusCircle, MessageSquarePlus, Info, Home, BookOpen, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -60,7 +60,7 @@ function SidebarSpaces() {
                       g/{area.name}
                     </span>
                     {area.isFollowing && (
-                      <Check className="ml-auto h-3 w-3 text-zinc-400 shrink-0" />
+                      <UserCheck className="ml-auto h-4 w-4 text-zinc-400 shrink-0" />
                     )}
                   </Link>
                 </SidebarMenuButton>
