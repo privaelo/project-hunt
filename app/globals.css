@@ -272,6 +272,14 @@ body {
   text-decoration: line-through;
 }
 
+.rich-text-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
 /* Amplify Authenticator - platform theme */
 [data-amplify-authenticator] {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;

@@ -27,6 +27,7 @@ import {
   BreadcrumbSeparator,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
+import { useThreadImageUpload } from "@/hooks/use-thread-image-upload";
 import {
   Dialog,
   DialogContent,
@@ -56,6 +57,16 @@ export default function ThreadPage({
   const deleteComment = useMutation(api.threads.deleteComment);
   const toggleCommentUpvote = useMutation(api.threads.toggleCommentUpvote);
   const [shareOpen, setShareOpen] = useState(false);
+  const { handleImageUpload, getStorageIdsFromHtml, populateExistingImages } =
+    useThreadImageUpload();
+
+  // Query image URLs for existing thread images (for edit mode mapping)
+  const threadImageUrls = useQuery(
+    api.threads.getThreadImageUrls,
+    thread?.imageStorageIds && thread.imageStorageIds.length > 0
+      ? { storageIds: thread.imageStorageIds }
+      : "skip"
+  );
 
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -95,6 +106,9 @@ export default function ThreadPage({
     if (!thread) return;
     setEditTitle(thread.title);
     setEditBody(thread.body || "");
+    if (threadImageUrls) {
+      populateExistingImages(threadImageUrls);
+    }
     setIsEditing(true);
   };
 
@@ -108,10 +122,18 @@ export default function ThreadPage({
     if (!editTitle.trim()) return;
     setIsSaving(true);
     try {
+      const bodyToSubmit = isRichTextEmpty(editBody) ? undefined : editBody;
+      const imageStorageIds = bodyToSubmit
+        ? getStorageIdsFromHtml(bodyToSubmit)
+        : undefined;
       await updateThread({
         threadId,
         title: editTitle.trim(),
-        body: isRichTextEmpty(editBody) ? undefined : editBody,
+        body: bodyToSubmit,
+        imageStorageIds:
+          imageStorageIds && imageStorageIds.length > 0
+            ? imageStorageIds
+            : undefined,
       });
       setIsEditing(false);
     } catch (error) {
@@ -259,6 +281,7 @@ export default function ThreadPage({
                     onChange={setEditBody}
                     placeholder="Add more context (optional)"
                     disabled={isSaving}
+                    onImageUpload={handleImageUpload}
                   />
                   <div className="flex items-center justify-between">
                     <Button

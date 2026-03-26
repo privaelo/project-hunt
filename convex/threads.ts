@@ -21,6 +21,7 @@ export const createThread = mutation({
     title: v.string(),
     body: v.optional(v.string()),
     focusAreaId: v.id("focusAreas"),
+    imageStorageIds: v.optional(v.array(v.id("_storage"))),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
@@ -39,6 +40,7 @@ export const createThread = mutation({
       hotScore: calculateHotScore(0, now, now),
       createdAt: now,
       allFields: buildAllFields(trimmedTitle, trimmedBody),
+      imageStorageIds: args.imageStorageIds,
     });
 
     // Notify followers of the space about the new thread
@@ -76,6 +78,7 @@ export const updateThread = mutation({
     threadId: v.id("threads"),
     title: v.string(),
     body: v.optional(v.string()),
+    imageStorageIds: v.optional(v.array(v.id("_storage"))),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
@@ -87,10 +90,20 @@ export const updateThread = mutation({
     const trimmedTitle = args.title.trim();
     const trimmedBody = args.body?.trim() || undefined;
 
+    // Clean up removed images from storage
+    const oldIds = new Set(thread.imageStorageIds ?? []);
+    const newIds = new Set(args.imageStorageIds ?? []);
+    for (const oldId of oldIds) {
+      if (!newIds.has(oldId)) {
+        await ctx.storage.delete(oldId);
+      }
+    }
+
     await ctx.db.patch(args.threadId, {
       title: trimmedTitle,
       body: trimmedBody,
       allFields: buildAllFields(trimmedTitle, trimmedBody),
+      imageStorageIds: args.imageStorageIds,
     });
 
     // Re-index thread in RAG
@@ -143,6 +156,13 @@ export const deleteThread = mutation({
     await Promise.all(
       threadUpvotes.map((upvote) => ctx.db.delete(upvote._id))
     );
+
+    // Clean up inline images from storage
+    if (thread.imageStorageIds) {
+      await Promise.all(
+        thread.imageStorageIds.map((id) => ctx.storage.delete(id))
+      );
+    }
 
     // Remove from RAG index
     if (thread.entryId) {
@@ -349,6 +369,22 @@ export const getTrendingThreads = query({
           spaceId: focusArea?._id ?? null,
         };
       })
+    );
+  },
+});
+
+export const getThreadImageUrls = query({
+  args: { storageIds: v.array(v.id("_storage")) },
+  handler: async (ctx, args) => {
+    const results = await Promise.all(
+      args.storageIds.map(async (storageId) => ({
+        storageId,
+        url: await ctx.storage.getUrl(storageId),
+      }))
+    );
+    return results.filter(
+      (r): r is { storageId: typeof r.storageId; url: string } =>
+        r.url !== null
     );
   },
 });
