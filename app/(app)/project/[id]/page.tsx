@@ -513,9 +513,9 @@ export default function ProjectPage({
                               onClick={() => void trackLinkClick({ projectId, resourceId: pl.href, resourceType: "link" })}
                             >
                               <Link2 className="h-5 w-5 text-zinc-400 shrink-0" aria-hidden="true" />
-                              <span className="flex-1">{pl.label}</span>
+                              <span className="flex-1 min-w-0 truncate">{pl.label}</span>
                               {count > 0 && (
-                                <span className="text-xs text-zinc-400 font-normal shrink-0">· {count}</span>
+                                <span className="text-xs text-zinc-400 font-normal shrink-0 ml-auto pl-2">· {count}</span>
                               )}
                             </a>
                           );
