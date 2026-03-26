@@ -68,7 +68,7 @@ export function ProjectFileDownload({ files, projectId, clickCounts }: ProjectFi
             )}
             <span className="flex-1 min-w-0 truncate text-left">{file.filename}</span>
             {count > 0 && (
-              <span className="text-xs text-zinc-400 font-normal shrink-0 ml-auto pl-2">· {count}</span>
+              <span className="text-xs text-zinc-600 font-normal shrink-0 ml-auto pl-2">{count}</span>
             )}
           </button>
         );
