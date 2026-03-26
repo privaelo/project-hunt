@@ -1,10 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useRef, useCallback } from "react";
+import { useMemo, useRef } from "react";
 import { toast } from "sonner";
 import "react-quill-new/dist/quill.snow.css";
-import type ReactQuillType from "react-quill-new";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), {
   ssr: false,
@@ -45,52 +44,48 @@ export function RichTextEditor({
   disabled,
   onImageUpload,
 }: RichTextEditorProps) {
-  const quillRef = useRef<ReactQuillType | null>(null);
   const onImageUploadRef = useRef(onImageUpload);
   onImageUploadRef.current = onImageUpload;
-
-  const imageHandler = useCallback(() => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ACCEPTED_IMAGE_TYPES.join(",");
-    input.onchange = async () => {
-      const file = input.files?.[0];
-      if (!file) return;
-      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-        toast.error("Please select a PNG, JPEG, GIF, or WebP image.");
-        return;
-      }
-      try {
-        const url = await onImageUploadRef.current!(file);
-        const editor = quillRef.current?.getEditor();
-        if (editor) {
-          const range = editor.getSelection(true);
-          editor.insertEmbed(range.index, "image", url);
-          editor.setSelection(range.index + 1, 0);
-        }
-      } catch {
-        toast.error("Failed to upload image. Please try again.");
-      }
-    };
-    input.click();
-  }, []);
 
   const modules = useMemo(() => {
     if (onImageUpload) {
       return {
         toolbar: {
           container: IMAGE_TOOLBAR,
-          handlers: { image: imageHandler },
+          handlers: {
+            image: function (this: { quill: { getSelection: (focus: boolean) => { index: number }; insertEmbed: (index: number, type: string, value: string) => void; setSelection: (index: number, length: number) => void } }) {
+              const quill = this.quill;
+              const input = document.createElement("input");
+              input.type = "file";
+              input.accept = ACCEPTED_IMAGE_TYPES.join(",");
+              input.onchange = async () => {
+                const file = input.files?.[0];
+                if (!file) return;
+                if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+                  toast.error("Please select a PNG, JPEG, GIF, or WebP image.");
+                  return;
+                }
+                try {
+                  const url = await onImageUploadRef.current!(file);
+                  const range = quill.getSelection(true);
+                  quill.insertEmbed(range.index, "image", url);
+                  quill.setSelection(range.index + 1, 0);
+                } catch {
+                  toast.error("Failed to upload image. Please try again.");
+                }
+              };
+              input.click();
+            },
+          },
         },
       };
     }
     return { toolbar: BASE_TOOLBAR };
-  }, [onImageUpload, imageHandler]);
+  }, [onImageUpload]);
 
   return (
     <div className="rich-text-editor">
       <ReactQuill
-        ref={quillRef}
         theme="snow"
         value={value}
         onChange={onChange}
