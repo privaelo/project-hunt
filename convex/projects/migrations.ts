@@ -4,6 +4,27 @@ import { internal } from "../_generated/api";
 import { v } from "convex/values";
 import { rag } from "../rag";
 
+// ─── Remove deprecated projects.upvotes field ───────────────────────────────
+// Two-step migration:
+// Step 1 (this deployment): Deploy code with upvotes as v.optional(v.number()) in schema
+// Step 2 (after deployment): Run internal.projects.removeProjectUpvotesField from Convex dashboard
+// Step 3 (follow-up PR): Remove upvotes field from schema.ts entirely
+
+export const removeProjectUpvotesField = internalMutationFromFunctions({
+  args: {},
+  handler: async (ctx) => {
+    const projects = await ctx.db.query("projects").collect();
+    let updated = 0;
+    for (const project of projects) {
+      if (project.upvotes !== undefined) {
+        await ctx.db.patch(project._id, { upvotes: undefined });
+        updated++;
+      }
+    }
+    return { updated };
+  },
+});
+
 export const migrateReadinessStatusAction = internalAction({
   args: {},
   handler: async (ctx): Promise<{ updated: number }> => {
