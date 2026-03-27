@@ -71,6 +71,7 @@ export {
 } from "./projects/spaces";
 
 export {
+  removeProjectUpvotesField,
   migrateReadinessStatusAction,
   migrateReadinessStatus,
   getAllProjectIds,
