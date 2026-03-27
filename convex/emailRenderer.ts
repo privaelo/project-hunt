@@ -528,10 +528,6 @@ export function renderSpaceActivityEmail(args: {
 }): RenderedEmail {
   const { recipientName, payload, baseUrl, profileUrl } = args;
   const contentLabel = payload.contentType === "project" ? "project" : "thread";
-  const spaceName = payload.focusAreaIcon
-    ? `${payload.focusAreaIcon} ${payload.focusAreaName}`
-    : payload.focusAreaName;
-
   const truncatedTitle =
     payload.contentTitle.length > 60
       ? `${payload.contentTitle.slice(0, 57)}...`
@@ -567,7 +563,7 @@ export function renderSpaceActivityEmail(args: {
                     <div style="font-size: 28px; font-weight: 700; color: #166534; margin: 0 0 16px;">Garden</div>
                     <div style="font-size: 14px; color: #71717a; margin: 0 0 6px;">New ${escapeHtml(contentLabel)} in</div>
                     <div style="font-size: 20px; font-weight: 700; color: #18181b; margin: 0 0 16px;">
-                      g/${escapeHtml(spaceName)}
+                      ${payload.focusAreaIcon ? `${escapeHtml(payload.focusAreaIcon)} ` : ""}g/${escapeHtml(payload.focusAreaName)}
                     </div>
                   </td>
                 </tr>
