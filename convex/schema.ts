@@ -6,7 +6,7 @@ export default defineSchema({
     name: v.string(),
     summary: v.optional(v.string()),
     teamId: v.optional(v.id("teams")),
-    upvotes: v.number(),
+    upvotes: v.optional(v.number()),
     viewCount: v.optional(v.number()),
     entryId: v.optional(v.string()),
     status: v.union(v.literal("pending"), v.literal("active")),
