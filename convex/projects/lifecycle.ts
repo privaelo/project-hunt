@@ -63,6 +63,7 @@ export const populateProjectDetails = internalQuery({
         name: v.string(),
         summary: v.optional(v.string()),
         teamId: v.optional(v.id("teams")),
+        upvotes: v.optional(v.number()),
         entryId: v.optional(v.string()),
         status: v.union(v.literal("pending"), v.literal("active")),
         userId: v.id("users"),
