@@ -60,9 +60,11 @@ export const toggleUpvote = mutation({
     if (existingUpvote) {
       await ctx.db.delete(existingUpvote._id);
       const now = Date.now();
+      const newUpvoteCount = Math.max(0, project.upvotes - 1);
       const newEngagementScore = Math.max(0, (project.engagementScore ?? 0) - 1);
       const newHotScore = calculateHotScore(newEngagementScore, project._creationTime, now, project.lastVersionAt ?? undefined);
       await ctx.db.patch(args.projectId, {
+        upvotes: newUpvoteCount,
         engagementScore: newEngagementScore,
         hotScore: newHotScore,
       });
@@ -80,9 +82,11 @@ export const toggleUpvote = mutation({
         userId: user._id,
         createdAt: now,
       });
+      const newUpvoteCount = project.upvotes + 1;
       const newEngagementScore = (project.engagementScore ?? 0) + 1;
       const newHotScore = calculateHotScore(newEngagementScore, project._creationTime, now, project.lastVersionAt ?? undefined);
       await ctx.db.patch(args.projectId, {
+        upvotes: newUpvoteCount,
         engagementScore: newEngagementScore,
         hotScore: newHotScore,
       });

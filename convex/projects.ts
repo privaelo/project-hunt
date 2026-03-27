@@ -71,6 +71,7 @@ export {
 } from "./projects/spaces";
 
 export {
+  backfillProjectUpvoteCounts,
   migrateReadinessStatusAction,
   migrateReadinessStatus,
   getAllProjectIds,

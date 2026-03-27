@@ -4,6 +4,31 @@ import { internal } from "../_generated/api";
 import { v } from "convex/values";
 import { rag } from "../rag";
 
+// ─── Backfill project.upvotes from upvotes table ────────────────────────────
+
+export const backfillProjectUpvoteCounts = internalMutationFromFunctions({
+  args: {},
+  handler: async (ctx) => {
+    const projects = await ctx.db
+      .query("projects")
+      .withIndex("by_status", (q) => q.eq("status", "active"))
+      .collect();
+    let updated = 0;
+    for (const project of projects) {
+      const upvotes = await ctx.db
+        .query("upvotes")
+        .withIndex("by_project", (q) => q.eq("projectId", project._id))
+        .collect();
+      const actualCount = upvotes.length;
+      if (project.upvotes !== actualCount) {
+        await ctx.db.patch(project._id, { upvotes: actualCount });
+        updated++;
+      }
+    }
+    return { updated };
+  },
+});
+
 export const migrateReadinessStatusAction = internalAction({
   args: {},
   handler: async (ctx): Promise<{ updated: number }> => {
