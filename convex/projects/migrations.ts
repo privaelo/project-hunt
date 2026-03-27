@@ -4,6 +4,23 @@ import { internal } from "../_generated/api";
 import { v } from "convex/values";
 import { rag } from "../rag";
 
+// ─── Remove deprecated projects.upvotes field ───────────────────────────────
+
+export const removeProjectUpvotesField = internalMutationFromFunctions({
+  args: {},
+  handler: async (ctx) => {
+    const projects = await ctx.db.query("projects").collect();
+    let updated = 0;
+    for (const project of projects) {
+      if (project.upvotes !== undefined) {
+        await ctx.db.patch(project._id, { upvotes: undefined });
+        updated++;
+      }
+    }
+    return { updated };
+  },
+});
+
 export const migrateReadinessStatusAction = internalAction({
   args: {},
   handler: async (ctx): Promise<{ updated: number }> => {
