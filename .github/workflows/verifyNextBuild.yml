@@ -9,6 +9,10 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    environment: Preview
+
+    env:
+      NEXT_PUBLIC_CONVEX_URL: ${{ vars.NEXT_PUBLIC_CONVEX_URL }}
 
     steps:
       - name: Checkout
