@@ -21,13 +21,31 @@ export function RichTextContent({ html, className = "" }: RichTextContentProps) 
       "a", "span",
       "img",
     ],
-    ALLOWED_ATTR: ["href", "rel", "target", "class", "data-language", "src", "alt", "width", "height"],
+    ALLOWED_ATTR: [
+      "href", "rel", "target", "class", "data-language", "src", "alt", "width", "height",
+      "data-id", "data-value", "data-denotation-char",
+    ],
   });
+
+  // Post-process: convert mention spans to profile links
+  const withMentionLinks = clean.replace(
+    /<span class="mention"[^>]*data-id="([^"]*)"[^>]*data-value="([^"]*)"[^>]*>[^<]*<\/span>/g,
+    (_match, id, value) =>
+      `<a href="/profile/${encodeURIComponent(id)}" class="mention" data-id="${id}">@${escapeHtml(value)}</a>`
+  );
 
   return (
     <div
       className={`rich-text-content ${className}`}
-      dangerouslySetInnerHTML={{ __html: clean }}
+      dangerouslySetInnerHTML={{ __html: withMentionLinks }}
     />
   );
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }

@@ -27,6 +27,7 @@ import { MediaUploadField } from "@/components/MediaUploadField";
 import { FileUploadField } from "@/components/FileUploadField";
 import { uploadFile } from "@/lib/upload";
 import type { LinkItem, ExistingMediaItem, NewFileItem, NewProjectFileItem } from "@/lib/types";
+import { useMentionSearch } from "@/hooks/use-mention-search";
 import { Slider } from "@/components/ui/slider";
 import {
   Tooltip,
@@ -76,6 +77,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
   const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>(null);
   const [additionalSpaces, setAdditionalSpaces] = useState<Id<"focusAreas">[]>([]);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"just_an_idea" | "early_prototype" | "mostly_working" | "ready_to_use">("just_an_idea");
+  const mentionSearch = useMentionSearch();
 
   const handlePrimarySpaceChange = (selected: Id<"focusAreas"> | "personal" | null) => {
     setSelectedFocusArea(selected);
@@ -352,6 +354,7 @@ export default function EditProject({ params }: { params: Promise<{ id: string }
                   onChange={(value) => setFormData({ ...formData, description: value })}
                   placeholder="A copy-and-paste prompt I use with AI to turn a few bullet points into a clear, polite email response. It asks for the right details, includes next steps, and keeps the tone consistent."
                   disabled={isSubmitting}
+                  onMentionSearch={mentionSearch}
                 />
               </div>
 

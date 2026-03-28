@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useConvexAuth } from "convex/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { MentionTextarea } from "@/components/MentionTextarea";
 import Link from "next/link";
 
 interface CommentFormProps {
@@ -58,11 +58,11 @@ export function CommentForm({
 
   return (
     <form onSubmit={handleSubmit} className="rounded-lg border border-zinc-200 bg-white p-3">
-      <Textarea
+      <MentionTextarea
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={setContent}
         placeholder={placeholder}
-        className="min-h-8 border-0 px-0 text-sm leading-5 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="border-0 px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
         disabled={isSubmitting}
       />
       <div className="mt-1 flex justify-end gap-2">

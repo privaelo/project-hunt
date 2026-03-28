@@ -23,6 +23,7 @@ import {
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
 import type { NewProjectFileItem, LinkItem } from "@/lib/types";
+import { useMentionSearch } from "@/hooks/use-mention-search";
 
 export default function EditVersionPage({
   params,
@@ -50,6 +51,7 @@ export default function EditVersionPage({
   const [newFiles, setNewFiles] = useState<NewProjectFileItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const mentionSearch = useMentionSearch();
 
   useEffect(() => {
     if (version && !initialized) {
@@ -214,6 +216,7 @@ export default function EditVersionPage({
               onChange={setBody}
               placeholder="What's new in this release?"
               disabled={isSubmitting}
+              onMentionSearch={mentionSearch}
             />
           </div>
 

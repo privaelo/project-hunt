@@ -12,6 +12,7 @@ import { RichTextEditor } from "@/components/RichTextEditor";
 import { isRichTextEmpty } from "@/lib/utils";
 import { SpacePicker } from "@/components/SpacePicker";
 import { useThreadImageUpload } from "@/hooks/use-thread-image-upload";
+import { useMentionSearch } from "@/hooks/use-mention-search";
 import Link from "next/link";
 
 export default function CreateThreadPage() {
@@ -20,6 +21,7 @@ export default function CreateThreadPage() {
   const createThread = useMutation(api.threads.createThread);
   const { handleImageUpload, getStorageIdsFromHtml } =
     useThreadImageUpload();
+  const mentionSearch = useMentionSearch();
 
   const [selectedSpace, setSelectedSpace] = useState<
     Id<"focusAreas"> | "personal" | null
@@ -105,6 +107,7 @@ export default function CreateThreadPage() {
               placeholder="Add more context"
               disabled={isSubmitting}
               onImageUpload={handleImageUpload}
+              onMentionSearch={mentionSearch}
             />
           </div>
 
