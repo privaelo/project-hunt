@@ -30,6 +30,7 @@ export {
   cancelProject,
   backfillProject,
   backfillEngagementScores,
+  processDescriptionMentions,
 } from "./projects/lifecycle";
 
 export {

@@ -19,6 +19,7 @@ import type * as focusAreas from "../focusAreas.js";
 import type * as followNotifications from "../followNotifications.js";
 import type * as functions from "../functions.js";
 import type * as http from "../http.js";
+import type * as mentions from "../mentions.js";
 import type * as notifications from "../notifications.js";
 import type * as playground from "../playground.js";
 import type * as projects from "../projects.js";
@@ -58,6 +59,7 @@ declare const fullApi: ApiFromModules<{
   followNotifications: typeof followNotifications;
   functions: typeof functions;
   http: typeof http;
+  mentions: typeof mentions;
   notifications: typeof notifications;
   playground: typeof playground;
   projects: typeof projects;

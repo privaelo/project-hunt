@@ -5,6 +5,7 @@ import { createProjectNotification } from "./notifications";
 import { internal } from "./_generated/api";
 import { enqueueCommentEmail, enqueueReplyEmail } from "./commentNotifications";
 import { calculateHotScore, propagateHotScoreToMemberships } from "./projects";
+import { parseMentionsFromPlainText, createMentionNotifications } from "./mentions";
 
 export const addComment = mutation({
   args: {
@@ -88,6 +89,29 @@ export const addComment = mutation({
           replierUserId: user._id,
           replierName: user.name,
           commentSnippet: args.content.slice(0, 200),
+        });
+      }
+    }
+
+    // Process @mentions in the comment
+    if (project) {
+      const mentionedUserIds = parseMentionsFromPlainText(args.content);
+      if (mentionedUserIds.length > 0) {
+        // Build set of users already being notified to avoid duplicate notifications
+        const excludeUserIds = new Set<string>([project.userId]);
+        if (args.parentCommentId) {
+          const parentComment = await ctx.db.get(args.parentCommentId);
+          if (parentComment) excludeUserIds.add(parentComment.userId);
+        }
+
+        await createMentionNotifications(ctx, {
+          mentionedUserIds,
+          actorUserId: user._id,
+          projectId: args.projectId,
+          commentId,
+          contentTitle: project.name,
+          contentSnippet: args.content.slice(0, 200),
+          excludeUserIds,
         });
       }
     }

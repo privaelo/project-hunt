@@ -285,6 +285,20 @@ body {
   margin-bottom: 0.5rem;
 }
 
+/* Mention styles — editor and display */
+.rich-text-editor .ql-editor .mention,
+.rich-text-content .mention {
+  color: #15803d;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.rich-text-content a.mention:hover {
+  text-decoration: underline;
+  color: #166534;
+}
+
 /* Amplify Authenticator - platform theme */
 [data-amplify-authenticator] {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
