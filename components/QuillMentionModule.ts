@@ -8,6 +8,7 @@
  */
 
 import type Quill from "quill";
+import { escapeHtml } from "@/lib/utils";
 
 // ─── Mention Blot ────────────────────────────────────────────────────────────
 
@@ -70,14 +71,22 @@ export class MentionModule {
   private results: MentionUser[] = [];
   private selectedIndex = 0;
   private mentionCharIndex = -1;
+  // Stored so destroy() can pass the exact reference to removeEventListener
+  private boundHandleDocumentClick: (e: MouseEvent) => void;
 
   constructor(quill: Quill, options: MentionModuleOptions) {
     this.quill = quill;
     this.source = options.source;
+    this.boundHandleDocumentClick = this.handleDocumentClick.bind(this);
 
     this.quill.root.addEventListener("keydown", this.handleKeyDown.bind(this));
     this.quill.on("text-change", this.handleTextChange.bind(this));
-    document.addEventListener("click", this.handleDocumentClick.bind(this));
+    document.addEventListener("click", this.boundHandleDocumentClick);
+  }
+
+  destroy() {
+    document.removeEventListener("click", this.boundHandleDocumentClick);
+    this.close();
   }
 
   private handleTextChange() {
@@ -90,11 +99,9 @@ export class MentionModule {
     const cursorIndex = selection.index;
     const text = this.quill.getText(0, cursorIndex);
 
-    // Find the last @ that could be a mention trigger
     let atIndex = -1;
     for (let i = text.length - 1; i >= 0; i--) {
       if (text[i] === "@") {
-        // Check that @ is at start or preceded by whitespace
         if (i === 0 || /\s/.test(text[i - 1])) {
           atIndex = i;
         }
@@ -170,17 +177,12 @@ export class MentionModule {
     const selection = this.quill.getSelection();
     if (!selection) return;
 
-    // Delete the @query text
     const deleteLength = selection.index - this.mentionCharIndex;
     this.quill.deleteText(this.mentionCharIndex, deleteLength);
-
-    // Insert the mention blot
     this.quill.insertEmbed(this.mentionCharIndex, "mention", {
       id: item.id,
       value: item.value,
     });
-
-    // Insert a space after and move cursor
     this.quill.insertText(this.mentionCharIndex + 1, " ");
     this.quill.setSelection(this.mentionCharIndex + 2, 0);
 
@@ -194,9 +196,19 @@ export class MentionModule {
       this.container.style.cssText =
         "position:absolute;z-index:50;width:16rem;border-radius:0.5rem;border:1px solid #e4e4e7;background:#fff;box-shadow:0 4px 6px -1px rgb(0 0 0/.1);overflow:hidden;";
       this.quill.container.appendChild(this.container);
+
+      // Single delegated mouseover handler — unified with keyboard navigation via updateSelection
+      this.container.addEventListener("mouseover", (e) => {
+        const btn = (e.target as HTMLElement).closest("[data-index]") as HTMLElement | null;
+        if (!btn) return;
+        const index = parseInt(btn.dataset.index ?? "0", 10);
+        if (index !== this.selectedIndex) {
+          this.selectedIndex = index;
+          this.updateSelection();
+        }
+      });
     }
 
-    // Position relative to cursor
     const bounds = this.quill.getBounds(this.mentionCharIndex);
     if (bounds) {
       this.container.style.top = `${bounds.top + bounds.height + 4}px`;
@@ -206,7 +218,7 @@ export class MentionModule {
     this.container.innerHTML = this.results
       .map(
         (user, i) =>
-          `<button type="button" data-index="${i}" class="ql-mention-item" style="display:flex;width:100%;align-items:center;gap:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;text-align:left;border:none;cursor:pointer;background:${i === this.selectedIndex ? "#f4f4f5" : "#fff"};" onmouseenter="this.style.background='#f4f4f5'" onmouseleave="this.style.background='${i === this.selectedIndex ? "#f4f4f5" : "#fff"}'">
+          `<button type="button" data-index="${i}" class="ql-mention-item" style="display:flex;width:100%;align-items:center;gap:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;text-align:left;border:none;cursor:pointer;background:${i === this.selectedIndex ? "#f4f4f5" : "#fff"};">
             <span style="display:flex;align-items:center;justify-content:center;width:1.5rem;height:1.5rem;border-radius:50%;background:#f4f4f5;font-size:10px;font-weight:600;color:#52525b;overflow:hidden;flex-shrink:0;">${
               user.avatarUrlId
                 ? `<img src="${escapeHtml(user.avatarUrlId)}" alt="${escapeHtml(user.value)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span style="display:none;align-items:center;justify-content:center;width:100%;height:100%;font-size:10px;font-weight:600;color:#52525b;">${user.value.slice(0, 2).toUpperCase()}</span>`
@@ -217,7 +229,6 @@ export class MentionModule {
       )
       .join("");
 
-    // Add click handlers
     this.container.querySelectorAll(".ql-mention-item").forEach((btn) => {
       btn.addEventListener("mousedown", (e) => {
         e.preventDefault();
@@ -247,12 +258,4 @@ export class MentionModule {
     this.selectedIndex = 0;
     this.mentionCharIndex = -1;
   }
-}
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }

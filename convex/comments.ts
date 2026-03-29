@@ -65,11 +65,13 @@ export const addComment = mutation({
       commentId,
     });
 
+    const parentComment = args.parentCommentId
+      ? await ctx.db.get(args.parentCommentId)
+      : null;
+
     // Notify the parent comment author when someone replies to their comment
-    if (args.parentCommentId && project) {
-      const parentComment = await ctx.db.get(args.parentCommentId);
+    if (parentComment && project) {
       if (
-        parentComment &&
         !parentComment.isDeleted &&
         parentComment.userId !== user._id &&
         parentComment.userId !== project.userId
@@ -93,16 +95,11 @@ export const addComment = mutation({
       }
     }
 
-    // Process @mentions in the comment
     if (project) {
       const mentionedUserIds = parseMentionsFromPlainText(args.content);
       if (mentionedUserIds.length > 0) {
-        // Build set of users already being notified to avoid duplicate notifications
         const excludeUserIds = new Set<string>([project.userId]);
-        if (args.parentCommentId) {
-          const parentComment = await ctx.db.get(args.parentCommentId);
-          if (parentComment) excludeUserIds.add(parentComment.userId);
-        }
+        if (parentComment) excludeUserIds.add(parentComment.userId);
 
         await createMentionNotifications(ctx, {
           mentionedUserIds,

@@ -5,11 +5,7 @@ import {
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { isEmailEnabled } from "./emails";
-
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const DEDUP_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
+import { isEmailEnabled, EMAIL_DEDUP_WINDOW_MS } from "./emails";
 
 // ─── Internal queries ────────────────────────────────────────────────────────
 
@@ -65,7 +61,7 @@ export const enqueueSpaceActivityEmail = internalMutation({
     payload: v.any(),
   },
   handler: async (ctx, args) => {
-    const cutoff = Date.now() - DEDUP_WINDOW_MS;
+    const cutoff = Date.now() - EMAIL_DEDUP_WINDOW_MS;
 
     const recentEmail = await ctx.db
       .query("emailQueue")

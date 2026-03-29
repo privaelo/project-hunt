@@ -25,6 +25,10 @@ import {
   type MentionActivityPayload,
 } from "./emailRenderer";
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+export const EMAIL_DEDUP_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 type EmailCategory = "weeklyDigest" | "spaceActivity" | "projectActivity" | "followedProjectComment" | "followedProjectUpdate" | "mentions";

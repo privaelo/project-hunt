@@ -1,9 +1,9 @@
 import { query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
-import type { Id } from "./_generated/dataModel";
+import type { Id, Doc } from "./_generated/dataModel";
 import { getCurrentUser } from "./users";
-import { isEmailEnabled } from "./emails";
+import { isEmailEnabled, EMAIL_DEDUP_WINDOW_MS } from "./emails";
 
 // ─── Mention parsing ─────────────────────────────────────────────────────────
 
@@ -20,7 +20,6 @@ export function parseMentionsFromPlainText(content: string): string[] {
   while ((match = PLAIN_TEXT_MENTION_RE.exec(content)) !== null) {
     ids.push(match[2]);
   }
-  // Reset lastIndex since we use a global regex
   PLAIN_TEXT_MENTION_RE.lastIndex = 0;
   return [...new Set(ids)];
 }
@@ -72,8 +71,6 @@ export const searchUsers = query({
 
 // ─── Mention notifications ───────────────────────────────────────────────────
 
-const DEDUP_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
-
 /**
  * Creates in-app notifications and enqueues emails for mentioned users.
  *
@@ -106,7 +103,6 @@ export async function createMentionNotifications(
     excludeUserIds,
   } = args;
 
-  // Deduplicate and filter
   const recipientIds = [...new Set(mentionedUserIds)].filter(
     (id) => id !== actorUserId && !excludeUserIds.has(id)
   );
@@ -119,46 +115,37 @@ export async function createMentionNotifications(
 
   for (const recipientId of recipientIds) {
     const recipientUserId = recipientId as Id<"users">;
+    const recipient = await ctx.db.get(recipientUserId);
+    if (!recipient) continue;
 
-    try {
-      // Verify user exists
-      const recipient = await ctx.db.get(recipientUserId);
-      if (!recipient) continue;
+    await ctx.db.insert("notifications", {
+      recipientUserId,
+      actorUserId,
+      projectId,
+      threadId,
+      threadCommentId,
+      type: "mention",
+      commentId,
+      isRead: false,
+      createdAt: now,
+      lastActivityAt: now,
+    });
 
-      // Create in-app notification
-      await ctx.db.insert("notifications", {
-        recipientUserId,
-        actorUserId,
-        projectId,
-        threadId,
-        threadCommentId,
-        type: "mention",
-        commentId,
-        isRead: false,
-        createdAt: now,
-        lastActivityAt: now,
-      });
-
-      // Enqueue mention email
-      await enqueueMentionEmail(ctx, {
-        recipientUserId,
-        actorName,
-        contentTitle,
-        contentSnippet,
-        projectId,
-        threadId,
-      });
-    } catch (error) {
-      // Skip malformed or invalid recipient IDs that cause db.get to throw
-      continue;
-    }
+    await enqueueMentionEmail(ctx, {
+      recipient,
+      actorName,
+      contentTitle,
+      contentSnippet,
+      projectId,
+      threadId,
+    });
   }
 }
 
 async function enqueueMentionEmail(
   ctx: MutationCtx,
   args: {
-    recipientUserId: Id<"users">;
+    recipient: Doc<"users">;
     actorName: string;
     contentTitle: string;
     contentSnippet?: string;
@@ -166,17 +153,17 @@ async function enqueueMentionEmail(
     threadId?: Id<"threads">;
   }
 ): Promise<void> {
-  const user = await ctx.db.get(args.recipientUserId);
-  if (!user) return;
-  if (!isEmailEnabled(user, "mentions")) return;
+  const { recipient } = args;
+  if (!recipient.email) return;
+  if (!recipient.onboardingCompleted) return;
+  if (!isEmailEnabled(recipient, "mentions")) return;
 
-  // Dedup: skip if a mention_activity email was recently enqueued
-  const cutoff = Date.now() - DEDUP_WINDOW_MS;
+  const cutoff = Date.now() - EMAIL_DEDUP_WINDOW_MS;
   const recentEmail = await ctx.db
     .query("emailQueue")
     .withIndex("by_userId_type_createdAt", (q) =>
       q
-        .eq("userId", args.recipientUserId)
+        .eq("userId", recipient._id)
         .eq("type", "mention_activity")
         .gte("createdAt", cutoff)
     )
@@ -185,7 +172,7 @@ async function enqueueMentionEmail(
   if (recentEmail) return;
 
   await ctx.db.insert("emailQueue", {
-    userId: args.recipientUserId,
+    userId: recipient._id,
     type: "mention_activity",
     status: "pending",
     payload: {

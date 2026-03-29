@@ -5,6 +5,7 @@ import {
   useRef,
   useCallback,
   useEffect,
+  useMemo,
   type KeyboardEvent,
   type ChangeEvent,
 } from "react";
@@ -35,6 +36,7 @@ export function MentionTextarea({
 }: MentionTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mentionActiveRef = useRef(false);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionStart, setMentionStart] = useState<number>(0);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -47,16 +49,14 @@ export function MentionTextarea({
       : "skip"
   );
 
-  const results = searchResults ?? [];
+  const results = useMemo(() => searchResults ?? [], [searchResults]);
 
-  // Calculate dropdown position based on textarea caret
   const updateDropdownPosition = useCallback(
     (textarea: HTMLTextAreaElement, atIndex: number) => {
       // Create a mirror div to measure caret position
       const mirror = document.createElement("div");
       const computed = window.getComputedStyle(textarea);
 
-      // Copy relevant styles
       const stylesToCopy = [
         "fontFamily",
         "fontSize",
@@ -114,7 +114,6 @@ export function MentionTextarea({
     []
   );
 
-  // Detect @ trigger on input change
   const handleChange = useCallback(
     (e: ChangeEvent<HTMLTextAreaElement>) => {
       const newValue = e.target.value;
@@ -155,7 +154,6 @@ export function MentionTextarea({
     [onChange, updateDropdownPosition]
   );
 
-  // Insert mention into text
   const insertMention = useCallback(
     (userId: string, userName: string) => {
       const textarea = textareaRef.current;
@@ -180,7 +178,6 @@ export function MentionTextarea({
     [value, mentionStart, onChange]
   );
 
-  // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
       if (mentionQuery === null || results.length === 0) return;
@@ -205,11 +202,15 @@ export function MentionTextarea({
     [mentionQuery, results, selectedIndex, insertMention]
   );
 
-  // Close dropdown on click outside
+  // Keep ref in sync so the click-outside handler (registered once) can read current open state
   useEffect(() => {
-    if (mentionQuery === null) return;
+    mentionActiveRef.current = mentionQuery !== null;
+  }, [mentionQuery]);
 
+  // Register click-outside listener once for the component lifetime
+  useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      if (!mentionActiveRef.current) return;
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(e.target as Node) &&
@@ -222,7 +223,7 @@ export function MentionTextarea({
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [mentionQuery]);
+  }, []);
 
   const showDropdown = mentionQuery !== null && results.length > 0;
 

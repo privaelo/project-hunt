@@ -1,6 +1,7 @@
 "use client";
 
 import DOMPurify from "dompurify";
+import { escapeHtml } from "@/lib/utils";
 
 interface RichTextContentProps {
   html: string;
@@ -42,10 +43,3 @@ export function RichTextContent({ html, className = "" }: RichTextContentProps) 
   );
 }
 
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
