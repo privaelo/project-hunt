@@ -27,6 +27,7 @@ import {
 import Link from "next/link";
 import { LinksEditor } from "@/components/LinksEditor";
 import type { NewFileItem, NewProjectFileItem, LinkItem } from "@/lib/types";
+import { useMentionSearch } from "@/hooks/use-mention-search";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -60,6 +61,7 @@ export default function SubmitProject() {
   const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>("personal");
   const [additionalSpaces, setAdditionalSpaces] = useState<Id<"focusAreas">[]>([]);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"just_an_idea" | "early_prototype" | "mostly_working" | "ready_to_use">("just_an_idea");
+  const mentionSearch = useMentionSearch();
 
   const handlePrimarySpaceChange = (selected: Id<"focusAreas"> | "personal" | null) => {
     setSelectedFocusArea(selected);
@@ -280,6 +282,7 @@ export default function SubmitProject() {
                       placeholder="What is it? (optional)"
                       aria-label="What is it? (optional)"
                       disabled={isSubmitting}
+                      onMentionSearch={mentionSearch}
                     />
                   </div>
 

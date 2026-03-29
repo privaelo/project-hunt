@@ -7,7 +7,7 @@ import { enqueueFollowedCommentEmail, enqueueFollowedProjectUpdateEmail } from "
 
 const NOTIFICATION_HISTORY_LIMIT = 50;
 
-async function pruneNotifications(
+export async function pruneNotifications(
   ctx: MutationCtx,
   recipientUserId: Id<"users">
 ) {
@@ -29,8 +29,10 @@ export async function createProjectNotification(
     recipientUserId: Id<"users">;
     actorUserId: Id<"users">;
     projectId: Id<"projects">;
-    type: "comment" | "reply" | "follow" | "project_update" | "followed_project_comment";
+    type: "comment" | "reply" | "follow" | "project_update" | "followed_project_comment" | "mention";
     commentId?: Id<"comments">;
+    threadId?: Id<"threads">;
+    threadCommentId?: Id<"threadComments">;
   }
 ) {
   const now = Date.now();
@@ -38,6 +40,8 @@ export async function createProjectNotification(
     recipientUserId: args.recipientUserId,
     actorUserId: args.actorUserId,
     projectId: args.projectId,
+    threadId: args.threadId,
+    threadCommentId: args.threadCommentId,
     type: args.type,
     commentId: args.commentId,
     isRead: false,
@@ -313,16 +317,18 @@ export const getNotifications = query({
 
     return await Promise.all(
       notifications.map(async (notification) => {
-        const [actor, project, comment] = await Promise.all([
+        const [actor, project, comment, thread] = await Promise.all([
           ctx.db.get(notification.actorUserId),
-          ctx.db.get(notification.projectId),
+          notification.projectId ? ctx.db.get(notification.projectId) : null,
           notification.commentId ? ctx.db.get(notification.commentId) : null,
+          notification.threadId ? ctx.db.get(notification.threadId) : null,
         ]);
 
         return {
           _id: notification._id,
           type: notification.type,
-          projectId: notification.projectId,
+          projectId: notification.projectId ?? null,
+          threadId: notification.threadId ?? null,
           commentId: notification.commentId,
           count: notification.count,
           isRead: notification.isRead,
@@ -330,7 +336,9 @@ export const getNotifications = query({
           lastActivityAt: notification.lastActivityAt,
           actorName: actor?.name ?? "Someone",
           actorAvatar: actor?.avatarUrlId ?? "",
-          projectName: project?.name ?? "your tool",
+          projectName: project?.name ?? null,
+          threadTitle: thread?.title ?? null,
+          threadCommentId: notification.threadCommentId ?? null,
           isReply: Boolean(comment?.parentCommentId),
         };
       })

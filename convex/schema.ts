@@ -106,7 +106,9 @@ export default defineSchema({
   notifications: defineTable({
     recipientUserId: v.id("users"),
     actorUserId: v.id("users"),
-    projectId: v.id("projects"),
+    projectId: v.optional(v.id("projects")),
+    threadId: v.optional(v.id("threads")),
+    threadCommentId: v.optional(v.id("threadComments")),
     type: v.union(
       v.literal("comment"),
       v.literal("reply"),
@@ -115,6 +117,7 @@ export default defineSchema({
       v.literal("follow"),
       v.literal("project_update"),
       v.literal("followed_project_comment"),
+      v.literal("mention"),
     ),
     commentId: v.optional(v.id("comments")),
     count: v.optional(v.number()),
@@ -125,7 +128,8 @@ export default defineSchema({
     .index("by_recipient", ["recipientUserId"])
     .index("by_recipient_and_read", ["recipientUserId", "isRead"])
     .index("by_recipient_last_activity", ["recipientUserId", "lastActivityAt"])
-    .index("by_recipient_project_type", ["recipientUserId", "projectId", "type"]),
+    .index("by_recipient_project_type", ["recipientUserId", "projectId", "type"])
+    .index("by_recipient_thread_type", ["recipientUserId", "threadId", "type"]),
   users: defineTable({
     name: v.string(),
     email: v.optional(v.string()),
@@ -143,8 +147,10 @@ export default defineSchema({
       projectActivity: v.optional(v.boolean()),
       followedProjectComment: v.optional(v.boolean()),
       followedProjectUpdate: v.optional(v.boolean()),
+      mentions: v.optional(v.boolean()),
     })),
   })
+    .searchIndex("search_name", { searchField: "name" })
     .index("by_teamId", ["teamId"])
     .index("by_userIntent", ["userIntent"])
     .index("by_externalUserId", ["externalUserId"])

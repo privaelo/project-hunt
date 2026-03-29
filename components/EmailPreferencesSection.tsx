@@ -33,6 +33,11 @@ const PREFERENCES = [
     label: "Updates to watched tools",
     description: "When a project you watch is edited or releases a new version",
   },
+  {
+    key: "mentions" as const,
+    label: "Mentions",
+    description: "When someone @mentions you in a comment, thread, or description",
+  },
 ];
 
 export function EmailPreferencesSection() {
@@ -42,7 +47,7 @@ export function EmailPreferencesSection() {
   if (!prefs) return null;
 
   const handleToggle = async (
-    key: "weeklyDigest" | "spaceActivity" | "projectActivity" | "followedProjectComment" | "followedProjectUpdate",
+    key: "weeklyDigest" | "spaceActivity" | "projectActivity" | "followedProjectComment" | "followedProjectUpdate" | "mentions",
     checked: boolean
   ) => {
     try {

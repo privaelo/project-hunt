@@ -1,10 +1,6 @@
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { isEmailEnabled } from "./emails";
-
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const DEDUP_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
+import { isEmailEnabled, EMAIL_DEDUP_WINDOW_MS } from "./emails";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -31,7 +27,7 @@ export async function enqueueFollowedCommentEmail(
   if (!recipient.onboardingCompleted) return;
   if (!isEmailEnabled(recipient, "followedProjectComment")) return;
 
-  const cutoff = Date.now() - DEDUP_WINDOW_MS;
+  const cutoff = Date.now() - EMAIL_DEDUP_WINDOW_MS;
   const recentEmail = await ctx.db
     .query("emailQueue")
     .withIndex("by_userId_type_createdAt", (q) =>
@@ -79,7 +75,7 @@ export async function enqueueFollowedProjectUpdateEmail(
   if (!recipient.onboardingCompleted) return;
   if (!isEmailEnabled(recipient, "followedProjectUpdate")) return;
 
-  const cutoff = Date.now() - DEDUP_WINDOW_MS;
+  const cutoff = Date.now() - EMAIL_DEDUP_WINDOW_MS;
   const recentEmail = await ctx.db
     .query("emailQueue")
     .withIndex("by_userId_type_createdAt", (q) =>
