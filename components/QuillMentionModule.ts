@@ -19,9 +19,9 @@ let blotRegistered = false;
 export function registerMentionBlot(QuillClass: typeof Quill) {
   if (blotRegistered) return;
 
-  const Inline = QuillClass.import("blots/inline") as typeof import("parchment").InlineBlot;
+  const Embed = QuillClass.import("blots/embed") as typeof import("parchment").EmbedBlot;
 
-  class MentionBlot extends Inline {
+  class MentionBlot extends Embed {
     static blotName = "mention";
     static tagName = "span";
     static className = "mention";
@@ -30,7 +30,6 @@ export function registerMentionBlot(QuillClass: typeof Quill) {
       const node = super.create() as HTMLElement;
       node.setAttribute("data-id", data.id);
       node.setAttribute("data-value", data.value);
-      node.setAttribute("contenteditable", "false");
       node.textContent = `@${data.value}`;
       return node;
     }
@@ -40,10 +39,6 @@ export function registerMentionBlot(QuillClass: typeof Quill) {
         id: node.getAttribute("data-id") ?? "",
         value: node.getAttribute("data-value") ?? "",
       };
-    }
-
-    static formats(node: HTMLElement): { id: string; value: string } {
-      return MentionBlot.value(node);
     }
   }
 
@@ -99,6 +94,59 @@ export class MentionModule {
     this.close();
   }
 
+  /**
+   * Builds plain text from the delta up to `endIndex`, returning
+   * a mapping from each text character position to its Quill document index.
+   * Embeds (mentions) are skipped in the text but still advance the Quill index.
+   */
+  private getTextWithPositionMap(endIndex: number): { text: string; toQuillIndex: number[] } {
+    const contents = this.quill.getContents(0, endIndex);
+    const chars: string[] = [];
+    const toQuillIndex: number[] = [];
+    let quillPos = 0;
+
+    for (const op of contents.ops ?? []) {
+      if (typeof op.insert === "string") {
+        for (let i = 0; i < op.insert.length; i++) {
+          toQuillIndex.push(quillPos + i);
+          chars.push(op.insert[i]);
+        }
+        quillPos += op.insert.length;
+      } else if (op.insert) {
+        // Embed — occupies 1 Quill index but produces no text
+        quillPos += 1;
+      }
+    }
+
+    return { text: chars.join(""), toQuillIndex };
+  }
+
+  /**
+   * Scans backwards from the cursor for a `@` trigger character
+   * and returns the Quill document index + query string, or null.
+   */
+  private findMentionTrigger(cursorIndex: number): { atQuillIndex: number; query: string } | null {
+    const { text, toQuillIndex } = this.getTextWithPositionMap(cursorIndex);
+
+    let atTextIndex = -1;
+    for (let i = text.length - 1; i >= 0; i--) {
+      if (text[i] === "@") {
+        if (i === 0 || /\s/.test(text[i - 1])) {
+          atTextIndex = i;
+        }
+        break;
+      }
+      if (/[\s\n]/.test(text[i])) break;
+    }
+
+    if (atTextIndex < 0) return null;
+
+    const query = text.slice(atTextIndex + 1);
+    if (query.length > 30 || /\n/.test(query)) return null;
+
+    return { atQuillIndex: toQuillIndex[atTextIndex], query };
+  }
+
   private handleTextChange() {
     const selection = this.quill.getSelection();
     if (!selection) {
@@ -106,27 +154,11 @@ export class MentionModule {
       return;
     }
 
-    const cursorIndex = selection.index;
-    const text = this.quill.getText(0, cursorIndex);
-
-    let atIndex = -1;
-    for (let i = text.length - 1; i >= 0; i--) {
-      if (text[i] === "@") {
-        if (i === 0 || /\s/.test(text[i - 1])) {
-          atIndex = i;
-        }
-        break;
-      }
-      if (/[\s\n]/.test(text[i])) break;
-    }
-
-    if (atIndex >= 0) {
-      const query = text.slice(atIndex + 1);
-      if (query.length <= 30 && !/\n/.test(query)) {
-        this.mentionCharIndex = atIndex;
-        this.debouncedSearch(query);
-        return;
-      }
+    const result = this.findMentionTrigger(selection.index);
+    if (result) {
+      this.mentionCharIndex = result.atQuillIndex;
+      this.debouncedSearch(result.query);
+      return;
     }
 
     this.close();
@@ -153,11 +185,8 @@ export class MentionModule {
       // Discard if user has typed more since this request was fired
       const selection = this.quill.getSelection();
       if (!selection) return;
-      const currentText = this.quill.getText(0, selection.index);
-      const activeQuery = this.mentionCharIndex >= 0
-        ? currentText.slice(this.mentionCharIndex + 1)
-        : null;
-      if (activeQuery !== currentQuery) return;
+      const currentResult = this.findMentionTrigger(selection.index);
+      if (currentResult?.query !== currentQuery) return;
 
       if (results.length > 0) {
         this.results = results;
@@ -206,16 +235,21 @@ export class MentionModule {
     const selection = this.quill.getSelection();
     if (!selection) return;
 
-    const deleteLength = selection.index - this.mentionCharIndex;
-    this.quill.deleteText(this.mentionCharIndex, deleteLength);
-    this.quill.insertEmbed(this.mentionCharIndex, "mention", {
+    // Save values before any Quill operations — deleteText fires a synchronous
+    // text-change event which triggers handleTextChange → close(), resetting
+    // mentionCharIndex to -1.
+    const atIndex = this.mentionCharIndex;
+    const deleteLength = selection.index - atIndex;
+
+    this.close();
+
+    this.quill.deleteText(atIndex, deleteLength);
+    this.quill.insertEmbed(atIndex, "mention", {
       id: item.id,
       value: item.value,
     });
-    this.quill.insertText(this.mentionCharIndex + 1, " ");
-    this.quill.setSelection(this.mentionCharIndex + 2, 0);
-
-    this.close();
+    this.quill.insertText(atIndex + 1, " ");
+    this.quill.setSelection(atIndex + 2, 0);
   }
 
   private buildItemElement(user: MentionUser, index: number): HTMLButtonElement {
