@@ -168,12 +168,12 @@ body {
 }
 .rich-text-editor.minimal .ql-editor {
   min-height: 2rem;
-  padding: 0;
+  padding: 2px 0 4px;
 }
 .rich-text-editor.minimal .ql-editor.ql-blank::before {
   left: 0;
   right: 0;
-  top: 0;
+  top: 2px;
 }
 
 /* Rich text content display */

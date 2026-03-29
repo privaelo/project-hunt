@@ -62,7 +62,7 @@ export function CommentForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2">
+      <div className="rounded-md border border-zinc-300 bg-zinc-50 px-3.5 py-2.5">
         <RichTextEditor
           value={content}
           onChange={setContent}
@@ -71,21 +71,21 @@ export function CommentForm({
           minimal
           onMentionSearch={mentionSearch}
         />
-      </div>
-      <div className="mt-2 flex justify-end gap-1.5">
-        {onCancel && (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
-            Cancel
+        <div className="mt-2 flex justify-end gap-1.5">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" disabled={isSubmitting || isEmpty}>
+            {isSubmitting ? "Posting..." : submitText}
           </Button>
-        )}
-        <Button type="submit" disabled={isSubmitting || isEmpty}>
-          {isSubmitting ? "Posting..." : submitText}
-        </Button>
+        </div>
       </div>
     </form>
   );
