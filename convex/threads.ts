@@ -5,7 +5,7 @@ import { v } from "convex/values";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 import { calculateHotScore } from "./projects/helpers";
 import { enqueueCommentEmail } from "./commentNotifications";
-import { parseMentionsFromPlainText, parseMentionsFromHtml, createMentionNotifications } from "./mentions";
+import { parseMentionsFromHtml, createMentionNotifications } from "./mentions";
 import { rag } from "./rag";
 import type { EntryId } from "@convex-dev/rag";
 
@@ -515,7 +515,7 @@ export const addComment = mutation({
       }
 
       // Process @mentions in the thread comment
-      const mentionedUserIds = parseMentionsFromPlainText(args.content);
+      const mentionedUserIds = parseMentionsFromHtml(args.content);
       if (mentionedUserIds.length > 0) {
         const excludeUserIds = new Set<string>([thread.userId]);
         await createMentionNotifications(ctx, {

@@ -10,7 +10,7 @@ import { useCurrentUser } from "@/app/useCurrentUser";
 import Link from "next/link";
 import { ArrowBigUp, MessageSquare, Minus, Plus, Trash2 } from "lucide-react";
 import { getRelativeTime } from "@/lib/utils";
-import { MentionText } from "@/components/MentionText";
+import { RichTextContent } from "@/components/RichTextContent";
 
 export interface BaseComment {
   _id: string;
@@ -284,9 +284,7 @@ export function CommentThread({
               <span className="text-zinc-300">&bull;</span>
               <span>{getRelativeTime(comment.createdAt)}</span>
             </div>
-            <p className="mt-0.5 text-sm leading-5 text-zinc-700 whitespace-pre-wrap break-words">
-              <MentionText content={comment.content} />
-            </p>
+            <RichTextContent html={comment.content} className="mt-0.5 text-zinc-700" />
             <div className="mt-1 flex items-center gap-0.5 -ml-1.5">
               <Button
                 variant="ghost"

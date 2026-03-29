@@ -50,6 +50,8 @@ interface RichTextEditorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  /** Hides the toolbar and renders a compact editor suitable for comments. */
+  minimal?: boolean;
   /** When provided, enables the image button in the toolbar. */
   onImageUpload?: (file: File) => Promise<string>;
   /** When provided, enables @mention autocomplete in the editor. */
@@ -61,6 +63,7 @@ export function RichTextEditor({
   onChange,
   placeholder,
   disabled,
+  minimal,
   onImageUpload,
   onMentionSearch,
 }: RichTextEditorProps) {
@@ -126,7 +129,9 @@ export function RichTextEditor({
       };
     }
 
-    if (onImageUpload) {
+    if (minimal) {
+      base.toolbar = false;
+    } else if (onImageUpload) {
       base.resize = {};
       base.toolbar = {
         container: IMAGE_TOOLBAR,
@@ -162,10 +167,10 @@ export function RichTextEditor({
     }
 
     return base;
-  }, [onImageUpload, onMentionSearch]);
+  }, [minimal, onImageUpload, onMentionSearch]);
 
   return (
-    <div ref={wrapperRef} className="rich-text-editor">
+    <div ref={wrapperRef} className={`rich-text-editor${minimal ? " minimal" : ""}`}>
       <ReactQuill
         theme="snow"
         value={value}

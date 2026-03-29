@@ -2,28 +2,13 @@ import { query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id, Doc } from "./_generated/dataModel";
-import { getCurrentUser } from "./users";
+import { getCurrentUserOrThrow } from "./users";
 import { isEmailEnabled, EMAIL_DEDUP_WINDOW_MS } from "./emails";
 import { pruneNotifications } from "./notifications";
 
 // ─── Mention parsing ─────────────────────────────────────────────────────────
 
-const PLAIN_TEXT_MENTION_RE = /@\[([^\]]+)\]\(([^)]+)\)/g;
 const HTML_MENTION_RE = /class="mention"[^>]*data-id="([^"]+)"/g;
-
-/**
- * Extracts mentioned user IDs from plain text content.
- * Mention format: @[Username](userId)
- */
-export function parseMentionsFromPlainText(content: string): string[] {
-  const ids: string[] = [];
-  let match;
-  while ((match = PLAIN_TEXT_MENTION_RE.exec(content)) !== null) {
-    ids.push(match[2]);
-  }
-  PLAIN_TEXT_MENTION_RE.lastIndex = 0;
-  return [...new Set(ids)];
-}
 
 /**
  * Extracts mentioned user IDs from Quill HTML content.
@@ -47,7 +32,7 @@ export const searchUsers = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const currentUser = await getCurrentUser(ctx);
+    const currentUser = await getCurrentUserOrThrow(ctx);
     const limit = args.limit ?? 8;
 
     if (!args.query.trim()) {

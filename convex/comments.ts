@@ -5,7 +5,7 @@ import { createProjectNotification } from "./notifications";
 import { internal } from "./_generated/api";
 import { enqueueCommentEmail, enqueueReplyEmail } from "./commentNotifications";
 import { calculateHotScore, propagateHotScoreToMemberships } from "./projects";
-import { parseMentionsFromPlainText, createMentionNotifications } from "./mentions";
+import { parseMentionsFromHtml, createMentionNotifications } from "./mentions";
 
 export const addComment = mutation({
   args: {
@@ -96,7 +96,7 @@ export const addComment = mutation({
     }
 
     if (project) {
-      const mentionedUserIds = parseMentionsFromPlainText(args.content);
+      const mentionedUserIds = parseMentionsFromHtml(args.content);
       if (mentionedUserIds.length > 0) {
         const excludeUserIds = new Set<string>([project.userId]);
         if (parentComment) excludeUserIds.add(parentComment.userId);
