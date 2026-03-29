@@ -120,33 +120,38 @@ export async function createMentionNotifications(
   for (const recipientId of recipientIds) {
     const recipientUserId = recipientId as Id<"users">;
 
-    // Verify user exists
-    const recipient = await ctx.db.get(recipientUserId);
-    if (!recipient) continue;
+    try {
+      // Verify user exists
+      const recipient = await ctx.db.get(recipientUserId);
+      if (!recipient) continue;
 
-    // Create in-app notification
-    await ctx.db.insert("notifications", {
-      recipientUserId,
-      actorUserId,
-      projectId,
-      threadId,
-      threadCommentId,
-      type: "mention",
-      commentId,
-      isRead: false,
-      createdAt: now,
-      lastActivityAt: now,
-    });
+      // Create in-app notification
+      await ctx.db.insert("notifications", {
+        recipientUserId,
+        actorUserId,
+        projectId,
+        threadId,
+        threadCommentId,
+        type: "mention",
+        commentId,
+        isRead: false,
+        createdAt: now,
+        lastActivityAt: now,
+      });
 
-    // Enqueue mention email
-    await enqueueMentionEmail(ctx, {
-      recipientUserId,
-      actorName,
-      contentTitle,
-      contentSnippet,
-      projectId,
-      threadId,
-    });
+      // Enqueue mention email
+      await enqueueMentionEmail(ctx, {
+        recipientUserId,
+        actorName,
+        contentTitle,
+        contentSnippet,
+        projectId,
+        threadId,
+      });
+    } catch (error) {
+      // Skip malformed or invalid recipient IDs that cause db.get to throw
+      continue;
+    }
   }
 }
 
