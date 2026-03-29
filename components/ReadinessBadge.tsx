@@ -26,14 +26,15 @@ const statusConfig: Record<string, { dot: string; badge: string; label: string; 
     tooltip: "Early prototype, feedback welcome.",
   },
   mostly_working: {
-    dot: "bg-lime-500",
-    badge: "border-lime-200 bg-lime-50 text-lime-700",
+    dot: "bg-[#c8d400]",
+    badge:
+      "border-[#d4e85c] bg-[#f6fce8] text-[#3d4d00]",
     label: "Mostly working",
     tooltip: "Mostly working, still has rough edges.",
   },
   ready_to_use: {
-    dot: "bg-emerald-600",
-    badge: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    dot: "bg-green-700",
+    badge: "border-green-300 bg-green-50 text-green-900",
     label: "Ready to use",
     tooltip: "Stable and ready to use.",
   },
@@ -55,7 +56,6 @@ export function ReadinessBadge({ status, className }: ReadinessBadgeProps) {
           variant="outline"
           className={cn("cursor-help gap-1.5", config.badge, className)}
         >
-          <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", config.dot)} />
           {config.label}
         </Badge>
       </TooltipTrigger>
