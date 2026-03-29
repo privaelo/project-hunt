@@ -101,6 +101,23 @@ function escapeHtml(value: string): string {
     .replaceAll("'", "&#39;");
 }
 
+function stripHtml(html: string): string {
+  return html
+    .replace(/<\/(p|h[1-6]|li|div|blockquote|pre|ol|ul)>/gi, " ")
+    .replace(/<(p|h[1-6]|li|div|blockquote|pre|ol|ul|br)[^>]*\/?>/gi, " ")
+    .replace(/<[^>]*>/g, "")
+    // Remove any unclosed tag fragment at the end (e.g. from slicing HTML mid-tag)
+    .replace(/<[^>]*$/, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function formatDateRange(periodStart: number, periodEnd: number): string {
   const formatter = new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -652,10 +669,11 @@ export function renderCommentActivityEmail(args: {
     ? `${escapeHtml(payload.commenterName)} replied to your comment`
     : `${escapeHtml(payload.commenterName)} commented on your ${contentLabel}`;
 
+  const plainSnippet = stripHtml(payload.commentSnippet);
   const truncatedSnippet =
-    payload.commentSnippet.length > 200
-      ? `${payload.commentSnippet.slice(0, 197)}...`
-      : payload.commentSnippet;
+    plainSnippet.length > 200
+      ? `${plainSnippet.slice(0, 197)}...`
+      : plainSnippet;
 
   const html = `
     <!doctype html>
@@ -763,10 +781,11 @@ export function renderFollowedCommentEmail(args: {
   const subject = `New comment on "${truncatedTitle}"`;
   const preheader = `${escapeHtml(payload.commenterName)} commented on a project you follow`;
 
+  const plainFollowSnippet = stripHtml(payload.commentSnippet);
   const truncatedSnippet =
-    payload.commentSnippet.length > 200
-      ? `${payload.commentSnippet.slice(0, 197)}...`
-      : payload.commentSnippet;
+    plainFollowSnippet.length > 200
+      ? `${plainFollowSnippet.slice(0, 197)}...`
+      : plainFollowSnippet;
 
   const html = `
     <!doctype html>
@@ -960,10 +979,11 @@ export function renderMentionEmail(args: {
   const contentUrl = joinUrl(baseUrl, contentPath);
   const preheader = `${escapeHtml(payload.mentionerName)} mentioned you in a ${contentLabel}`;
 
-  const snippetSection = payload.commentSnippet
+  const rawSnippet = payload.commentSnippet ? stripHtml(payload.commentSnippet) : "";
+  const snippetSection = rawSnippet
     ? `
                           <div style="font-size: 14px; line-height: 1.6; color: #52525b; margin: 0 0 16px;">
-                            "${escapeHtml(payload.commentSnippet.length > 200 ? payload.commentSnippet.slice(0, 197) + "..." : payload.commentSnippet)}"
+                            "${escapeHtml(rawSnippet.length > 200 ? rawSnippet.slice(0, 197) + "..." : rawSnippet)}"
                           </div>`
     : "";
 
@@ -1020,8 +1040,8 @@ export function renderMentionEmail(args: {
     </html>
   `.trim();
 
-  const snippetText = payload.commentSnippet
-    ? `\n"${payload.commentSnippet.slice(0, 200)}"\n`
+  const snippetText = rawSnippet
+    ? `\n"${rawSnippet.slice(0, 200)}"\n`
     : "";
 
   const text = [
