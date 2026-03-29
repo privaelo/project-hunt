@@ -143,12 +143,13 @@ export function Header() {
                       ) : (
                         <div className="max-h-96 divide-y divide-zinc-100 overflow-auto">
                           {notifications.map((notification) => {
+                            const hasCommentAnchor = !!(notification.commentId ?? notification.threadCommentId);
                             const discussionTypes = ["comment", "reply", "followed_project_comment", "mention"];
-                            const isDiscussion = discussionTypes.includes(notification.type);
+                            const shouldAppendDiscussion = hasCommentAnchor && discussionTypes.includes(notification.type);
                             const href = notification.threadId
-                              ? `/thread/${notification.threadId}${isDiscussion ? "#discussion" : ""}`
+                              ? `/thread/${notification.threadId}${shouldAppendDiscussion ? "#discussion" : ""}`
                               : notification.projectId
-                                ? `/project/${notification.projectId}${isDiscussion ? "#discussion" : ""}`
+                                ? `/project/${notification.projectId}${shouldAppendDiscussion ? "#discussion" : ""}`
                                 : "/";
                             return (
                               <Link

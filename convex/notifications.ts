@@ -7,7 +7,7 @@ import { enqueueFollowedCommentEmail, enqueueFollowedProjectUpdateEmail } from "
 
 const NOTIFICATION_HISTORY_LIMIT = 50;
 
-async function pruneNotifications(
+export async function pruneNotifications(
   ctx: MutationCtx,
   recipientUserId: Id<"users">
 ) {
@@ -338,6 +338,7 @@ export const getNotifications = query({
           actorAvatar: actor?.avatarUrlId ?? "",
           projectName: project?.name ?? null,
           threadTitle: thread?.title ?? null,
+          threadCommentId: notification.threadCommentId ?? null,
           isReply: Boolean(comment?.parentCommentId),
         };
       })

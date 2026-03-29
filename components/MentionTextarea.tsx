@@ -38,14 +38,23 @@ export function MentionTextarea({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const mentionActiveRef = useRef(false);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [debouncedMentionQuery, setDebouncedMentionQuery] = useState<string | null>(null);
   const [mentionStart, setMentionStart] = useState<number>(0);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
+  // Debounce the query sent to Convex by 250ms — always update via timer to satisfy React Compiler
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedMentionQuery(mentionQuery), 250);
+    return () => clearTimeout(timer);
+  }, [mentionQuery]);
+
   const searchResults = useQuery(
     api.mentions.searchUsers,
-    mentionQuery !== null && mentionQuery.length > 0
-      ? { query: mentionQuery, limit: 6 }
+    // Gate on mentionQuery (not debounced) so the query stops immediately when the dropdown closes,
+    // even before the debounce timer fires
+    mentionQuery !== null && debouncedMentionQuery !== null && debouncedMentionQuery.length > 0
+      ? { query: debouncedMentionQuery, limit: 6 }
       : "skip"
   );
 

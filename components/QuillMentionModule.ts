@@ -10,6 +10,8 @@
 import type Quill from "quill";
 import { escapeHtml } from "@/lib/utils";
 
+const SEARCH_DEBOUNCE_MS = 200;
+
 // ─── Mention Blot ────────────────────────────────────────────────────────────
 
 let blotRegistered = false;
@@ -71,21 +73,29 @@ export class MentionModule {
   private results: MentionUser[] = [];
   private selectedIndex = 0;
   private mentionCharIndex = -1;
-  // Stored so destroy() can pass the exact reference to removeEventListener
-  private boundHandleDocumentClick: (e: MouseEvent) => void;
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  // Stored bound references so destroy() can remove the exact same listeners
+  private keyDownHandler: (e: Event) => void;
+  private textChangeHandler: () => void;
+  private documentClickHandler: (e: MouseEvent) => void;
 
   constructor(quill: Quill, options: MentionModuleOptions) {
     this.quill = quill;
     this.source = options.source;
-    this.boundHandleDocumentClick = this.handleDocumentClick.bind(this);
+    this.keyDownHandler = this.handleKeyDown.bind(this);
+    this.textChangeHandler = this.handleTextChange.bind(this);
+    this.documentClickHandler = this.handleDocumentClick.bind(this);
 
-    this.quill.root.addEventListener("keydown", this.handleKeyDown.bind(this));
-    this.quill.on("text-change", this.handleTextChange.bind(this));
-    document.addEventListener("click", this.boundHandleDocumentClick);
+    this.quill.root.addEventListener("keydown", this.keyDownHandler);
+    this.quill.on("text-change", this.textChangeHandler);
+    document.addEventListener("click", this.documentClickHandler);
   }
 
-  destroy() {
-    document.removeEventListener("click", this.boundHandleDocumentClick);
+  public destroy(): void {
+    this.quill.root.removeEventListener("keydown", this.keyDownHandler);
+    this.quill.off("text-change", this.textChangeHandler);
+    document.removeEventListener("click", this.documentClickHandler);
+    if (this.debounceTimer) clearTimeout(this.debounceTimer);
     this.close();
   }
 
@@ -114,12 +124,20 @@ export class MentionModule {
       const query = text.slice(atIndex + 1);
       if (query.length <= 30 && !/\n/.test(query)) {
         this.mentionCharIndex = atIndex;
-        this.search(query);
+        this.debouncedSearch(query);
         return;
       }
     }
 
     this.close();
+  }
+
+  private debouncedSearch(query: string) {
+    if (this.debounceTimer) clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      this.debounceTimer = null;
+      void this.search(query);
+    }, SEARCH_DEBOUNCE_MS);
   }
 
   private async search(query: string) {
@@ -128,8 +146,19 @@ export class MentionModule {
       return;
     }
 
+    // Capture the query so stale responses from slower requests can be discarded
+    const currentQuery = query;
     try {
-      const results = await this.source(query);
+      const results = await this.source(currentQuery);
+      // Discard if user has typed more since this request was fired
+      const selection = this.quill.getSelection();
+      if (!selection) return;
+      const currentText = this.quill.getText(0, selection.index);
+      const activeQuery = this.mentionCharIndex >= 0
+        ? currentText.slice(this.mentionCharIndex + 1)
+        : null;
+      if (activeQuery !== currentQuery) return;
+
       if (results.length > 0) {
         this.results = results;
         this.selectedIndex = 0;
@@ -189,6 +218,47 @@ export class MentionModule {
     this.close();
   }
 
+  private buildItemElement(user: MentionUser, index: number): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.dataset.index = String(index);
+    btn.className = "ql-mention-item";
+    btn.style.cssText = `display:flex;width:100%;align-items:center;gap:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;text-align:left;border:none;cursor:pointer;background:${index === this.selectedIndex ? "#f4f4f5" : "#fff"};`;
+
+    // Avatar wrapper
+    const avatarWrap = document.createElement("span");
+    avatarWrap.style.cssText =
+      "display:flex;align-items:center;justify-content:center;width:1.5rem;height:1.5rem;border-radius:50%;background:#f4f4f5;font-size:10px;font-weight:600;color:#52525b;overflow:hidden;flex-shrink:0;";
+
+    const initials = user.value.slice(0, 2).toUpperCase();
+    if (user.avatarUrlId) {
+      const img = document.createElement("img");
+      img.src = user.avatarUrlId;
+      img.alt = escapeHtml(user.value);
+      img.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:50%;";
+      const fallback = document.createElement("span");
+      fallback.style.cssText =
+        "display:none;align-items:center;justify-content:center;width:100%;height:100%;font-size:10px;font-weight:600;color:#52525b;";
+      fallback.textContent = initials;
+      img.addEventListener("error", () => {
+        img.style.display = "none";
+        fallback.style.display = "flex";
+      });
+      avatarWrap.appendChild(img);
+      avatarWrap.appendChild(fallback);
+    } else {
+      avatarWrap.textContent = initials;
+    }
+
+    const nameSpan = document.createElement("span");
+    nameSpan.style.cssText = "font-weight:500;color:#18181b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+    nameSpan.textContent = user.value;
+
+    btn.appendChild(avatarWrap);
+    btn.appendChild(nameSpan);
+    return btn;
+  }
+
   private renderDropdown() {
     if (!this.container) {
       this.container = document.createElement("div");
@@ -197,7 +267,7 @@ export class MentionModule {
         "position:absolute;z-index:50;width:16rem;border-radius:0.5rem;border:1px solid #e4e4e7;background:#fff;box-shadow:0 4px 6px -1px rgb(0 0 0/.1);overflow:hidden;";
       this.quill.container.appendChild(this.container);
 
-      // Single delegated mouseover handler — unified with keyboard navigation via updateSelection
+      // Delegated mouseover — unified with keyboard navigation via updateSelection
       this.container.addEventListener("mouseover", (e) => {
         const btn = (e.target as HTMLElement).closest("[data-index]") as HTMLElement | null;
         if (!btn) return;
@@ -215,27 +285,16 @@ export class MentionModule {
       this.container.style.left = `${bounds.left}px`;
     }
 
-    this.container.innerHTML = this.results
-      .map(
-        (user, i) =>
-          `<button type="button" data-index="${i}" class="ql-mention-item" style="display:flex;width:100%;align-items:center;gap:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;text-align:left;border:none;cursor:pointer;background:${i === this.selectedIndex ? "#f4f4f5" : "#fff"};">
-            <span style="display:flex;align-items:center;justify-content:center;width:1.5rem;height:1.5rem;border-radius:50%;background:#f4f4f5;font-size:10px;font-weight:600;color:#52525b;overflow:hidden;flex-shrink:0;">${
-              user.avatarUrlId
-                ? `<img src="${escapeHtml(user.avatarUrlId)}" alt="${escapeHtml(user.value)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span style="display:none;align-items:center;justify-content:center;width:100%;height:100%;font-size:10px;font-weight:600;color:#52525b;">${user.value.slice(0, 2).toUpperCase()}</span>`
-                : user.value.slice(0, 2).toUpperCase()
-            }</span>
-            <span style="font-weight:500;color:#18181b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(user.value)}</span>
-          </button>`
-      )
-      .join("");
-
-    this.container.querySelectorAll(".ql-mention-item").forEach((btn) => {
-      btn.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        const index = parseInt((btn as HTMLElement).dataset.index ?? "0", 10);
-        this.selectItem(index);
-      });
-    });
+    this.container.replaceChildren(
+      ...this.results.map((user, i) => {
+        const btn = this.buildItemElement(user, i);
+        btn.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          this.selectItem(i);
+        });
+        return btn;
+      })
+    );
 
     this.isOpen = true;
   }
@@ -249,6 +308,10 @@ export class MentionModule {
   }
 
   private close() {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
     if (this.container) {
       this.container.remove();
       this.container = null;

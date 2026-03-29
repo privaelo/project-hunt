@@ -4,6 +4,7 @@ import { v } from "convex/values";
 import type { Id, Doc } from "./_generated/dataModel";
 import { getCurrentUser } from "./users";
 import { isEmailEnabled, EMAIL_DEDUP_WINDOW_MS } from "./emails";
+import { pruneNotifications } from "./notifications";
 
 // ─── Mention parsing ─────────────────────────────────────────────────────────
 
@@ -115,7 +116,14 @@ export async function createMentionNotifications(
 
   for (const recipientId of recipientIds) {
     const recipientUserId = recipientId as Id<"users">;
-    const recipient = await ctx.db.get(recipientUserId);
+
+    let recipient;
+    try {
+      recipient = await ctx.db.get(recipientUserId);
+    } catch {
+      // recipientId was parsed from user-controlled text and may not be a valid Convex ID
+      continue;
+    }
     if (!recipient) continue;
 
     await ctx.db.insert("notifications", {
@@ -130,6 +138,8 @@ export async function createMentionNotifications(
       createdAt: now,
       lastActivityAt: now,
     });
+
+    await pruneNotifications(ctx, recipientUserId);
 
     await enqueueMentionEmail(ctx, {
       recipient,

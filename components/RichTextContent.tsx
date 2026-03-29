@@ -1,7 +1,6 @@
 "use client";
 
 import DOMPurify from "dompurify";
-import { escapeHtml } from "@/lib/utils";
 
 interface RichTextContentProps {
   html: string;
@@ -28,17 +27,23 @@ export function RichTextContent({ html, className = "" }: RichTextContentProps) 
     ],
   });
 
-  // Post-process: convert mention spans to profile links
-  const withMentionLinks = clean.replace(
-    /<span class="mention"[^>]*data-id="([^"]*)"[^>]*data-value="([^"]*)"[^>]*>[^<]*<\/span>/g,
-    (_match, id, value) =>
-      `<a href="/profile/${encodeURIComponent(id)}" class="mention" data-id="${id}">@${escapeHtml(value)}</a>`
-  );
+  // Post-process: convert mention spans to profile links via DOM (order-independent, no XSS risk)
+  const doc = new DOMParser().parseFromString(clean, "text/html");
+  doc.querySelectorAll<HTMLElement>('span.mention[data-id][data-value]').forEach((span) => {
+    const id = span.getAttribute("data-id") ?? "";
+    const value = span.getAttribute("data-value") ?? "";
+    const link = doc.createElement("a");
+    link.className = "mention";
+    link.href = `/profile/${encodeURIComponent(id)}`;
+    link.setAttribute("data-id", id);
+    link.textContent = `@${value}`;
+    span.replaceWith(link);
+  });
 
   return (
     <div
       className={`rich-text-content ${className}`}
-      dangerouslySetInnerHTML={{ __html: withMentionLinks }}
+      dangerouslySetInnerHTML={{ __html: doc.body.innerHTML }}
     />
   );
 }

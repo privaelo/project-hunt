@@ -952,10 +952,11 @@ export function renderMentionEmail(args: {
 
   const subject = `${payload.mentionerName} mentioned you in "${truncatedTitle}"`;
 
+  // No #discussion anchor — mentions can originate from the body/description, not necessarily a comment
   const contentPath =
     payload.contentType === "project"
-      ? `/project/${payload.contentId}#discussion`
-      : `/thread/${payload.contentId}#discussion`;
+      ? `/project/${payload.contentId}`
+      : `/thread/${payload.contentId}`;
   const contentUrl = joinUrl(baseUrl, contentPath);
   const preheader = `${escapeHtml(payload.mentionerName)} mentioned you in a ${contentLabel}`;
 

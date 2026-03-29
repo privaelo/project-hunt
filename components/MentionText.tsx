@@ -24,7 +24,7 @@ export function MentionText({ content }: { content: string }) {
     parts.push(
       <Link
         key={`${userId}-${match.index}`}
-        href={`/profile/${userId}`}
+        href={`/profile/${encodeURIComponent(userId)}`}
         className="font-medium text-emerald-700 hover:underline"
       >
         @{userName}
