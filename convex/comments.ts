@@ -215,6 +215,27 @@ export const deleteComment = mutation({
   },
 });
 
+export const editComment = mutation({
+  args: {
+    commentId: v.id("comments"),
+    content: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    const comment = await ctx.db.get(args.commentId);
+    if (!comment || comment.isDeleted) {
+      throw new Error("Comment not found");
+    }
+    if (comment.userId !== user._id) {
+      throw new Error("You can only edit your own comments");
+    }
+    await ctx.db.patch(args.commentId, {
+      content: args.content,
+      editedAt: Date.now(),
+    });
+  },
+});
+
 export const toggleCommentUpvote = mutation({
   args: {
     commentId: v.id("comments"),

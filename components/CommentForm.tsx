@@ -13,6 +13,7 @@ interface CommentFormProps {
   onCancel?: () => void;
   placeholder?: string;
   submitText?: string;
+  initialValue?: string;
 }
 
 export function CommentForm({
@@ -20,10 +21,11 @@ export function CommentForm({
   onCancel,
   placeholder = "What do you think?",
   submitText = "Comment",
+  initialValue = "",
 }: CommentFormProps) {
   const { isAuthenticated } = useConvexAuth();
   const mentionSearch = useMentionSearch();
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState(initialValue);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isEmpty = !content || content === "<p><br></p>";

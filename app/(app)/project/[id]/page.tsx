@@ -115,6 +115,7 @@ export default function ProjectPage({
   const linkClickCounts = useQuery(api.projects.getLinkClickCounts, { projectId });
   const addComment = useMutation(api.comments.addComment);
   const deleteComment = useMutation(api.comments.deleteComment);
+  const editComment = useMutation(api.comments.editComment);
   const toggleCommentUpvote = useMutation(api.comments.toggleCommentUpvote);
   const trackedProjectId = useRef<Id<"projects"> | null>(null);
 
@@ -355,6 +356,7 @@ export default function ProjectPage({
                         onDelete={(id) => deleteComment({ commentId: id as Id<"comments"> })}
                         onToggleUpvote={(id) => toggleCommentUpvote({ commentId: id as Id<"comments"> })}
                         onSubmitReply={(content, parentId) => addComment({ projectId, content, parentCommentId: parentId as Id<"comments"> })}
+                        onEdit={(id, content) => editComment({ commentId: id as Id<"comments">, content })}
                       />
                     ))}
                   </div>

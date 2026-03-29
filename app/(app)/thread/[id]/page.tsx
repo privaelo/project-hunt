@@ -56,6 +56,7 @@ export default function ThreadPage({
   const deleteThread = useMutation(api.threads.deleteThread);
   const addComment = useMutation(api.threads.addComment);
   const deleteComment = useMutation(api.threads.deleteComment);
+  const editComment = useMutation(api.threads.editComment);
   const toggleCommentUpvote = useMutation(api.threads.toggleCommentUpvote);
   const [shareOpen, setShareOpen] = useState(false);
   const { handleImageUpload, getStorageIdsFromHtml, populateExistingImages } =
@@ -365,6 +366,7 @@ export default function ThreadPage({
                         onDelete={(id) => deleteComment({ commentId: id as Id<"threadComments"> })}
                         onToggleUpvote={(id) => toggleCommentUpvote({ commentId: id as Id<"threadComments"> })}
                         onSubmitReply={(content, parentId) => addComment({ threadId, content, parentCommentId: parentId as Id<"threadComments"> })}
+                        onEdit={(id, content) => editComment({ commentId: id as Id<"threadComments">, content })}
                       />
                     ))}
                   </div>
