@@ -88,6 +88,7 @@ export default defineSchema({
     content: v.string(),
     parentCommentId: v.optional(v.id("comments")),
     createdAt: v.number(),
+    editedAt: v.optional(v.number()),
     isDeleted: v.optional(v.boolean()),
     upvotes: v.optional(v.number()),
   })
@@ -207,6 +208,7 @@ export default defineSchema({
     content: v.string(),
     parentCommentId: v.optional(v.id("threadComments")),
     createdAt: v.number(),
+    editedAt: v.optional(v.number()),
     isDeleted: v.optional(v.boolean()),
     upvotes: v.optional(v.number()),
   })
