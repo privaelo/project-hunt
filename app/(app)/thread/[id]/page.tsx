@@ -28,6 +28,7 @@ import {
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
 import { useThreadImageUpload } from "@/hooks/use-thread-image-upload";
+import { useMentionSearch } from "@/hooks/use-mention-search";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,7 @@ export default function ThreadPage({
   const [shareOpen, setShareOpen] = useState(false);
   const { handleImageUpload, getStorageIdsFromHtml, populateExistingImages } =
     useThreadImageUpload();
+  const mentionSearch = useMentionSearch();
 
   // Query image URLs for existing thread images (for edit mode mapping)
   const threadImageUrls = useQuery(
@@ -286,6 +288,7 @@ export default function ThreadPage({
                     placeholder="Add more context (optional)"
                     disabled={isSaving}
                     onImageUpload={handleImageUpload}
+                    onMentionSearch={mentionSearch}
                   />
                   <div className="flex items-center justify-between">
                     <Button

@@ -78,6 +78,14 @@ export type WeeklyDigestPayload = {
   periodEnd: number;
 };
 
+export type MentionActivityPayload = {
+  mentionerName: string;
+  contentType: "project" | "thread";
+  contentId: string;
+  contentTitle: string;
+  commentSnippet?: string;
+};
+
 export type RenderedEmail = {
   subject: string;
   html: string;
@@ -920,6 +928,112 @@ export function renderFollowedProjectUpdateEmail(args: {
     `See what changed: ${projectUrl}`,
     "",
     "You're receiving this because you follow this project. This is an automated email.",
+    `Manage your email preferences: ${profileUrl}`,
+  ].join("\n");
+
+  return { subject, html, text };
+}
+
+// ─── Mention Activity Email ──────────────────────────────────────────────────
+
+export function renderMentionEmail(args: {
+  recipientName: string;
+  payload: MentionActivityPayload;
+  baseUrl: string;
+  profileUrl: string;
+}): RenderedEmail {
+  const { recipientName, payload, baseUrl, profileUrl } = args;
+  const contentLabel = payload.contentType === "project" ? "project" : "thread";
+
+  const truncatedTitle =
+    payload.contentTitle.length > 60
+      ? `${payload.contentTitle.slice(0, 57)}...`
+      : payload.contentTitle;
+
+  const subject = `${payload.mentionerName} mentioned you in "${truncatedTitle}"`;
+
+  // No #discussion anchor — mentions can originate from the body/description, not necessarily a comment
+  const contentPath =
+    payload.contentType === "project"
+      ? `/project/${payload.contentId}`
+      : `/thread/${payload.contentId}`;
+  const contentUrl = joinUrl(baseUrl, contentPath);
+  const preheader = `${escapeHtml(payload.mentionerName)} mentioned you in a ${contentLabel}`;
+
+  const snippetSection = payload.commentSnippet
+    ? `
+                          <div style="font-size: 14px; line-height: 1.6; color: #52525b; margin: 0 0 16px;">
+                            "${escapeHtml(payload.commentSnippet.length > 200 ? payload.commentSnippet.slice(0, 197) + "..." : payload.commentSnippet)}"
+                          </div>`
+    : "";
+
+  const html = `
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${escapeHtml(subject)}</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f4f4f5; color: #18181b; font-family: Arial, sans-serif;">
+        <div style="display: none; max-height: 0; overflow: hidden; opacity: 0;">
+          ${preheader}
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: collapse; background-color: #f4f4f5;">
+          <tr>
+            <td align="center" style="padding: 24px 12px;">
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 640px; border-collapse: collapse; background-color: #ffffff; border-radius: 18px;">
+                <tr>
+                  <td style="padding: 28px 28px 24px; border-bottom: 1px solid #e4e4e7;">
+                    <div style="font-size: 28px; font-weight: 700; color: #166534; margin: 0 0 16px;">Garden</div>
+                    <div style="font-size: 14px; color: #71717a; margin: 0 0 6px;">You were mentioned in a ${escapeHtml(contentLabel)}</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #18181b; margin: 0 0 16px;">
+                      <a href="${escapeHtml(contentUrl)}" style="color: #18181b; text-decoration: none;">${escapeHtml(payload.contentTitle)}</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 24px 28px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: collapse; border: 1px solid #d4d4d8; border-radius: 12px;">
+                      <tr>
+                        <td style="padding: 18px;">
+                          <div style="font-size: 14px; font-weight: 600; color: #18181b; margin: 0 0 8px;">
+                            ${escapeHtml(payload.mentionerName)} mentioned you:
+                          </div>${snippetSection}
+                          <a href="${escapeHtml(contentUrl)}" style="display: inline-block; background-color: #166534; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 10px 18px; border-radius: 999px;">View ${escapeHtml(contentLabel)}</a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 0 28px 28px; font-size: 12px; line-height: 1.6; color: #71717a;">
+                    You're receiving this because someone mentioned you. This is an automated email.
+                    <a href="${escapeHtml(profileUrl)}" style="color: #71717a;">Manage your email preferences</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `.trim();
+
+  const snippetText = payload.commentSnippet
+    ? `\n"${payload.commentSnippet.slice(0, 200)}"\n`
+    : "";
+
+  const text = [
+    `Garden — ${payload.mentionerName} mentioned you`,
+    "",
+    `Hi ${recipientName},`,
+    "",
+    `${payload.mentionerName} mentioned you in the ${contentLabel} "${payload.contentTitle}".`,
+    snippetText,
+    `View the ${contentLabel}: ${contentUrl}`,
+    "",
+    "You're receiving this because someone mentioned you. This is an automated email.",
     `Manage your email preferences: ${profileUrl}`,
   ].join("\n");
 

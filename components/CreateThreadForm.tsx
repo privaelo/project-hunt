@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { isRichTextEmpty } from "@/lib/utils";
 import { useThreadImageUpload } from "@/hooks/use-thread-image-upload";
+import { useMentionSearch } from "@/hooks/use-mention-search";
 import { MessageSquarePlus } from "lucide-react";
 
 interface CreateThreadFormProps {
@@ -26,6 +27,7 @@ export function CreateThreadForm({ focusAreaId, defaultExpanded, onSuccess }: Cr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { handleImageUpload, getStorageIdsFromHtml, resetImageMap } =
     useThreadImageUpload();
+  const mentionSearch = useMentionSearch();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +92,7 @@ export function CreateThreadForm({ focusAreaId, defaultExpanded, onSuccess }: Cr
         placeholder="Add more context (optional)"
         disabled={isSubmitting}
         onImageUpload={handleImageUpload}
+        onMentionSearch={mentionSearch}
       />
       <div className="flex justify-end gap-2">
         <Button

@@ -67,3 +67,12 @@ export function getRelativeTime(timestamp: number): string {
   if (days < 7) return `${days}d ago`;
   return new Date(timestamp).toLocaleDateString();
 }
+
+/** Escapes special HTML characters to prevent injection when building HTML strings. */
+export function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}

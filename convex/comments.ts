@@ -5,6 +5,7 @@ import { createProjectNotification } from "./notifications";
 import { internal } from "./_generated/api";
 import { enqueueCommentEmail, enqueueReplyEmail } from "./commentNotifications";
 import { calculateHotScore, propagateHotScoreToMemberships } from "./projects";
+import { parseMentionsFromHtml, createMentionNotifications } from "./mentions";
 
 export const addComment = mutation({
   args: {
@@ -64,11 +65,13 @@ export const addComment = mutation({
       commentId,
     });
 
+    const parentComment = args.parentCommentId
+      ? await ctx.db.get(args.parentCommentId)
+      : null;
+
     // Notify the parent comment author when someone replies to their comment
-    if (args.parentCommentId && project) {
-      const parentComment = await ctx.db.get(args.parentCommentId);
+    if (parentComment && project) {
       if (
-        parentComment &&
         !parentComment.isDeleted &&
         parentComment.userId !== user._id &&
         parentComment.userId !== project.userId
@@ -88,6 +91,24 @@ export const addComment = mutation({
           replierUserId: user._id,
           replierName: user.name,
           commentSnippet: args.content.slice(0, 200),
+        });
+      }
+    }
+
+    if (project) {
+      const mentionedUserIds = parseMentionsFromHtml(args.content);
+      if (mentionedUserIds.length > 0) {
+        const excludeUserIds = new Set<string>([project.userId]);
+        if (parentComment) excludeUserIds.add(parentComment.userId);
+
+        await createMentionNotifications(ctx, {
+          mentionedUserIds,
+          actorUserId: user._id,
+          projectId: args.projectId,
+          commentId,
+          contentTitle: project.name,
+          contentSnippet: args.content.slice(0, 200),
+          excludeUserIds,
         });
       }
     }

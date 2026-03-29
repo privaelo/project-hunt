@@ -68,6 +68,11 @@ export function Header() {
       return `${notification.actorName} replied to your comment on ${projectName}`;
     }
 
+    if (notification.type === "mention") {
+      const contentName = notification.threadTitle ?? projectName;
+      return `${notification.actorName} mentioned you in ${contentName}`;
+    }
+
     return `${notification.actorName} commented on ${projectName}`;
   };
 
@@ -138,9 +143,14 @@ export function Header() {
                       ) : (
                         <div className="max-h-96 divide-y divide-zinc-100 overflow-auto">
                           {notifications.map((notification) => {
-                            const href = `/project/${notification.projectId}${
-                              notification.type === "comment" || notification.type === "reply" || notification.type === "followed_project_comment" ? "#discussion" : ""
-                            }`;
+                            const hasCommentAnchor = !!(notification.commentId ?? notification.threadCommentId);
+                            const discussionTypes = ["comment", "reply", "followed_project_comment", "mention"];
+                            const shouldAppendDiscussion = hasCommentAnchor && discussionTypes.includes(notification.type);
+                            const href = notification.threadId
+                              ? `/thread/${notification.threadId}${shouldAppendDiscussion ? "#discussion" : ""}`
+                              : notification.projectId
+                                ? `/project/${notification.projectId}${shouldAppendDiscussion ? "#discussion" : ""}`
+                                : "/";
                             return (
                               <Link
                                 key={notification._id}

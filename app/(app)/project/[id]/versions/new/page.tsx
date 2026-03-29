@@ -30,6 +30,7 @@ import {
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
 import type { NewProjectFileItem, LinkItem } from "@/lib/types";
+import { useMentionSearch } from "@/hooks/use-mention-search";
 
 const readinessSliderValues = ["just_an_idea", "early_prototype", "mostly_working", "ready_to_use"] as const;
 const readinessSliderLabels = ["Just an idea", "Early prototype", "Mostly working", "Ready to use"];
@@ -57,6 +58,7 @@ export default function NewVersionPage({
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<typeof readinessSliderValues[number]>("just_an_idea");
   const [readinessInitialized, setReadinessInitialized] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const mentionSearch = useMentionSearch();
 
   useEffect(() => {
     if (!project || readinessInitialized) return;
@@ -219,6 +221,7 @@ export default function NewVersionPage({
               onChange={setBody}
               placeholder="What's new in this release?"
               disabled={isSubmitting}
+              onMentionSearch={mentionSearch}
             />
           </div>
 

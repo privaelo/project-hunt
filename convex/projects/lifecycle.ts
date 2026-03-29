@@ -7,6 +7,7 @@ import type { Id } from "../_generated/dataModel";
 import type { EntryId } from "@convex-dev/rag";
 import { calculateHotScore } from "./helpers";
 import { propagateHotScoreToMemberships } from "./spaces";
+import { parseMentionsFromHtml, createMentionNotifications } from "../mentions";
 
 export const getCurrentUserInternal = internalQuery({
   args: {},
@@ -214,6 +215,20 @@ export const confirmProject = mutation({
         }
       );
     }
+
+    // Process @mentions in the description when project goes live
+    if (project.summary) {
+      const mentionedUserIds = parseMentionsFromHtml(project.summary);
+      if (mentionedUserIds.length > 0) {
+        await createMentionNotifications(ctx, {
+          mentionedUserIds,
+          actorUserId: project.userId,
+          projectId: args.projectId,
+          contentTitle: project.name,
+          excludeUserIds: new Set<string>(),
+        });
+      }
+    }
   },
 });
 
@@ -344,6 +359,14 @@ export const updateProject = action({
       projectId: args.projectId,
       actorUserId: user._id,
     });
+
+    // Process @mentions in the description (only notify newly-added mentions)
+    await ctx.runMutation(internal.projects.processDescriptionMentions, {
+      projectId: args.projectId,
+      actorUserId: user._id,
+      newSummary: args.summary,
+      oldSummary: project.summary,
+    });
   },
 });
 
@@ -398,6 +421,35 @@ export const backfillProject = action({
       entryId,
     });
     return { message: "Project successfully backfilled", entryId };
+  },
+});
+
+export const processDescriptionMentions = internalMutationFromFunctions({
+  args: {
+    projectId: v.id("projects"),
+    actorUserId: v.id("users"),
+    newSummary: v.optional(v.string()),
+    oldSummary: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (!args.newSummary) return;
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) return;
+
+    const newMentions = parseMentionsFromHtml(args.newSummary);
+    const oldMentions = new Set(parseMentionsFromHtml(args.oldSummary ?? ""));
+    const addedMentions = newMentions.filter((id) => !oldMentions.has(id));
+
+    if (addedMentions.length > 0) {
+      await createMentionNotifications(ctx, {
+        mentionedUserIds: addedMentions,
+        actorUserId: args.actorUserId,
+        projectId: args.projectId,
+        contentTitle: project.name,
+        excludeUserIds: new Set<string>(),
+      });
+    }
   },
 });
 

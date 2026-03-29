@@ -5,6 +5,7 @@ import { v } from "convex/values";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 import { calculateHotScore } from "./projects/helpers";
 import { enqueueCommentEmail } from "./commentNotifications";
+import { parseMentionsFromHtml, createMentionNotifications } from "./mentions";
 import { rag } from "./rag";
 import type { EntryId } from "@convex-dev/rag";
 
@@ -67,6 +68,20 @@ export const createThread = mutation({
       }
     );
 
+    // Process @mentions in thread body
+    if (trimmedBody) {
+      const mentionedUserIds = parseMentionsFromHtml(trimmedBody);
+      if (mentionedUserIds.length > 0) {
+        await createMentionNotifications(ctx, {
+          mentionedUserIds,
+          actorUserId: user._id,
+          threadId,
+          contentTitle: trimmedTitle,
+          excludeUserIds: new Set<string>(),
+        });
+      }
+    }
+
     return threadId;
   },
 });
@@ -116,6 +131,23 @@ export const updateThread = mutation({
         body: trimmedBody,
       }
     );
+
+    // Process @mentions: only notify newly-added mentions
+    if (trimmedBody) {
+      const oldMentions = new Set(parseMentionsFromHtml(thread.body ?? ""));
+      const newMentions = parseMentionsFromHtml(trimmedBody);
+      const addedMentions = newMentions.filter((id) => !oldMentions.has(id));
+
+      if (addedMentions.length > 0) {
+        await createMentionNotifications(ctx, {
+          mentionedUserIds: addedMentions,
+          actorUserId: user._id,
+          threadId: args.threadId,
+          contentTitle: trimmedTitle,
+          excludeUserIds: new Set<string>(),
+        });
+      }
+    }
   },
 });
 
@@ -479,6 +511,21 @@ export const addComment = mutation({
           commenterUserId: user._id,
           commenterName: user.name,
           commentSnippet: args.content.slice(0, 200),
+        });
+      }
+
+      // Process @mentions in the thread comment
+      const mentionedUserIds = parseMentionsFromHtml(args.content);
+      if (mentionedUserIds.length > 0) {
+        const excludeUserIds = new Set<string>([thread.userId]);
+        await createMentionNotifications(ctx, {
+          mentionedUserIds,
+          actorUserId: user._id,
+          threadId: args.threadId,
+          threadCommentId: commentId,
+          contentTitle: thread.title,
+          contentSnippet: args.content.slice(0, 200),
+          excludeUserIds,
         });
       }
     }
