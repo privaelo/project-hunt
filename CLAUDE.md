@@ -25,6 +25,8 @@ The app title in `app/layout.tsx` is "Garden"; the repo is named `project-hunt`.
 | Email | AWS SES v2 (`@aws-sdk/client-sesv2`) for transactional email delivery |
 | Toasts | Sonner (replaces `alert()` and silent failures throughout) |
 | Workpool | `@convex-dev/workpool` — concurrency-limited background task execution |
+| Mentions | `QuillMentionModule.ts` (custom Quill blot) + `convex/mentions.ts` + `hooks/use-mention-search.ts` |
+| Webhooks | `svix` — webhook delivery management |
 
 ---
 
@@ -87,10 +89,11 @@ project-hunt/
 │   ├── CreateThreadForm.tsx    # Inline form for creating a thread in a space
 │   ├── ThreadRow.tsx           # Thread list item card
 │   ├── VersionsList.tsx        # Project version history display
-│   ├── CommentThread.tsx / CommentForm.tsx  # Shared comment UI for both projects and threads
+│   ├── CommentThread.tsx / CommentForm.tsx  # Shared comment UI for both projects and threads (rich text + mentions)
 │   ├── ChatInterface.tsx / MessageList.tsx  # AI chat UI
 │   ├── LinksEditor.tsx         # Links editing UI for project forms
 │   ├── RichTextEditor.tsx / RichTextContent.tsx
+│   ├── QuillMentionModule.ts   # Custom Quill Embed blot for @-mentions
 │   ├── MediaUploadField.tsx / FileUploadField.tsx
 │   ├── ViewsIcon.tsx               # Custom composite SVG icon (eye inside rounded rect) for view counts
 │   └── ...
@@ -127,6 +130,7 @@ project-hunt/
 │   ├── users.ts                # User management (ensureUser, getCurrentUser, getEmailRecipient, department sync)
 │   ├── teams.ts
 │   ├── comments.ts             # Project comments
+│   ├── mentions.ts             # Mention detection in rich text + in-app notification dispatch
 │   ├── notifications.ts
 │   ├── focusAreas.ts           # Focus area CRUD + follow/unfollow, member count
 │   ├── admin.ts
@@ -138,12 +142,18 @@ project-hunt/
 │   ├── types.ts                # Centralized shared TypeScript types
 │   ├── utils.ts                # Utility functions (cn, etc.)
 │   ├── amplify-config.ts       # AWS Amplify configuration (Cognito)
-│   └── fileSize.ts
+│   ├── fileSize.ts
+│   └── upload.ts               # File upload helpers (generate upload URLs, etc.)
 │
 ├── hooks/
 │   ├── use-mobile.ts
+│   ├── use-mention-search.ts       # Autocomplete search for @-mention suggestions
 │   └── use-thread-image-upload.ts  # Manages inline image uploads for thread rich-text editors
 │
+├── .github/
+│   └── workflows/
+│       └── verifyNextBuild.yml # CI: verifies Next.js builds on every push
+├── AGENTS.md                   # Agent/automation-specific documentation
 ├── instrumentation-client.ts   # PostHog client initialization (Next.js instrumentation)
 ├── public/                     # Static assets
 ├── next.config.ts
@@ -185,6 +195,7 @@ NEXT_PUBLIC_COGNITO_DOMAIN=
 NEXT_PUBLIC_COGNITO_REDIRECT_URI=
 NEXT_PUBLIC_COGNITO_SIGN_OUT_URI= # Optional; falls back to origin of REDIRECT_URI
 NEXT_PUBLIC_POSTHOG_KEY=         # PostHog project API key
+NEXT_PUBLIC_CONVEX_SITE=         # Convex site URL (used for storage URL generation)
 ```
 
 **Convex backend** (set via Convex dashboard or `convex env set`):
@@ -215,7 +226,7 @@ Key tables and their purpose:
 | `upvotes` | Per-user upvotes on projects |
 | `adoptions` | Per-user "I'm using this" signals |
 | `projectViews` | Unique view tracking per viewer ID |
-| `comments` | Threaded comments on projects (soft delete; retained if replies exist) |
+| `comments` | Threaded comments on projects (soft delete; retained if replies exist); `editedAt` timestamp set on edit |
 | `commentUpvotes` | Per-user upvotes on project comments |
 | `linkClickCounts` | Tracks click counts per link or file on a project; `resourceType: "link" \| "file"` |
 | `emailQueue` | Outbound email queue (pending → sent/failed); drained by cron |
@@ -226,7 +237,7 @@ Key tables and their purpose:
 | `focusAreas` | Taxonomy spaces (like subreddits); shown in sidebar |
 | `threads` | Discussion threads within a space; has hot score like projects; `imageStorageIds` tracks embedded images |
 | `threadUpvotes` | Per-user upvotes on threads |
-| `threadComments` | Threaded comments on threads (soft delete) |
+| `threadComments` | Threaded comments on threads (soft delete); `editedAt` timestamp set on edit |
 | `threadCommentUpvotes` | Per-user upvotes on thread comments |
 
 All tables have relevant indexes — always use `.withIndex()` for queries, never `.filter()` alone on large collections.
@@ -504,13 +515,14 @@ Notifications are aggregated (upserted) per `(recipient, project, type)` tuple. 
 - `"follow"` — someone followed your project
 - `"project_update"` — a project you've interacted with was updated
 - `"followed_project_comment"` — a project you follow received a new comment
+- `"mention"` — you were @-mentioned in a comment or thread
 
 ---
 
 ## CI/CD
 
 - **Push to `main`** → GitHub Actions runs `npx convex deploy` to production (self-hosted Convex)
-- **All branch pushes** → mirrored to a separate work repo (`project-garden-mirror`)
+- **All branch pushes** → Next.js build verification runs (`verifyNextBuild.yml`); also mirrored to a separate work repo (`project-garden-mirror`)
 
 Secrets required:
 - `CONVEX_SELF_HOSTED_URL`
@@ -537,11 +549,11 @@ Secrets required:
 
 8. **PostHog analytics** is initialized in `instrumentation-client.ts` (Next.js client instrumentation hook) and proxied through Next.js rewrites (`/ingest/*` → PostHog endpoints) to avoid ad blockers. Requires `NEXT_PUBLIC_POSTHOG_KEY` env var.
 
-9. **Threads do not have in-app notifications** — `notifications` table entries are only generated for project activity. Thread/space email notifications exist (via `spaceNotifications.ts`) but do not surface as in-app notification badges. Do not add thread in-app notifications without discussing the aggregation strategy.
+9. **Thread in-app notifications are limited** — `notifications` table entries for threads are only generated for `"mention"` (when a user is @-mentioned). General thread/upvote/comment activity does not produce in-app badges; those exist only as email notifications (via `spaceNotifications.ts`). Do not add broad thread in-app notifications without discussing the aggregation strategy.
 
 10. **`SpacePicker`** is a controlled combobox component (`components/SpacePicker.tsx`) used on the standalone `/create-thread` page to let users pick which space a thread belongs to.
 
-11. **Thread comments share UI components with project comments** — `CommentForm` and `CommentThread` are used for both. The backend tables differ (`threadComments` / `threadCommentUpvotes` vs `comments` / `commentUpvotes`), but the frontend components are consolidated.
+11. **Thread comments share UI components with project comments** — `CommentForm` and `CommentThread` are used for both. The backend tables differ (`threadComments` / `threadCommentUpvotes` vs `comments` / `commentUpvotes`), but the frontend components are consolidated. Both use the rich-text Quill editor (not a plain textarea).
 
 12. **Deleted comments with replies are retained** — when a comment is soft-deleted, it remains visible as `[deleted]` if it has non-deleted replies, preventing orphaned reply threads. The filter logic lives on the project detail page.
 
@@ -565,7 +577,7 @@ Secrets required:
 
 22. **Header search bar** — `SearchBar.tsx` in `header.tsx` performs hybrid search (full-text + semantic via RAG) returning both projects and threads. Projects and threads are distinguished with emoji prefixes in results. Search is powered by `convex/projects/search.ts` and threads RAG indexing.
 
-23. **AI SDK v6** — The project uses Vercel AI SDK v6 (`ai: ^6.0.116`) with `@convex-dev/agent ^0.6.1` and `@convex-dev/rag ^0.7.2`. If updating agent/RAG code, check `convex/_generated/ai/guidelines.md` for the correct v6 API patterns.
+23. **AI SDK v6** — The project uses Vercel AI SDK v6 (`ai: ^6.0.116`) with `@convex-dev/agent ^0.6.1` and `@convex-dev/rag ^0.7.2`. The file `convex/_generated/ai/guidelines.md` may not always exist (it is generated by `npx convex ai-files install`). If absent, run that command or refer to the official `@convex-dev/agent` docs for v6 API patterns.
 
 24. **`allFields` on threads** — mirrors the same pattern as projects: a denormalized string indexed via `searchIndex("allFields", ...)` for full-text search. It is updated whenever a thread is created or edited, and is used by `fullTextSearchThreads()` in the search pipeline.
 
@@ -579,10 +591,20 @@ Secrets required:
 
 29. **`ViewsIcon` component** — a custom composite SVG (`components/ViewsIcon.tsx`) representing "views on this post" (eye inside a rounded rectangle). Use this instead of the standalone `Eye` icon from Lucide wherever a view count is displayed alongside a project.
 
+30. **Mentions system** — Users can @-mention others in comments and threads. Mentions are stored as custom Quill Embed blots (`QuillMentionModule.ts`). On save, `convex/mentions.ts` parses the rich-text HTML for mention blots and dispatches `"mention"` notifications to each mentioned user. The `use-mention-search.ts` hook powers the autocomplete dropdown in the editor.
+
+31. **Comment editing** — Both project comments and thread comments are editable by their authors. On edit, `editedAt` is set on the record and the UI displays an "(edited)" indicator. Soft-delete and reply-retention logic is unchanged.
+
+32. **`ReadinessBadge` is a labeled badge** — The component (`components/ReadinessBadge.tsx`) renders a text badge (e.g. "ready to use", "early prototype"), not a dot indicator. Use this component wherever readiness status is displayed; do not revert to a dot style.
+
+33. **`emailRenderer.ts` includes `stripHtml()`** — A `stripHtml()` helper strips HTML tags to produce plain-text snippets for email notifications and digest comment previews. Always use this (not a regex) when generating text-only representations of rich-text comment content.
+
+34. **`lib/upload.ts`** — Shared helpers for generating Convex storage upload URLs and handling file uploads on the frontend. Use these helpers rather than calling Convex storage APIs ad-hoc.
+
 <!-- convex-ai-start -->
 This project uses [Convex](https://convex.dev) as its backend.
 
-When working on Convex code, **always read `convex/_generated/ai/guidelines.md` first** for important guidelines on how to correctly use Convex APIs and patterns. The file contains rules that override what you may have learned about Convex from training data.
+When working on Convex code, **always read `convex/_generated/ai/guidelines.md` first** for important guidelines on how to correctly use Convex APIs and patterns. The file contains rules that override what you may have learned about Convex from training data. If the file does not exist, run `npx convex ai-files install` to regenerate it.
 
 Convex agent skills for common tasks can be installed by running `npx convex ai-files install`.
 <!-- convex-ai-end -->
