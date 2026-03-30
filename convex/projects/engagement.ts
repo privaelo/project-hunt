@@ -2,11 +2,7 @@ import { mutation, query } from "../_generated/server";
 import { internalMutation as internalMutationFromFunctions } from "../functions";
 import { v } from "convex/values";
 import { getCurrentUserOrThrow, getCurrentUser } from "../users";
-import {
-  createProjectNotification,
-  syncUpvoteNotification,
-  upsertUpvoteNotification,
-} from "../notifications";
+import { emitNotificationEvent } from "../notificationEngine";
 import { calculateHotScore } from "./helpers";
 import { propagateHotScoreToMemberships } from "./spaces";
 
@@ -68,9 +64,11 @@ export const toggleUpvote = mutation({
       });
       await propagateHotScoreToMemberships(ctx, args.projectId, newHotScore);
       if (project.userId !== user._id) {
-        await syncUpvoteNotification(ctx, {
-          recipientUserId: project.userId,
+        await emitNotificationEvent(ctx, {
+          type: "upvote",
           projectId: args.projectId,
+          actorUserId: user._id,
+          isRemoval: true,
         });
       }
     } else {
@@ -88,9 +86,11 @@ export const toggleUpvote = mutation({
       });
       await propagateHotScoreToMemberships(ctx, args.projectId, newHotScore);
       if (project.userId !== user._id) {
-        await upsertUpvoteNotification(ctx, {
-          recipientUserId: project.userId,
+        await emitNotificationEvent(ctx, {
+          type: "upvote",
           projectId: args.projectId,
+          actorUserId: user._id,
+          isRemoval: false,
         });
       }
     }
@@ -123,11 +123,10 @@ export const toggleFollow = mutation({
         createdAt: Date.now(),
       });
       if (project.userId !== user._id) {
-        await createProjectNotification(ctx, {
-          recipientUserId: project.userId,
-          actorUserId: user._id,
-          projectId: project._id,
+        await emitNotificationEvent(ctx, {
           type: "follow",
+          projectId: project._id,
+          actorUserId: user._id,
         });
       }
       return { followed: true };

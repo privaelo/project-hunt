@@ -4,8 +4,8 @@ import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { getCurrentUser, getCurrentUserOrThrow } from "./users";
 import { calculateHotScore } from "./projects/helpers";
-import { enqueueCommentEmail } from "./commentNotifications";
-import { parseMentionsFromHtml, createMentionNotifications } from "./mentions";
+import { parseMentionsFromHtml } from "./mentions";
+import { emitNotificationEvent } from "./notificationEngine";
 import { rag } from "./rag";
 import type { EntryId } from "@convex-dev/rag";
 
@@ -45,17 +45,13 @@ export const createThread = mutation({
     });
 
     // Notify followers of the space about the new thread
-    await ctx.scheduler.runAfter(
-      0,
-      internal.spaceNotifications.notifySpaceFollowers,
-      {
-        focusAreaId: args.focusAreaId,
-        contentType: "thread" as const,
-        contentId: threadId,
-        contentTitle: trimmedTitle,
-        creatorUserId: user._id,
-      }
-    );
+    await emitNotificationEvent(ctx, {
+      type: "thread_created",
+      threadId,
+      focusAreaId: args.focusAreaId,
+      actorUserId: user._id,
+      contentTitle: trimmedTitle,
+    });
 
     // Index thread in RAG for AI search
     await ctx.scheduler.runAfter(
@@ -72,12 +68,16 @@ export const createThread = mutation({
     if (trimmedBody) {
       const mentionedUserIds = parseMentionsFromHtml(trimmedBody);
       if (mentionedUserIds.length > 0) {
-        await createMentionNotifications(ctx, {
-          mentionedUserIds,
+        await emitNotificationEvent(ctx, {
+          type: "mention",
           actorUserId: user._id,
-          threadId,
+          mentionedUserIds,
+          contentType: "thread",
+          contentId: threadId as string,
           contentTitle: trimmedTitle,
-          excludeUserIds: new Set<string>(),
+          contextSnippet: trimmedBody.slice(0, 200),
+          threadId,
+          excludeUserIds: [],
         });
       }
     }
@@ -139,12 +139,15 @@ export const updateThread = mutation({
       const addedMentions = newMentions.filter((id) => !oldMentions.has(id));
 
       if (addedMentions.length > 0) {
-        await createMentionNotifications(ctx, {
-          mentionedUserIds: addedMentions,
+        await emitNotificationEvent(ctx, {
+          type: "mention",
           actorUserId: user._id,
-          threadId: args.threadId,
+          mentionedUserIds: addedMentions,
+          contentType: "thread",
+          contentId: args.threadId as string,
           contentTitle: trimmedTitle,
-          excludeUserIds: new Set<string>(),
+          threadId: args.threadId,
+          excludeUserIds: [],
         });
       }
     }
@@ -502,30 +505,30 @@ export const addComment = mutation({
         hotScore: calculateHotScore(newEngagementScore, thread.createdAt, now),
       });
 
-      if (thread.userId !== user._id) {
-        await enqueueCommentEmail(ctx, {
-          contentType: "thread",
-          contentId: args.threadId,
-          contentTitle: thread.title,
-          contentOwnerUserId: thread.userId,
-          commenterUserId: user._id,
-          commenterName: user.name,
-          commentSnippet: args.content.slice(0, 200),
-        });
-      }
+      // Notify thread owner (email) via notification engine
+      await emitNotificationEvent(ctx, {
+        type: "thread_comment",
+        threadId: args.threadId,
+        threadCommentId: commentId,
+        actorUserId: user._id,
+        parentCommentId: args.parentCommentId,
+        contentSnippet: args.content.slice(0, 200),
+      });
 
       // Process @mentions in the thread comment
       const mentionedUserIds = parseMentionsFromHtml(args.content);
       if (mentionedUserIds.length > 0) {
-        const excludeUserIds = new Set<string>([thread.userId]);
-        await createMentionNotifications(ctx, {
-          mentionedUserIds,
+        await emitNotificationEvent(ctx, {
+          type: "mention",
           actorUserId: user._id,
+          mentionedUserIds,
+          contentType: "thread",
+          contentId: args.threadId as string,
+          contentTitle: thread.title,
+          contextSnippet: args.content.slice(0, 200),
           threadId: args.threadId,
           threadCommentId: commentId,
-          contentTitle: thread.title,
-          contentSnippet: args.content.slice(0, 200),
-          excludeUserIds,
+          excludeUserIds: [thread.userId as string],
         });
       }
     }

@@ -1,10 +1,11 @@
+/**
+ * Mention parsing utilities and user search for @-mention typeahead.
+ *
+ * Mention notification dispatch has been centralized in notificationEngine.ts.
+ */
 import { query } from "./_generated/server";
-import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
-import type { Id, Doc } from "./_generated/dataModel";
 import { getCurrentUserOrThrow } from "./users";
-import { isEmailEnabled, EMAIL_DEDUP_WINDOW_MS } from "./emails";
-import { pruneNotifications } from "./notifications";
 
 // ─── Mention parsing ─────────────────────────────────────────────────────────
 
@@ -54,129 +55,3 @@ export const searchUsers = query({
       }));
   },
 });
-
-// ─── Mention notifications ───────────────────────────────────────────────────
-
-/**
- * Creates in-app notifications and enqueues emails for mentioned users.
- *
- * @param excludeUserIds - Users already being notified by other means
- *   (e.g., the project owner gets a "comment" notification, so skip duplicate "mention").
- */
-export async function createMentionNotifications(
-  ctx: MutationCtx,
-  args: {
-    mentionedUserIds: string[];
-    actorUserId: Id<"users">;
-    projectId?: Id<"projects">;
-    threadId?: Id<"threads">;
-    commentId?: Id<"comments">;
-    threadCommentId?: Id<"threadComments">;
-    contentTitle: string;
-    contentSnippet?: string;
-    excludeUserIds: Set<string>;
-  }
-): Promise<void> {
-  const {
-    mentionedUserIds,
-    actorUserId,
-    projectId,
-    threadId,
-    commentId,
-    threadCommentId,
-    contentTitle,
-    contentSnippet,
-    excludeUserIds,
-  } = args;
-
-  const recipientIds = [...new Set(mentionedUserIds)].filter(
-    (id) => id !== actorUserId && !excludeUserIds.has(id)
-  );
-
-  if (recipientIds.length === 0) return;
-
-  const actor = await ctx.db.get(actorUserId);
-  const actorName = actor?.name ?? "Someone";
-  const now = Date.now();
-
-  for (const recipientId of recipientIds) {
-    const recipientUserId = recipientId as Id<"users">;
-
-    let recipient;
-    try {
-      recipient = await ctx.db.get(recipientUserId);
-    } catch {
-      // recipientId was parsed from user-controlled text and may not be a valid Convex ID
-      continue;
-    }
-    if (!recipient) continue;
-
-    await ctx.db.insert("notifications", {
-      recipientUserId,
-      actorUserId,
-      projectId,
-      threadId,
-      threadCommentId,
-      type: "mention",
-      commentId,
-      isRead: false,
-      createdAt: now,
-      lastActivityAt: now,
-    });
-
-    await pruneNotifications(ctx, recipientUserId);
-
-    await enqueueMentionEmail(ctx, {
-      recipient,
-      actorName,
-      contentTitle,
-      contentSnippet,
-      projectId,
-      threadId,
-    });
-  }
-}
-
-async function enqueueMentionEmail(
-  ctx: MutationCtx,
-  args: {
-    recipient: Doc<"users">;
-    actorName: string;
-    contentTitle: string;
-    contentSnippet?: string;
-    projectId?: Id<"projects">;
-    threadId?: Id<"threads">;
-  }
-): Promise<void> {
-  const { recipient } = args;
-  if (!recipient.email) return;
-  if (!recipient.onboardingCompleted) return;
-  if (!isEmailEnabled(recipient, "mentions")) return;
-
-  const cutoff = Date.now() - EMAIL_DEDUP_WINDOW_MS;
-  const recentEmail = await ctx.db
-    .query("emailQueue")
-    .withIndex("by_userId_type_createdAt", (q) =>
-      q
-        .eq("userId", recipient._id)
-        .eq("type", "mention_activity")
-        .gte("createdAt", cutoff)
-    )
-    .first();
-
-  if (recentEmail) return;
-
-  await ctx.db.insert("emailQueue", {
-    userId: recipient._id,
-    type: "mention_activity",
-    status: "pending",
-    payload: {
-      mentionerName: args.actorName,
-      contentType: args.threadId ? "thread" : "project",
-      contentId: (args.threadId ?? args.projectId) as string,
-      contentTitle: args.contentTitle,
-      commentSnippet: args.contentSnippet?.slice(0, 200),
-    },
-    createdAt: Date.now(),
-  });
-}

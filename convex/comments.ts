@@ -1,11 +1,9 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserOrThrow, getCurrentUser } from "./users";
-import { createProjectNotification } from "./notifications";
-import { internal } from "./_generated/api";
-import { enqueueCommentEmail, enqueueReplyEmail } from "./commentNotifications";
 import { calculateHotScore, propagateHotScoreToMemberships } from "./projects";
-import { parseMentionsFromHtml, createMentionNotifications } from "./mentions";
+import { parseMentionsFromHtml } from "./mentions";
+import { emitNotificationEvent } from "./notificationEngine";
 
 export const addComment = mutation({
   args: {
@@ -38,76 +36,36 @@ export const addComment = mutation({
       await propagateHotScoreToMemberships(ctx, args.projectId, newHotScore);
     }
 
-    if (project && project.userId !== user._id) {
-      await createProjectNotification(ctx, {
-        recipientUserId: project.userId,
-        actorUserId: user._id,
-        projectId: project._id,
-        type: "comment",
-        commentId,
-      });
-
-      await enqueueCommentEmail(ctx, {
-        contentType: "project",
-        contentId: args.projectId,
-        contentTitle: project.name,
-        contentOwnerUserId: project.userId,
-        commenterUserId: user._id,
-        commenterName: user.name,
-        commentSnippet: args.content.slice(0, 200),
-      });
-    }
-
-    // Notify followers of the project about the new comment
-    await ctx.scheduler.runAfter(0, internal.notifications.notifyFollowersOfComment, {
-      projectId: args.projectId,
-      actorUserId: user._id,
-      commentId,
-    });
-
-    const parentComment = args.parentCommentId
-      ? await ctx.db.get(args.parentCommentId)
-      : null;
-
-    // Notify the parent comment author when someone replies to their comment
-    if (parentComment && project) {
-      if (
-        !parentComment.isDeleted &&
-        parentComment.userId !== user._id &&
-        parentComment.userId !== project.userId
-      ) {
-        await createProjectNotification(ctx, {
-          recipientUserId: parentComment.userId,
-          actorUserId: user._id,
-          projectId: project._id,
-          type: "reply",
-          commentId,
-        });
-        await enqueueReplyEmail(ctx, {
-          contentType: "project",
-          contentId: args.projectId,
-          contentTitle: project.name,
-          parentCommentUserId: parentComment.userId,
-          replierUserId: user._id,
-          replierName: user.name,
-          commentSnippet: args.content.slice(0, 200),
-        });
-      }
-    }
-
+    // Emit comment event — handles owner notification, reply notification, and follower fan-out
     if (project) {
+      await emitNotificationEvent(ctx, {
+        type: "comment",
+        projectId: args.projectId,
+        commentId,
+        actorUserId: user._id,
+        parentCommentId: args.parentCommentId,
+        contentSnippet: args.content.slice(0, 200),
+      });
+
+      // Emit mention event for @-mentioned users
       const mentionedUserIds = parseMentionsFromHtml(args.content);
       if (mentionedUserIds.length > 0) {
-        const excludeUserIds = new Set<string>([project.userId]);
-        if (parentComment) excludeUserIds.add(parentComment.userId);
+        const parentComment = args.parentCommentId
+          ? await ctx.db.get(args.parentCommentId)
+          : null;
+        const excludeUserIds = [project.userId as string];
+        if (parentComment) excludeUserIds.push(parentComment.userId as string);
 
-        await createMentionNotifications(ctx, {
-          mentionedUserIds,
+        await emitNotificationEvent(ctx, {
+          type: "mention",
           actorUserId: user._id,
+          mentionedUserIds,
+          contentType: "project",
+          contentId: args.projectId as string,
+          contentTitle: project.name,
+          contextSnippet: args.content.slice(0, 200),
           projectId: args.projectId,
           commentId,
-          contentTitle: project.name,
-          contentSnippet: args.content.slice(0, 200),
           excludeUserIds,
         });
       }
