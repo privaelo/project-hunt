@@ -93,7 +93,7 @@ export function RichTextEditor({
         toast.info(
           onImageUploadRef.current
             ? "Use the image button in the toolbar to add images."
-            : "Images are not supported in this editor."
+            : "To add images, use the Screenshots and Clips field in the Files and Media tab."
         );
       }
     };
