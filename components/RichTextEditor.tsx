@@ -76,7 +76,7 @@ export function RichTextEditor({
   // Intercept paste/drop of images to prevent Quill from embedding base64 data URLs,
   // which can exceed Convex's 1 MiB document size limit.
   useEffect(() => {
-    if (!onImageUpload || !wrapperRef.current) return;
+    if (!wrapperRef.current) return;
 
     const blockImageTransfer = (e: ClipboardEvent | DragEvent) => {
       const files =
@@ -90,7 +90,11 @@ export function RichTextEditor({
       if (hasImage) {
         e.preventDefault();
         e.stopPropagation();
-        toast.info("Use the image button in the toolbar to add images.");
+        toast.info(
+          onImageUploadRef.current
+            ? "Use the image button in the toolbar to add images."
+            : "Images are not supported in this editor."
+        );
       }
     };
 
@@ -102,18 +106,18 @@ export function RichTextEditor({
       el.removeEventListener("paste", blockImageTransfer as EventListener, true);
       el.removeEventListener("drop", blockImageTransfer as EventListener, true);
     };
-  }, [onImageUpload]);
+  }, []);
 
   // Safety net: strip any base64 images that slip past the paste/drop blocker.
   const handleChange = useCallback(
     (html: string) => {
-      if (onImageUpload && html.includes("src=\"data:")) {
+      if (html.includes("src=\"data:")) {
         onChange(html.replace(/<img[^>]+src="data:[^"]*"[^>]*>/g, ""));
         return;
       }
       onChange(html);
     },
-    [onChange, onImageUpload]
+    [onChange]
   );
 
   const modules = useMemo(() => {
