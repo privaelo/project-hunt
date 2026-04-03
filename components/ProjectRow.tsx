@@ -93,7 +93,7 @@ export function ProjectRow({
             </Link>
           )}
         </div>
-        <span className="shrink-0 text-zinc-400">{getRelativeTime(project._creationTime)}</span>
+        <span className="shrink-0 text-zinc-400">{getRelativeTime(project.lastVersionAt ?? project._creationTime)}</span>
       </div>
 
       {/* Title */}
