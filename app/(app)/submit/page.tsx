@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useAction, useQuery } from "convex/react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
@@ -42,6 +42,8 @@ const readinessSliderLabels = ["Just an idea", "Early prototype", "Mostly workin
 
 export default function SubmitProject() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const prefilledSpaceId = searchParams.get("spaceId") as Id<"focusAreas"> | null;
   const createProject = useAction(api.projects.create);
   const cancelProject = useAction(api.projects.cancelProject);
   const confirmProject = useMutation(api.projects.confirmProject);
@@ -58,7 +60,7 @@ export default function SubmitProject() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
   const [selectedProjectFiles, setSelectedProjectFiles] = useState<NewProjectFileItem[]>([]);
-  const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>("personal");
+  const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>(prefilledSpaceId ?? "personal");
   const [additionalSpaces, setAdditionalSpaces] = useState<Id<"focusAreas">[]>([]);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"just_an_idea" | "early_prototype" | "mostly_working" | "ready_to_use">("just_an_idea");
   const mentionSearch = useMentionSearch();
@@ -348,9 +350,12 @@ export default function SubmitProject() {
               </Tabs>
               </div>
 
-              <div className="flex items-center pt-4">
+              <div className="flex items-center gap-3 pt-4">
                 <Button type="submit" className="whitespace-nowrap" disabled={isSubmitting}>
                   {isSubmitting ? "Sharing..." : "Share this"}
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => router.back()} disabled={isSubmitting}>
+                  Cancel
                 </Button>
               </div>
             </section>
