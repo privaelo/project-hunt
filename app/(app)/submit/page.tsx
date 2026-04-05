@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useAction, useQuery } from "convex/react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
@@ -40,8 +40,10 @@ import {
 const readinessSliderValues = ["just_an_idea", "early_prototype", "mostly_working", "ready_to_use"] as const;
 const readinessSliderLabels = ["Just an idea", "Early prototype", "Mostly working", "Ready to use"];
 
-export default function SubmitProject() {
+function SubmitProjectContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const prefilledSpaceId = searchParams.get("spaceId") as Id<"focusAreas"> | null;
   const createProject = useAction(api.projects.create);
   const cancelProject = useAction(api.projects.cancelProject);
   const confirmProject = useMutation(api.projects.confirmProject);
@@ -58,7 +60,7 @@ export default function SubmitProject() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<NewFileItem[]>([]);
   const [selectedProjectFiles, setSelectedProjectFiles] = useState<NewProjectFileItem[]>([]);
-  const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>("personal");
+  const [selectedFocusArea, setSelectedFocusArea] = useState<Id<"focusAreas"> | "personal" | null>(prefilledSpaceId ?? "personal");
   const [additionalSpaces, setAdditionalSpaces] = useState<Id<"focusAreas">[]>([]);
   const [selectedReadinessStatus, setSelectedReadinessStatus] = useState<"just_an_idea" | "early_prototype" | "mostly_working" | "ready_to_use">("just_an_idea");
   const mentionSearch = useMentionSearch();
@@ -348,9 +350,12 @@ export default function SubmitProject() {
               </Tabs>
               </div>
 
-              <div className="flex items-center pt-4">
+              <div className="flex items-center gap-3 pt-4">
                 <Button type="submit" className="whitespace-nowrap" disabled={isSubmitting}>
                   {isSubmitting ? "Sharing..." : "Share this"}
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => router.back()} disabled={isSubmitting}>
+                  Cancel
                 </Button>
               </div>
             </section>
@@ -366,5 +371,19 @@ export default function SubmitProject() {
         </form>
       </main>
     </div>
+  );
+}
+
+export default function SubmitProject() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-zinc-50">
+        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-4">
+          <p className="text-center text-zinc-500">Loading...</p>
+        </main>
+      </div>
+    }>
+      <SubmitProjectContent />
+    </Suspense>
   );
 }
