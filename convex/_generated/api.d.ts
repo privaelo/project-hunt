@@ -9,17 +9,16 @@
  */
 
 import type * as admin from "../admin.js";
-import type * as commentNotifications from "../commentNotifications.js";
 import type * as comments from "../comments.js";
 import type * as crons from "../crons.js";
 import type * as digests from "../digests.js";
 import type * as emailRenderer from "../emailRenderer.js";
 import type * as emails from "../emails.js";
 import type * as focusAreas from "../focusAreas.js";
-import type * as followNotifications from "../followNotifications.js";
 import type * as functions from "../functions.js";
 import type * as http from "../http.js";
 import type * as mentions from "../mentions.js";
+import type * as notificationEngine from "../notificationEngine.js";
 import type * as notifications from "../notifications.js";
 import type * as playground from "../playground.js";
 import type * as projects from "../projects.js";
@@ -35,7 +34,6 @@ import type * as projects_versions from "../projects/versions.js";
 import type * as rag from "../rag.js";
 import type * as ragbot from "../ragbot.js";
 import type * as seed from "../seed.js";
-import type * as spaceNotifications from "../spaceNotifications.js";
 import type * as teams from "../teams.js";
 import type * as threads from "../threads.js";
 import type * as tools from "../tools.js";
@@ -49,17 +47,16 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
-  commentNotifications: typeof commentNotifications;
   comments: typeof comments;
   crons: typeof crons;
   digests: typeof digests;
   emailRenderer: typeof emailRenderer;
   emails: typeof emails;
   focusAreas: typeof focusAreas;
-  followNotifications: typeof followNotifications;
   functions: typeof functions;
   http: typeof http;
   mentions: typeof mentions;
+  notificationEngine: typeof notificationEngine;
   notifications: typeof notifications;
   playground: typeof playground;
   projects: typeof projects;
@@ -75,7 +72,6 @@ declare const fullApi: ApiFromModules<{
   rag: typeof rag;
   ragbot: typeof ragbot;
   seed: typeof seed;
-  spaceNotifications: typeof spaceNotifications;
   teams: typeof teams;
   threads: typeof threads;
   tools: typeof tools;

@@ -7,7 +7,8 @@ import type { Id } from "../_generated/dataModel";
 import type { EntryId } from "@convex-dev/rag";
 import { calculateHotScore } from "./helpers";
 import { propagateHotScoreToMemberships } from "./spaces";
-import { parseMentionsFromHtml, createMentionNotifications } from "../mentions";
+import { parseMentionsFromHtml } from "../mentions";
+import { emitNotificationEvent } from "../notificationEngine";
 
 export const getCurrentUserInternal = internalQuery({
   args: {},
@@ -203,29 +204,28 @@ export const confirmProject = mutation({
       .collect();
 
     for (const row of membershipRows) {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.spaceNotifications.notifySpaceFollowers,
-        {
-          focusAreaId: row.focusAreaId,
-          contentType: "project" as const,
-          contentId: args.projectId,
-          contentTitle: project.name,
-          creatorUserId: project.userId,
-        }
-      );
+      await emitNotificationEvent(ctx, {
+        type: "project_added_to_space",
+        projectId: args.projectId,
+        focusAreaId: row.focusAreaId,
+        actorUserId: project.userId,
+        contentTitle: project.name,
+      });
     }
 
     // Process @mentions in the description when project goes live
     if (project.summary) {
       const mentionedUserIds = parseMentionsFromHtml(project.summary);
       if (mentionedUserIds.length > 0) {
-        await createMentionNotifications(ctx, {
-          mentionedUserIds,
+        await emitNotificationEvent(ctx, {
+          type: "mention",
           actorUserId: project.userId,
-          projectId: args.projectId,
+          mentionedUserIds,
+          contentType: "project",
+          contentId: args.projectId as string,
           contentTitle: project.name,
-          excludeUserIds: new Set<string>(),
+          projectId: args.projectId,
+          excludeUserIds: [],
         });
       }
     }
@@ -355,7 +355,7 @@ export const updateProject = action({
       projectId: args.projectId,
       entryId,
     });
-    await ctx.runMutation(internal.notifications.notifyProjectUpdate, {
+    await ctx.runMutation(internal.notificationEngine.processProjectUpdate, {
       projectId: args.projectId,
       actorUserId: user._id,
     });
@@ -442,12 +442,15 @@ export const processDescriptionMentions = internalMutationFromFunctions({
     const addedMentions = newMentions.filter((id) => !oldMentions.has(id));
 
     if (addedMentions.length > 0) {
-      await createMentionNotifications(ctx, {
-        mentionedUserIds: addedMentions,
+      await emitNotificationEvent(ctx, {
+        type: "mention",
         actorUserId: args.actorUserId,
-        projectId: args.projectId,
+        mentionedUserIds: addedMentions,
+        contentType: "project",
+        contentId: args.projectId as string,
         contentTitle: project.name,
-        excludeUserIds: new Set<string>(),
+        projectId: args.projectId,
+        excludeUserIds: [],
       });
     }
   },
