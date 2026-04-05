@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useAction, useQuery } from "convex/react";
 import { toast } from "sonner";
@@ -40,7 +40,7 @@ import {
 const readinessSliderValues = ["just_an_idea", "early_prototype", "mostly_working", "ready_to_use"] as const;
 const readinessSliderLabels = ["Just an idea", "Early prototype", "Mostly working", "Ready to use"];
 
-export default function SubmitProject() {
+function SubmitProjectContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const prefilledSpaceId = searchParams.get("spaceId") as Id<"focusAreas"> | null;
@@ -371,5 +371,19 @@ export default function SubmitProject() {
         </form>
       </main>
     </div>
+  );
+}
+
+export default function SubmitProject() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-zinc-50">
+        <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 pb-16 pt-4">
+          <p className="text-center text-zinc-500">Loading...</p>
+        </main>
+      </div>
+    }>
+      <SubmitProjectContent />
+    </Suspense>
   );
 }
