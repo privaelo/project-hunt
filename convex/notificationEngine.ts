@@ -665,18 +665,14 @@ export const getSpaceFollowers = internalQuery({
       )
       .collect();
 
-    const eligibleFollowers: Array<{ userId: typeof args.excludeUserId }> = [];
+    const followers: Array<{ userId: typeof args.excludeUserId }> = [];
 
     for (const membership of memberships) {
       if (membership.userId === args.excludeUserId) continue;
-      const user = await ctx.db.get(membership.userId);
-      if (!user) continue;
-      if (!user.onboardingCompleted) continue;
-      if (!isEmailEnabled(user, "spaceActivity")) continue;
-      eligibleFollowers.push({ userId: user._id });
+      followers.push({ userId: membership.userId });
     }
 
-    return eligibleFollowers;
+    return followers;
   },
 });
 
@@ -686,25 +682,11 @@ export const enqueueSpaceActivityEmailForUser = internalMutation({
     payload: v.any(),
   },
   handler: async (ctx, args) => {
-    const cutoff = Date.now() - EMAIL_DEDUP_WINDOW_MS;
-    const recentEmail = await ctx.db
-      .query("emailQueue")
-      .withIndex("by_userId_type_createdAt", (q) =>
-        q
-          .eq("userId", args.userId)
-          .eq("type", "space_activity")
-          .gte("createdAt", cutoff)
-      )
-      .first();
-
-    if (recentEmail) return;
-
-    await ctx.db.insert("emailQueue", {
-      userId: args.userId,
-      type: "space_activity",
-      status: "pending",
+    await enqueueEmailIfEligible(ctx, {
+      recipientUserId: args.userId,
+      emailType: "space_activity",
+      preferenceKey: "spaceActivity",
       payload: args.payload,
-      createdAt: Date.now(),
     });
   },
 });
