@@ -8,7 +8,7 @@
  * Weekly digest is excluded — it's a fundamentally different batch/cron pattern.
  */
 
-import type { MutationCtx, ActionCtx } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
